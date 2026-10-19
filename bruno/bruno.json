@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Smart Local Planner API",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

@@ -1,0 +1,13 @@
+.git
+.github
+.idea
+.vscode
+target/
+build/
+*.env
+*.env.local
+mobile/
+docs/
+personal/
+bruno/
+*.md

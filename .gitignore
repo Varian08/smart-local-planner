@@ -1,0 +1,65 @@
+# ========================================================
+# OS Generated Files
+# ========================================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ========================================================
+# IDE & Editors
+# ========================================================
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# ========================================================
+# Environment & Secrets (Zero Trust Policy)
+# ========================================================
+*.env
+*.env.local
+*.env.*.local
+*.key
+*.keystore
+*.jks
+credentials.json
+
+# ========================================================
+# Java & Spring Boot (Backend)
+# ========================================================
+backend/target/
+backend/build/
+backend/.gradle/
+backend/*.jar
+backend/*.war
+
+# ========================================================
+# Flutter & Dart (Mobile)
+# ========================================================
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/build/
+mobile/.pub-cache/
+mobile/.pub/
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/ios/Pods/
+mobile/ios/.symlinks/
+mobile/ios/Flutter/Flutter.framework
+mobile/ios/Flutter/Flutter.podspec
+
+# ========================================================
+# Logs & Database Dumps
+# ========================================================
+*.log
+logs/
+*.sql.gz
+*.dump

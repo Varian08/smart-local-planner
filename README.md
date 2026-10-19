@@ -6,9 +6,10 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20Alpine-blue.svg)](https://www.postgresql.org/)
 [![Flyway](https://img.shields.io/badge/Flyway-Migration%20Enabled-red.svg)](https://flywaydb.org/)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%26%20BLoC-purple.svg)](docs/ARCHITECTURE_BLUEPRINT.md)
+[![License](https://img.shields.io/badge/License-MIT-success.svg)](LICENSE)
 
 > **Enterprise-grade Intelligent Local Place Discovery & Travel Itinerary Planning Platform**  
-> A collaborative fullstack system integrating **Backend (Spring Boot 3, Java 21)** and **Mobile (Flutter BLoC)** following rigorous enterprise architectural and security standards.
+> A collaborative fullstack system integrating **Backend (Spring Boot 3, Java 21)** and **Mobile (Flutter BLoC)** following rigorous enterprise architectural, security, and clean code standards.
 
 ---
 
@@ -40,7 +41,75 @@ All architectural standards, engineering guidelines, API specifications, and Arc
 
 ---
 
-## 📂 3. Repository Scaffolding
+## 👥 3. Responsibility Assignment Matrix (Work Breakdown by Sprint)
+
+To ensure strict accountability and clear boundaries, responsibilities are partitioned by Sprint and functional domain:
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ WORK BREAKDOWN & OWNERSHIP MATRIX                                                      │
+├──────────┬──────────────────────────────────────────┬──────────────────────────────────┤
+│ Milestone│ Backend Engineer (Engineer A)            │ Mobile Engineer (Engineer B)     │
+├──────────┼──────────────────────────────────────────┼──────────────────────────────────┤
+│ Sprint 0 │ - Docker Compose & PostgreSQL 16 Alpine  │ - Flutter SDK & Material 3 Theme │
+│ (Done)   │ - Spring Boot 3 Skeleton & Actuator      │ - Clean Architecture Scaffolding │
+│          │ - Flyway Schema Migrations (`V1`)        │ - Dio Network Client & Storage   │
+│          │ - Security Config & CORS Whitelist       │ - Bruno API Collection Setup     │
+├──────────┼──────────────────────────────────────────┼──────────────────────────────────┤
+│ Sprint 1 │ - `Place` JPA Entity & Repository        │ - `PlaceListScreen` & Infinite   │
+│ (Active) │ - Search, Category & Geo Filter Queries  │   Scroll Pagination UI           │
+│          │ - Paginated DTOs (`PlaceResponseDto`)    │ - `PlaceBloc` (4-State Contract) │
+│          │ - `GET /api/v1/places` & `places/{id}`   │ - Cloudinary Cached Image Widget │
+├──────────┼──────────────────────────────────────────┼──────────────────────────────────┤
+│ Sprint 2 │ - JWT Authentication Service             │ - `LoginScreen` & `RegisterScreen│
+│          │ - Token Rotation (`refresh-token` flow)  │ - Hardware Keystore Integration  │
+│          │ - User Favorites API (`/api/v1/favorites`)│ - Bookmark Toggle & State Sync  │
+├──────────┼──────────────────────────────────────────┼──────────────────────────────────┤
+│ Sprint 3 │ - Itinerary Multi-day CRUD Service       │ - `ItineraryScreen` & Timeline   │
+│          │ - Strict Ownership Authorization Checks  │ - Drag-and-drop Schedule Editor  │
+│          │ - Place Reviews & Rating Aggregation API │ - User Review Submission Modal   │
+├──────────┼──────────────────────────────────────────┼──────────────────────────────────┤
+│ Sprint 4 │ - Provision Managed Neon.tech PostgreSQL │ - Physical Android Device QA     │
+│          │ - Containerize Backend to Render.com     │ - Offline & Edge Case Handling   │
+│          │ - Continuous Deployment (CD Pipeline)    │ - GitHub Releases APK Build (.apk│
+└──────────┴──────────────────────────────────────────┴──────────────────────────────────┘
+```
+
+---
+
+## 🏛️ 4. Clean Architecture & Layer Decoupling
+
+Following enterprise decoupling standards (comparable to Clean Architecture specifications), both subsystems operate strictly with unidirectional dependencies:
+
+### Backend 3-Tier Architecture
+```
+HTTP Request
+     │
+     ▼
+[ Controller Layer ]  ──► Ingests Request DTOs, triggers Jakarta Validation (@Valid), returns HTTP Status
+     │
+     ▼
+[  Service Layer   ]  ──► Core business logic, data transformation, @Transactional integrity
+     │
+     ▼
+[ Repository Layer ]  ──► Spring Data JPA parameterized queries, returns Entities (Never leaks to Controller)
+     │
+     ▼
+[  PostgreSQL 16   ]  ──► Managed strictly via Flyway Versioned Migrations
+```
+
+### Mobile Feature-First BLoC Architecture
+```
+[ Presentation (UI) ] ──( Dispatches Event )──► [      BLoC Layer      ]
+          ▲                                             │
+          │                                      ( Invokes Methods )
+          │                                             ▼
+          └───────( Emits Immutable State )───── [ Repository & Dio HTTP ]
+```
+
+---
+
+## 📂 5. Repository Scaffolding
 
 ```text
 smart-local-planner/
@@ -49,6 +118,11 @@ smart-local-planner/
 │   └── workflows/
 │       └── ci.yml                     # Automated Maven Compile & Verification Pipeline
 ├── docs/                              # Architecture Blueprints, API Contracts & ADRs
+│   ├── ARCHITECTURE_BLUEPRINT.md      # Full system technical specification
+│   ├── DEVELOPMENT_GUIDELINES.md      # Clean Code standards & Git rules
+│   ├── API_SPECIFICATION.md           # 14 REST endpoint contracts
+│   ├── schema.sql                     # Complete PostgreSQL 16 schema
+│   └── adr/                           # Architecture Decision Records 0001 - 0005
 ├── backend/                           # Spring Boot 3 REST API Service
 │   ├── src/main/resources/db/migration/ # Flyway Migration Scripts (V1, V2...)
 │   └── pom.xml                        # Maven dependencies & plugins
@@ -67,7 +141,7 @@ smart-local-planner/
 
 ---
 
-## ⚡ 4. Developer Quickstart
+## ⚡ 6. Developer Quickstart
 
 ### Prerequisites:
 - **Docker Desktop** (or Docker Engine with Compose V2).
@@ -104,7 +178,7 @@ Refer to the dedicated mobile setup guide: **[mobile/README.md](mobile/README.md
 
 ---
 
-## 🌿 5. Git Branching Strategy & Collaboration Workflow
+## 🌿 7. Git Branching Strategy & Collaboration Workflow
 
 This project adheres strictly to **Trunk-Based / GitFlow Integration Branching**:
 
@@ -132,7 +206,7 @@ This project adheres strictly to **Trunk-Based / GitFlow Integration Branching**
 
 ---
 
-## 👥 6. Engineering Roles & Ownership
+## 👥 8. Engineering Roles & Core Ownership
 
 * **Backend Software Engineer (Engineer A):** RESTful API Architecture, Database Schema Evolution, Security Implementation & Cloud Deployment.
 * **Mobile Software Engineer (Engineer B):** Flutter UI/UX Engineering, BLoC State Management, Network Client Integration & Mobile Edge Cases.

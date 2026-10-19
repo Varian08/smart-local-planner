@@ -79,9 +79,9 @@ To ensure strict accountability and clear boundaries, responsibilities are parti
 
 ## 🏛️ 4. Clean Architecture & Layer Decoupling
 
-Following enterprise decoupling standards (comparable to Clean Architecture specifications), both subsystems operate strictly with unidirectional dependencies:
+Following enterprise decoupling standards, both subsystems operate strictly with unidirectional dependencies:
 
-### Backend 3-Tier Architecture
+### Backend 3-Tier Layer Boundaries
 ```
 HTTP Request
      │
@@ -109,7 +109,7 @@ HTTP Request
 
 ---
 
-## 📂 5. Repository Scaffolding
+## 📂 5. Repository Scaffolding & Directory Breakdown
 
 ```text
 smart-local-planner/
@@ -124,14 +124,32 @@ smart-local-planner/
 │   ├── schema.sql                     # Complete PostgreSQL 16 schema
 │   └── adr/                           # Architecture Decision Records 0001 - 0005
 ├── backend/                           # Spring Boot 3 REST API Service
-│   ├── src/main/resources/db/migration/ # Flyway Migration Scripts (V1, V2...)
-│   └── pom.xml                        # Maven dependencies & plugins
+│   ├── src/main/java/com/smartplanner/
+│   │   ├── config/                    # SecurityConfig, CorsConfig, SwaggerOpenApiConfig
+│   │   ├── common/                    # GlobalExceptionHandler, Standard ErrorResponse DTOs
+│   │   ├── modules/                   # auth, places, favorites, itineraries
+│   │   │   ├── controller/            # REST API Endpoints receiving Request DTOs
+│   │   │   ├── service/               # Domain Business Logic & @Transactional boundaries
+│   │   │   ├── repository/            # Spring Data JPA Interfaces
+│   │   │   ├── entity/                # JPA Database Entities (Isolated from presentation)
+│   │   │   └── dto/                   # Immutable Request/Response Record DTOs
+│   │   └── BackendApplication.java    # Application Entrypoint
+│   ├── src/main/resources/
+│   │   ├── application.yml            # Dynamic 12-Factor Configuration
+│   │   └── db/migration/              # Flyway Versioned Migrations (V1, V2...)
+│   └── pom.xml                        # Maven dependencies & build plugins
 ├── mobile/                            # Flutter Mobile Client (Clean Architecture)
 │   ├── README.md                      # Dedicated Developer Onboarding Guide for Mobile
-│   └── lib/                           # app/, core/, features/ (auth, places, itineraries)
+│   └── lib/
+│       ├── app/                       # Router (go_router), Theme (Material 3), main.dart
+│       ├── core/                      # Network (Dio + Interceptor), SecureStorage, Widgets
+│       └── features/                  # Vertical modules: auth, places, favorites, itineraries
+│           ├── presentation/          # Stateless Widgets & Screens (4-State Contract)
+│           ├── bloc/                  # flutter_bloc Event, State & Bloc logic
+│           └── data/                  # Feature Repositories, DataSources & JSON Mappers
 ├── bruno/                             # Git-native Bruno API Testing Collection
 │   ├── README.md                      # Quickstart guide for executing Bruno requests
-│   └── bruno.json
+│   └── bruno.json                     # Collection configuration
 ├── docker-compose.yml                 # Local PostgreSQL 16 container definition
 ├── .env.example                       # Environment Variable Template (Zero Secrets Policy)
 ├── .dockerignore                      # Build cache and sensitive file exclusion
@@ -141,7 +159,24 @@ smart-local-planner/
 
 ---
 
-## ⚡ 6. Developer Quickstart
+## ⚙️ 6. Twelve-Factor Configuration & Dynamic Environments
+
+In alignment with [The Twelve-Factor App methodology (III. Config)](https://12factor.net/config), this platform enforces strict separation of configuration from code:
+
+* **Zero Hardcoded Secrets:** Passwords, API keys, and connection strings are strictly injected via Environment Variables. No production credentials exist within Git.
+* **Environment Agnostic:** The application reads from environment variables with sensible local fallback defaults defined in `backend/src/main/resources/application.yml`:
+  ```yaml
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:smart_local_planner}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+  ```
+  - **Local Development:** When run locally, it effortlessly connects to Docker Compose on `localhost:5432`.
+  - **Cloud Production (Sprint 4):** When deployed to Render.com and Neon.tech, the same compiled artifact seamlessly adapts to Cloud environment variables (`DB_HOST`, `DB_USER`, `DB_PASSWORD`) with **zero code modifications**.
+
+---
+
+## ⚡ 7. Developer Quickstart
 
 ### Prerequisites:
 - **Docker Desktop** (or Docker Engine with Compose V2).
@@ -178,7 +213,7 @@ Refer to the dedicated mobile setup guide: **[mobile/README.md](mobile/README.md
 
 ---
 
-## 🌿 7. Git Branching Strategy & Collaboration Workflow
+## 🌿 8. Git Branching Strategy & Collaboration Workflow
 
 This project adheres strictly to **Trunk-Based / GitFlow Integration Branching**:
 
@@ -206,7 +241,7 @@ This project adheres strictly to **Trunk-Based / GitFlow Integration Branching**
 
 ---
 
-## 👥 8. Engineering Roles & Core Ownership
+## 👥 9. Engineering Roles & Core Ownership
 
 * **Backend Software Engineer (Engineer A):** RESTful API Architecture, Database Schema Evolution, Security Implementation & Cloud Deployment.
 * **Mobile Software Engineer (Engineer B):** Flutter UI/UX Engineering, BLoC State Management, Network Client Integration & Mobile Edge Cases.

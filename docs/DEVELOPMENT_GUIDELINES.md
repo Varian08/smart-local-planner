@@ -110,14 +110,36 @@ Before submitting a feature branch, Engineer B must verify:
 * `feature/backend-<task-name>`: Backend feature branch.
 * `feature/flutter-<task-name>`: Mobile feature branch.
 
-### 6.2. Commit Format
-Format: `<type>(<scope>): <subject>`
+### 6.2. Conventional Commits Standard
 
-* `feat(place)`: Add place search endpoint with pagination
-* `fix(auth)`: Fix token refresh race condition on expired session
-* `refactor(dio)`: Centralize network error mapping in Dio interceptor
-* `test(itinerary)`: Add unit tests for itinerary ownership verification
-* `docs(adr)`: Record ADR-0005 for cloud hosting architecture
+All commit messages across the team must follow the industry-standard **Conventional Commits** specification:
+
+```text
+<type>(<scope>): <subject>
+```
+
+#### Commit Types Quick Reference
+
+| Type | Purpose & Scope | Real Project Example |
+| :--- | :--- | :--- |
+| **`feat`** | Introduces a new feature or user-facing capability | `feat(places): add API to search tourist spots with pagination` |
+| **`fix`** | Patches a bug or resolves unintended behavior | `fix(auth): fix token refresh race condition on expired session` |
+| **`docs`** | Updates documentation, ADRs, or API specifications | `docs(readme): update local development setup instructions` |
+| **`refactor`** | Restructures code without changing behavior or adding features | `refactor(service): simplify calculate distance algorithm` |
+| **`test`** | Adds or refactors unit, integration, or widget tests | `test(places): add mock tests for PlaceService repository layer` |
+| **`ci`** | Updates CI/CD workflows, build scripts, or GitHub Actions | `ci: optimize maven test-compile quality gate` |
+| **`chore`** | Maintenance, dependencies, config files, or cleanup | `chore: clean up unused assets and remove legacy template` |
+
+#### Permitted Scopes
+* **Backend:** `auth`, `places`, `itineraries`, `database`, `security`, `flyway`
+* **Mobile:** `ui`, `bloc`, `dio`, `storage`, `theme`, `widget`
+* **Shared/Infrastructure:** `ci`, `docker`, `docs`, `config`
+
+#### Best Practices
+* **Imperative mood:** Use "add", "fix", "update" instead of "added", "fixed", "updating".
+* **No period at the end:** Keep the subject concise (under 72 characters).
+* **Bad:** `fixed bug`, `update code`, `wip`, `test1`
+* **Good:** `feat(mobile): implement place card widget with skeleton loading`
 
 ### 6.3. Branch Hygiene
 Once a feature Pull Request is approved and merged into `develop` or `main`, **delete the feature branch immediately** on both remote and local.

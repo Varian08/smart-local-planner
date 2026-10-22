@@ -1,4 +1,4 @@
-# 🚀 CI/CD Evolution Roadmap & Sprint Quality Gate
+# CI/CD Evolution Roadmap & Quality Gate Architecture
 
 > **Project:** Smart Local Planner  
 > **Applies to:** `.github/workflows/ci.yml`  
@@ -6,7 +6,7 @@
 
 ---
 
-## 🗺️ Sprint-by-Sprint CI Evolution Map
+## Sprint-by-Sprint CI Evolution Map
 
 ```text
 [ Sprint 0: Foundation ] ──► [ Sprint 1: Core Logic ] ──► [ Sprint 2: Fullstack ] ──► [ Sprint 3+: Release ]
@@ -17,12 +17,12 @@
 
 ---
 
-## 📌 Phase 1: Sprint 0 (Current Baseline - Infrastructure Foundation)
+## Phase 1: Sprint 0 (Infrastructure Foundation)
 
-### 🎯 Objective
+### Objective
 Guarantee that Java 21 backend builds and compiles cleanly, dependencies are cached, line endings are normalized, and developers are not prematurely blocked before test suites exist.
 
-### ⚙️ Active `ci.yml` Configuration
+### Active Workflow Configuration
 * **Triggers:** `push` and `pull_request` targeting `develop` and `main`.
 * **Runner:** `ubuntu-latest`.
 * **Actions:** `actions/checkout@v4`, `actions/setup-java@v4` (Java 21 LTS, Eclipse Temurin, `cache: 'maven'`).
@@ -35,12 +35,12 @@ Guarantee that Java 21 backend builds and compiles cleanly, dependencies are cac
 
 ---
 
-## 📌 Phase 2: Sprint 1 (Core Backend Domain & Data Layer)
+## Phase 2: Sprint 1 (Core Domain & Data Layer)
 
-### 🎯 Objective
+### Objective
 As JPA Entities (`Place`), Repositories, Services, and unit tests are introduced: **Enforce 100% test pass rate on all Pull Requests targeting `develop`.**
 
-### 🛠️ Configuration Update in `.github/workflows/ci.yml`:
+### Workflow Configuration Update
 Upgrade verification command from `test-compile` to active test suite execution:
 
 ```yaml
@@ -49,17 +49,17 @@ Upgrade verification command from `test-compile` to active test suite execution:
         run: mvn -B test
 ```
 
-### 🛡️ Quality Gate Enforcement:
-* Any commit that breaks existing unit tests triggers **CI Failure ❌ ➔ Block Merge**.
+### Quality Gate Enforcement
+* Any commit that breaks existing unit tests triggers **CI Failure ➔ Block Merge**.
 
 ---
 
-## 📌 Phase 3: Sprint 2 (Fullstack Integration - Mobile Flutter)
+## Phase 3: Sprint 2 (Fullstack Integration - Mobile Flutter)
 
-### 🎯 Objective
+### Objective
 As mobile features (`flutter_bloc`, presentation screens) are authored under `mobile/`: Introduce a parallel Job to validate Dart code quality and widget tests (analogous to the `frontend` job in `eform`).
 
-### 🛠️ Job Definition to Append into `.github/workflows/ci.yml`:
+### Parallel Mobile Job Configuration
 
 ```yaml
   mobile-ci:
@@ -96,14 +96,14 @@ As mobile features (`flutter_bloc`, presentation screens) are authored under `mo
 
 ---
 
-## 📌 Phase 4: Sprint 3 & Production (Enterprise Full-Blown Quality Gate)
+## Phase 4: Sprint 3 & Production Quality Gate
 
-### 🎯 Objective
+### Objective
 Achieve full parity with enterprise compliance standards across 5 architectural pillars: Backend, Mobile, DevSecOps Security, Infrastructure Containers, and Database Integrity.
 
 ---
 
-## 🏛️ The 5 Pillars of Enterprise CI Architecture
+## Five Pillars of Enterprise CI Architecture
 
 ```mermaid
 graph TD
@@ -151,7 +151,7 @@ graph TD
 
 ---
 
-## ⚠️ Risk & Trade-off Evaluation Matrix
+## Risk & Trade-off Evaluation Matrix
 
 | Inspection Step | Potential Pitfall If Misconfigured | Enterprise Best Practice Solution |
 | :--- | :--- | :--- |
@@ -162,7 +162,7 @@ graph TD
 
 ---
 
-## 📋 Sprint Transition Checklist
+## Sprint Transition Checklist
 
 When commencing a new Sprint, the Tech Lead performs:
 - [ ] **Step 1:** Review this roadmap specification (`.github/CI_ROADMAP.md`).

@@ -13,20 +13,20 @@
 
 ---
 
-## 📌 1. Architecture Blueprint & System Contracts
+## 1. Architecture Blueprint & System Contracts
 
 All architectural standards, engineering guidelines, API specifications, and Architecture Decision Records (ADRs) are documented in:
 
-* 📐 **[docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md)** — Comprehensive System Architecture Specification (Technical English).
-* 📖 **[docs/DEVELOPMENT_GUIDELINES.md](docs/DEVELOPMENT_GUIDELINES.md)** — Clean Coding Standards, 3-Layer Isolation, and Quality Gate Checklist.
-* 🤝 **[CONTRIBUTING.md](CONTRIBUTING.md)** — Developer Playbook, 5 Zero-Tolerance Pitfalls & Git Workflow.
-* 📡 **[docs/API_SPECIFICATION.md](docs/API_SPECIFICATION.md)** — Complete Request/Response JSON Contract for all 14 MVP Endpoints.
-* 🗄️ **[docs/schema.sql](docs/schema.sql)** — Production-ready PostgreSQL 16 DDL Schema (UUID v4, Foreign Keys, B-Tree & Spatial Indexes).
-* 🏛️ **[docs/adr/README.md](docs/adr/README.md)** — Architecture Decision Records Index (ADR 0001 through 0005).
+* **[docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md)** — Comprehensive System Architecture Specification (Technical English).
+* **[docs/DEVELOPMENT_GUIDELINES.md](docs/DEVELOPMENT_GUIDELINES.md)** — Clean Coding Standards, 3-Layer Isolation, and Quality Gate Checklist.
+* **[CONTRIBUTING.md](CONTRIBUTING.md)** — Developer Playbook, Zero-Tolerance Pitfalls & Git Workflow.
+* **[docs/API_SPECIFICATION.md](docs/API_SPECIFICATION.md)** — Complete Request/Response JSON Contract for all 14 MVP Endpoints.
+* **[docs/schema.sql](docs/schema.sql)** — Production-ready PostgreSQL 16 DDL Schema (UUID v4, Foreign Keys, B-Tree & Spatial Indexes).
+* **[docs/adr/README.md](docs/adr/README.md)** — Architecture Decision Records Index (ADR 0001 through 0005).
 
 ---
 
-## 🛠️ 2. Core Technology Stack (100% Free & Production-Ready)
+## 2. Core Technology Stack
 
 | Subsystem | Technology | Purpose & Responsibility | Assigned Role |
 |---|---|---|:---:|
@@ -42,7 +42,7 @@ All architectural standards, engineering guidelines, API specifications, and Arc
 
 ---
 
-## 👥 3. Responsibility Assignment Matrix (Work Breakdown by Sprint)
+## 3. Responsibility Assignment Matrix (Work Breakdown by Sprint)
 
 To ensure strict accountability and clear boundaries, responsibilities are partitioned by Sprint and functional domain:
 
@@ -78,7 +78,7 @@ To ensure strict accountability and clear boundaries, responsibilities are parti
 
 ---
 
-## 🏛️ 4. Clean Architecture & Layer Decoupling
+## 4. Clean Architecture & Layer Decoupling
 
 Following enterprise decoupling standards, both subsystems operate strictly with unidirectional dependencies:
 
@@ -110,12 +110,12 @@ HTTP Request
 
 ---
 
-## 📂 5. Repository Scaffolding & Directory Breakdown
+## 5. Repository Structure
 
 ```text
 smart-local-planner/
 ├── .github/                           # GitHub Enterprise Standards
-│   ├── PULL_REQUEST_TEMPLATE.md       # Mandatory Definition of Done (DoD) Checklist
+│   ├── CI_ROADMAP.md                  # Evolution Guide & Multi-Sprint Quality Gates
 │   └── workflows/
 │       └── ci.yml                     # Automated Maven Compile & Verification Pipeline
 ├── docs/                              # Architecture Blueprints, API Contracts & ADRs
@@ -160,7 +160,7 @@ smart-local-planner/
 
 ---
 
-## ⚙️ 6. Twelve-Factor Configuration & Dynamic Environments
+## 6. Twelve-Factor Configuration & Dynamic Environments
 
 In alignment with [The Twelve-Factor App methodology (III. Config)](https://12factor.net/config), this platform enforces strict separation of configuration from code:
 
@@ -177,7 +177,7 @@ In alignment with [The Twelve-Factor App methodology (III. Config)](https://12fa
 
 ---
 
-## ⚡ 7. Developer Quickstart
+## 7. Developer Quickstart
 
 ### Prerequisites:
 - **Docker Desktop** (or Docker Engine with Compose V2).
@@ -214,7 +214,7 @@ Refer to the dedicated mobile setup guide: **[mobile/README.md](mobile/README.md
 
 ---
 
-## 🌿 8. Git Branching Strategy & Collaboration Workflow
+## 8. Git Branching Strategy & Collaboration Workflow
 
 This project adheres strictly to **Trunk-Based / GitFlow Integration Branching**:
 
@@ -242,7 +242,7 @@ This project adheres strictly to **Trunk-Based / GitFlow Integration Branching**
 
 ---
 
-## 👥 9. Engineering Roles & Core Ownership
+## 9. Engineering Roles & Core Ownership
 
 * **Backend Software Engineer (Engineer A):** RESTful API Architecture, Database Schema Evolution, Security Implementation & Cloud Deployment.
 * **Mobile Software Engineer (Engineer B):** Flutter UI/UX Engineering, BLoC State Management, Network Client Integration & Mobile Edge Cases.

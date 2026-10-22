@@ -13,7 +13,7 @@ Welcome to **Smart Local Planner**! This repository is engineered following stri
 
 ---
 
-## ⛔ 2. The 5 Zero-Tolerance Pitfalls (Cẩm Nang Tránh Lỗi Tuyệt Đối)
+## ⛔ 2. The 5 Zero-Tolerance Pitfalls (Critical Engineering Constraints)
 
 Before writing any code, memorize these 5 non-negotiable rules. Violating any of these will cause GitHub CI or PR Review to reject your code immediately.
 

@@ -1,32 +1,74 @@
-name: Backend CI Quality Gate
+name: Strict CI
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
+      - 'feature/**'
   pull_request:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
 
 permissions:
   contents: read
 
 jobs:
-  backend-build-check:
-    name: Spring Boot 3 Compile & Verification
+  backend-quality-gate:
+    name: Backend quality gate
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
+    timeout-minutes: 15
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up Java 21 (Eclipse Temurin)
-        uses: actions/setup-java@v4
+      # Phase 1 — Checkout, Java runtime, and Maven cache.
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'maven'
+          persist-credentials: false
 
-      - name: Verify Backend Compilation
-        run: mvn -B clean compile
+      - name: Set up Eclipse Temurin Java 21 and Maven cache
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      # Phase 2 — Resolve the dependencies declared by the existing Maven project.
+      - name: Resolve Maven dependencies
+        run: ./mvnw -B -ntp dependency:go-offline
+        working-directory: backend
+
+      # Phase 3 — Lint workflow configuration, then run the strict Maven quality gate.
+      - name: Lint GitHub Actions workflows
+        env:
+          ACTIONLINT_VERSION: 1.7.12
+        run: |
+          set -euo pipefail
+          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          release_url="https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}"
+          curl --fail --location --silent --show-error \
+            "${release_url}/${archive}" \
+            --output "${RUNNER_TEMP}/${archive}"
+          curl --fail --location --silent --show-error \
+            "${release_url}/actionlint_${ACTIONLINT_VERSION}_checksums.txt" \
+            --output "${RUNNER_TEMP}/actionlint_checksums.txt"
+          cd "${RUNNER_TEMP}"
+          grep -F "  ${archive}" actionlint_checksums.txt | sha256sum --check --status
+          mkdir -p "${RUNNER_TEMP}/actionlint"
+          tar -xzf "${RUNNER_TEMP}/${archive}" -C "${RUNNER_TEMP}/actionlint" actionlint
+          "${RUNNER_TEMP}/actionlint/actionlint" "${GITHUB_WORKSPACE}/.github/workflows/ci.yml"
+
+      # No Java source-lint plugin is configured in backend/pom.xml.
+      - name: Build and verify backend (fail when no tests are found)
+        run: ./mvnw -B -ntp clean verify -DfailIfNoTests=true
+        working-directory: backend
+
+# Logic summary:
+# - Push CI now covers main, develop, and feature/**; pull requests target main/develop.
+# - Actions are pinned to verified upstream release SHAs; checkout credentials are not persisted.
+# - Java 21 and Maven dependency caching use the existing backend POM and Maven Wrapper.
+# - Dependencies are resolved before lint and verification; actionlint validates the workflow.
+# - Maven verification fails on compile/test errors and also fails when no tests exist.
+# - Permissions remain read-only; no secrets, Flutter, Docker, database, or deployment steps are used.

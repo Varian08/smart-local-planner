@@ -19,6 +19,7 @@ All architectural standards, engineering guidelines, API specifications, and Arc
 
 * 📐 **[docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md)** — Comprehensive System Architecture Specification (Technical English).
 * 📖 **[docs/DEVELOPMENT_GUIDELINES.md](docs/DEVELOPMENT_GUIDELINES.md)** — Clean Coding Standards, 3-Layer Isolation, and Quality Gate Checklist.
+* 🤝 **[CONTRIBUTING.md](CONTRIBUTING.md)** — Developer Playbook, 5 Zero-Tolerance Pitfalls & Git Workflow.
 * 📡 **[docs/API_SPECIFICATION.md](docs/API_SPECIFICATION.md)** — Complete Request/Response JSON Contract for all 14 MVP Endpoints.
 * 🗄️ **[docs/schema.sql](docs/schema.sql)** — Production-ready PostgreSQL 16 DDL Schema (UUID v4, Foreign Keys, B-Tree & Spatial Indexes).
 * 🏛️ **[docs/adr/README.md](docs/adr/README.md)** — Architecture Decision Records Index (ADR 0001 through 0005).

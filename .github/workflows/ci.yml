@@ -17,6 +17,9 @@ jobs:
       run:
         working-directory: backend
 
+    env:
+      MAVEN_OPTS: "-Xmx2048m -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

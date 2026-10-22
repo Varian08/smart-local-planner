@@ -1,0 +1,29 @@
+# Auto-detect text files and normalize line endings to LF (Linux standard for GitHub CI)
+* text=auto eol=lf
+
+# Explicit LF for code and configuration files
+*.java text diff=java eol=lf
+*.dart text eol=lf
+*.sql text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.xml text eol=lf
+*.json text eol=lf
+
+# Shell scripts must have LF line endings to prevent '\r: command not found' on Linux
+*.sh text eol=lf
+mvnw text eol=lf
+
+# Windows specific scripts require CRLF
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Binary files - do not touch
+*.jar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.pdf binary
+*.docx binary

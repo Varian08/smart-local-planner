@@ -28,52 +28,56 @@ All architectural standards, engineering guidelines, API specifications, and Arc
 
 ## 2. Core Technology Stack
 
-| Subsystem | Technology | Purpose & Responsibility | Assigned Role |
-|---|---|---|:---:|
-| **Mobile App** | **Flutter (Material 3) + Dart** | Cross-platform UI (Android & iOS) | Mobile Engineer (Engineer B) |
-| **State Management** | **`flutter_bloc`** | Unidirectional State Management (`Event -> Bloc -> State`) | Mobile Engineer (Engineer B) |
-| **Mobile Network** | **`dio` + Interceptors** | HTTP Client with automated Refresh Token Rotation | Mobile Engineer (Engineer B) |
-| **Backend API** | **Java 21 + Spring Boot 3.3.x** | High-performance RESTful API, DTO isolation | Backend Engineer (Engineer A) |
-| **Security Shield** | **Spring Security + JWT** | Stateless Auth: Access Token (30m) & Refresh Token (7d) | Backend Engineer (Engineer A) |
-| **Database Migration**| **Flyway Core** | Version-controlled, idempotent Database-as-Code | Backend Engineer (Engineer A) |
-| **Database Engine** | **PostgreSQL 16 Alpine** | Local (Docker Compose) & Production (Neon.tech Serverless) | Backend Engineer (Engineer A) |
-| **Asset Storage** | **Cloudinary CDN** | Cloud asset optimization, format negotiation & compression | Joint Responsibility |
-| **API Testing** | **Bruno + Swagger UI** | Git-versioned open-source API testing and living docs | Joint Responsibility |
+| Subsystem | Technology & Runtime | Purpose & Scope | Architectural Rationale & Standards |
+|---|---|---|---|
+| **Mobile App** | **Flutter 3.x + Dart 3.x** | Cross-platform UI (Android & iOS) | Single codebase, declarative Material 3 design system |
+| **State Management** | **`flutter_bloc`** | Reactive presentation state flow | Strict unidirectional data flow (`Event -> Bloc -> State`) |
+| **Mobile Network** | **`dio` + Interceptors** | Resilient HTTP network client | Automated JWT Refresh Token Rotation on HTTP 401 |
+| **Backend API** | **Java 21 LTS + Spring Boot 3.3.x** | Enterprise RESTful API services | Virtual Threads, DTO isolation, compile-time safety |
+| **Security Shield** | **Spring Security 6 + JWT** | Stateless authentication pipeline | Access Token (30m) + Refresh Token (7d), BCrypt hashing |
+| **Database Migration**| **Flyway Core** | Idempotent Database-as-Code | Sequential versioned SQL scripts (`V1__...`), zero auto-ddl |
+| **Database Engine** | **PostgreSQL 16 Alpine** | Relational data persistence tier | Local Docker container parity with Cloud Neon Serverless |
+| **Asset Storage** | **Cloudinary CDN** | Cloud media storage & optimization | On-the-fly image resizing, WebP delivery, edge caching |
+| **API Testing** | **Bruno + Swagger UI** | Contract validation & living docs | Git-versioned plain text collections & interactive UI |
 
 ---
 
-## 3. Responsibility Assignment Matrix (Work Breakdown by Sprint)
+## 3. Product Milestone Roadmap (Sprint Deliverables)
 
-To ensure strict accountability and clear boundaries, responsibilities are partitioned by Sprint and functional domain:
+The platform follows an iterative **Agile / Scrum delivery lifecycle** partitioned into five sequential milestones:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ WORK BREAKDOWN & OWNERSHIP MATRIX                                                      │
-├──────────┬──────────────────────────────────────────┬──────────────────────────────────┤
-│ Milestone│ Backend Engineer (Engineer A)            │ Mobile Engineer (Engineer B)     │
-├──────────┼──────────────────────────────────────────┼──────────────────────────────────┤
-│ Sprint 0 │ - Docker Compose & PostgreSQL 16 Alpine  │ - Flutter SDK & Material 3 Theme │
-│ (Done)   │ - Spring Boot 3 Skeleton & Actuator      │ - Clean Architecture Scaffolding │
-│          │ - Flyway Schema Migrations (`V1`)        │ - Dio Network Client & Storage   │
-│          │ - Security Config & CORS Whitelist       │ - Bruno API Collection Setup     │
-├──────────┼──────────────────────────────────────────┼──────────────────────────────────┤
-│ Sprint 1 │ - `Place` JPA Entity & Repository        │ - `PlaceListScreen` & Infinite   │
-│ (Active) │ - Search, Category & Geo Filter Queries  │   Scroll Pagination UI           │
-│          │ - Paginated DTOs (`PlaceResponseDto`)    │ - `PlaceBloc` (4-State Contract) │
-│          │ - `GET /api/v1/places` & `places/{id}`   │ - Cloudinary Cached Image Widget │
-├──────────┼──────────────────────────────────────────┼──────────────────────────────────┤
-│ Sprint 2 │ - JWT Authentication Service             │ - `LoginScreen` & `RegisterScreen│
-│          │ - Token Rotation (`refresh-token` flow)  │ - Hardware Keystore Integration  │
-│          │ - User Favorites API (`/api/v1/favorites`)│ - Bookmark Toggle & State Sync  │
-├──────────┼──────────────────────────────────────────┼──────────────────────────────────┤
-│ Sprint 3 │ - Itinerary Multi-day CRUD Service       │ - `ItineraryScreen` & Timeline   │
-│          │ - Strict Ownership Authorization Checks  │ - Drag-and-drop Schedule Editor  │
-│          │ - Place Reviews & Rating Aggregation API │ - User Review Submission Modal   │
-├──────────┼──────────────────────────────────────────┼──────────────────────────────────┤
-│ Sprint 4 │ - Provision Managed Neon.tech PostgreSQL │ - Physical Android Device QA     │
-│          │ - Containerize Backend to Render.com     │ - Offline & Edge Case Handling   │
-│          │ - Continuous Deployment (CD Pipeline)    │ - GitHub Releases APK Build (.apk│
-└──────────┴──────────────────────────────────────────┴──────────────────────────────────┘
+│ PRODUCT ROADMAP & SPRINT DELIVERABLES                                                  │
+├──────────┬─────────────────────────────┬───────────────────────────────────────────────┤
+│ Sprint   │ Focus Area                  │ Shipped Capabilities & Key Artifacts          │
+├──────────┼─────────────────────────────┼───────────────────────────────────────────────┤
+│ Sprint 0 │ Foundation & Scaffolding    │ - Docker Compose with PostgreSQL 16 Alpine    │
+│ (Done)   │                             │ - Spring Boot 3 Skeleton & Actuator Health    │
+│          │                             │ - Flyway Baseline Schema Migration (V1)       │
+│          │                             │ - Flutter SDK, Material 3 Theme & BLoC Setup  │
+│          │                             │ - Bruno Collection & GitHub Actions CI Gate   │
+├──────────┼─────────────────────────────┼───────────────────────────────────────────────┤
+│ Sprint 1 │ Place Discovery & Search    │ - places JPA Entity, Repository & Spatial Qs  │
+│ (Active) │ (First Vertical Slice)      │ - Search, Category & Price Level Filter APIs  │
+│          │                             │ - Infinite Scroll Pagination UI (PlaceList)   │
+│          │                             │ - Cloudinary Cached Image Component           │
+├──────────┼─────────────────────────────┼───────────────────────────────────────────────┤
+│ Sprint 2 │ Authentication & Favorites  │ - Stateless JWT Auth Service & Token Rotation │
+│          │                             │ - User Favorites Collection CRUD APIs         │
+│          │                             │ - Hardware Keystore Integration (Storage)     │
+│          │                             │ - Bookmark Toggle with Optimistic UI Sync     │
+├──────────┼─────────────────────────────┼───────────────────────────────────────────────┤
+│ Sprint 3 │ Multi-Day Itineraries       │ - Multi-Day Travel Itinerary CRUD Engine      │
+│          │ & Reviews Engine            │ - Strict Resource Ownership Guards            │
+│          │                             │ - Itinerary Schedule Timeline & Place Ordering│
+│          │                             │ - Community Reviews & Star Ratings Service    │
+├──────────┼─────────────────────────────┼───────────────────────────────────────────────┤
+│ Sprint 4 │ Production Release & Cloud  │ - Provision Managed Neon.tech Cloud PostgreSQL│
+│          │ Deployment                  │ - Containerized Backend Deploy on Render.com  │
+│          │                             │ - Automated Release APK Packaging via CI/CD   │
+│          │                             │ - End-to-End Latency & Offline UX Audit       │
+└──────────┴─────────────────────────────┴───────────────────────────────────────────────┘
 ```
 
 ---
@@ -242,7 +246,8 @@ This project adheres strictly to **Trunk-Based / GitFlow Integration Branching**
 
 ---
 
-## 9. Engineering Roles & Core Ownership
+## 9. Core Engineering Domains & Governance
 
-* **Backend Software Engineer (Engineer A):** RESTful API Architecture, Database Schema Evolution, Security Implementation & Cloud Deployment.
-* **Mobile Software Engineer (Engineer B):** Flutter UI/UX Engineering, BLoC State Management, Network Client Integration & Mobile Edge Cases.
+* **Backend Systems & Platform:** RESTful API Architecture, Database Schema Evolution (Flyway), Spring Security Pipeline, Cloud Deployment & Observability.
+* **Mobile Client Engineering:** Flutter Material 3 UI/UX, BLoC State Machine, Resilient Network Interceptors, Offline Caching & Mobile Edge Cases.
+* **Cross-Functional Collaboration:** API Contract Governance (Bruno/OpenAPI), Schema Reviews, and Automated CI/CD Gates.

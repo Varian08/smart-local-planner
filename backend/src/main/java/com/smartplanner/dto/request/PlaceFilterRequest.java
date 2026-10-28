@@ -1,7 +1,10 @@
 package com.smartplanner.dto.request;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,18 +25,23 @@ import java.math.BigDecimal;
 public class PlaceFilterRequest {
 
     // Filter criteria
+    @Size(max = 64, message = "Category must not exceed 64 characters")
     private String category;
 
     @Min(value = 1, message = "Price level must be at least 1")
     @Max(value = 4, message = "Price level must not exceed 4")
     private Integer priceLevel;
 
+    @DecimalMin(value = "0.0", message = "Minimum rating must be at least 0.0")
+    @DecimalMax(value = "5.0", message = "Minimum rating must not exceed 5.0")
     private BigDecimal minRating;
 
     // Search query parameter matching API specification (e.g. ?query=cau+rong)
+    @Size(max = 100, message = "Search query must not exceed 100 characters")
     private String query;
 
     // Legacy parameter preserved for backward compatibility
+    @Size(max = 100, message = "Search keyword must not exceed 100 characters")
     private String keyword;
 
     // Pagination parameters with defensive bounds
@@ -69,4 +77,3 @@ public class PlaceFilterRequest {
         return null;
     }
 }
-

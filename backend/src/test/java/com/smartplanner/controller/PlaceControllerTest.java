@@ -208,4 +208,41 @@ class PlaceControllerTest {
                 .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Required request parameter 'category'")))
                 .andExpect(jsonPath("$.traceId").exists());
     }
+
+    @Test
+    @DisplayName("GET /api/v1/places with minRating exceeding 5.0 should return 400 VALIDATION_FAILED")
+    void getPlaces_withExcessiveMinRating_returns400ValidationFailed() throws Exception {
+        mockMvc.perform(get("/api/v1/places")
+                        .param("minRating", "99.0")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.fieldErrors.minRating").value("Minimum rating must not exceed 5.0"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/places with negative minRating should return 400 VALIDATION_FAILED")
+    void getPlaces_withNegativeMinRating_returns400ValidationFailed() throws Exception {
+        mockMvc.perform(get("/api/v1/places")
+                        .param("minRating", "-1.0")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.fieldErrors.minRating").value("Minimum rating must be at least 0.0"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/places with excessive query length (>100 chars) should return 400 VALIDATION_FAILED")
+    void getPlaces_withExcessiveQueryLength_returns400ValidationFailed() throws Exception {
+        String excessiveQuery = "a".repeat(101);
+        mockMvc.perform(get("/api/v1/places")
+                        .param("query", excessiveQuery)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.fieldErrors.query").value("Search query must not exceed 100 characters"));
+    }
 }

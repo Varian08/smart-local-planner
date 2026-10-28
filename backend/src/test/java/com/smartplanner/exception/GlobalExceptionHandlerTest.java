@@ -118,6 +118,23 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("handleIllegalStateException maps to 500 INTERNAL_SERVER_ERROR")
+    void handleIllegalStateException_returns500() {
+        // Given
+        IllegalStateException ex = new IllegalStateException("Internal state failure");
+
+        // When
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleIllegalStateException(ex, request);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        ApiErrorResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getCode()).isEqualTo("INTERNAL_SERVER_ERROR");
+        assertThat(body.getMessage()).contains("traceId");
+    }
+
+    @Test
     @DisplayName("handleTypeMismatchException maps to 400 BAD_REQUEST with INVALID_ARGUMENT")
     void handleTypeMismatchException_returns400WithInvalidArgument() {
         // Given

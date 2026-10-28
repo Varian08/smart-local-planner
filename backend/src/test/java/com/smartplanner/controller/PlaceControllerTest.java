@@ -21,6 +21,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -68,7 +69,7 @@ class PlaceControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/places should return 200 OK and paged JSON response")
+    @DisplayName("GET /api/v1/places should return 200 OK and paged JSON response matching API specification")
     void getPlaces_returns200AndJsonPage() throws Exception {
         // Given
         when(placeService.getPlaces(any(PlaceFilterRequest.class)))
@@ -84,7 +85,52 @@ class PlaceControllerTest {
                 .andExpect(jsonPath("$.content[0].id").value(placeId.toString()))
                 .andExpect(jsonPath("$.content[0].name").value("Cầu Rồng"))
                 .andExpect(jsonPath("$.content[0].category").value("CULTURE"))
-                .andExpect(jsonPath("$.content[0].averageRating").value(4.8));
+                .andExpect(jsonPath("$.content[0].averageRating").value(4.8))
+                .andExpect(jsonPath("$.pageNumber").value(0))
+                .andExpect(jsonPath("$.pageSize").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.isLast").value(true));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/places?query=cau+rong should bind query parameter to filterRequest")
+    void getPlaces_withQueryParameter_bindsQuery() throws Exception {
+        org.mockito.ArgumentCaptor<PlaceFilterRequest> captor = org.mockito.ArgumentCaptor.forClass(PlaceFilterRequest.class);
+        when(placeService.getPlaces(captor.capture()))
+                .thenReturn(new PageImpl<>(List.of(mockPlaceResponse)));
+
+        mockMvc.perform(get("/api/v1/places")
+                        .param("query", "cau rong")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        assertThat(captor.getValue().getQuery()).isEqualTo("cau rong");
+        assertThat(captor.getValue().getEffectiveKeyword()).isEqualTo("cau rong");
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/places?sort=averageRating,desc should bind standard sort parameter")
+    void getPlaces_withSortParameter_bindsSort() throws Exception {
+        org.mockito.ArgumentCaptor<PlaceFilterRequest> captor = org.mockito.ArgumentCaptor.forClass(PlaceFilterRequest.class);
+        when(placeService.getPlaces(captor.capture()))
+                .thenReturn(new PageImpl<>(List.of(mockPlaceResponse)));
+
+        mockMvc.perform(get("/api/v1/places")
+                        .param("sort", "averageRating,desc")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        assertThat(captor.getValue().getSort()).isEqualTo("averageRating,desc");
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/places?size=100 should return 400 Bad Request due to @Max(50)")
+    void getPlaces_withExcessiveSize_returns400BadRequest() throws Exception {
+        mockMvc.perform(get("/api/v1/places")
+                        .param("size", "100")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

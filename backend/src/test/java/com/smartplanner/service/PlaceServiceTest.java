@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -152,4 +153,83 @@ class PlaceServiceTest {
 
         verify(placeRepository, times(1)).findTop5ByCategoryOrderByAverageRatingDesc("CULTURE");
     }
+
+    @Test
+    @DisplayName("getPlaces() with unwhitelisted sort field should safely fallback to averageRating")
+    void getPlaces_withUnsafeSortField_safelyFallsBackToAverageRating() {
+        // Given: client requests an arbitrary unwhitelisted field
+        PlaceFilterRequest request = PlaceFilterRequest.builder()
+                .sortBy("nonExistentField")
+                .sortDirection("ASC")
+                .build();
+
+        Page<Place> placePage = new PageImpl<>(List.of(mockPlace));
+        org.mockito.ArgumentCaptor<Pageable> pageableCaptor = org.mockito.ArgumentCaptor.forClass(Pageable.class);
+        when(placeRepository.findAll(any(Specification.class), pageableCaptor.capture())).thenReturn(placePage);
+
+        // When
+        placeService.getPlaces(request);
+
+        // Then: sort falls back to averageRating instead of throwing PropertyReferenceException
+        Pageable capturedPageable = pageableCaptor.getValue();
+        Sort.Order order = capturedPageable.getSort().getOrderFor("averageRating");
+        assertThat(order).isNotNull();
+        assertThat(order.getDirection()).isEqualTo(Sort.Direction.ASC);
+    }
+
+    @Test
+    @DisplayName("getPlaces() with 'sort' parameter (e.g. name,asc) should parse field and direction")
+    void getPlaces_withSortParameter_parsesFieldAndDirection() {
+        // Given: client sends standard sort param per API spec
+        PlaceFilterRequest request = PlaceFilterRequest.builder()
+                .sort("name,asc")
+                .build();
+
+        Page<Place> placePage = new PageImpl<>(List.of(mockPlace));
+        org.mockito.ArgumentCaptor<Pageable> pageableCaptor = org.mockito.ArgumentCaptor.forClass(Pageable.class);
+        when(placeRepository.findAll(any(Specification.class), pageableCaptor.capture())).thenReturn(placePage);
+
+        // When
+        placeService.getPlaces(request);
+
+        // Then
+        Pageable capturedPageable = pageableCaptor.getValue();
+        Sort.Order order = capturedPageable.getSort().getOrderFor("name");
+        assertThat(order).isNotNull();
+        assertThat(order.getDirection()).isEqualTo(Sort.Direction.ASC);
+    }
+
+    @Test
+    @DisplayName("getPlaces() with excessive size should clamp defensively to 50")
+    void getPlaces_withExcessiveSize_clampsToFifty() {
+        // Given
+        PlaceFilterRequest request = PlaceFilterRequest.builder()
+                .size(1000)
+                .build();
+
+        Page<Place> placePage = new PageImpl<>(List.of(mockPlace));
+        org.mockito.ArgumentCaptor<Pageable> pageableCaptor = org.mockito.ArgumentCaptor.forClass(Pageable.class);
+        when(placeRepository.findAll(any(Specification.class), pageableCaptor.capture())).thenReturn(placePage);
+
+        // When
+        placeService.getPlaces(request);
+
+        // Then
+        Pageable capturedPageable = pageableCaptor.getValue();
+        assertThat(capturedPageable.getPageSize()).isEqualTo(50);
+    }
+
+    @Test
+    @DisplayName("PlaceFilterRequest resolves 'query' as effective keyword and preserves backward compatibility")
+    void placeFilterRequest_resolvesEffectiveKeyword() {
+        PlaceFilterRequest requestWithQuery = PlaceFilterRequest.builder().query("  Bà Nà  ").build();
+        assertThat(requestWithQuery.getEffectiveKeyword()).isEqualTo("Bà Nà");
+
+        PlaceFilterRequest requestWithKeyword = PlaceFilterRequest.builder().keyword("  Chợ Cồn  ").build();
+        assertThat(requestWithKeyword.getEffectiveKeyword()).isEqualTo("Chợ Cồn");
+
+        PlaceFilterRequest requestWithBoth = PlaceFilterRequest.builder().query("Sơn Trà").keyword("Old").build();
+        assertThat(requestWithBoth.getEffectiveKeyword()).isEqualTo("Sơn Trà");
+    }
 }
+

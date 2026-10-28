@@ -8,9 +8,47 @@ import '../../bloc/place_state.dart';
 import '../../data/models/place_model.dart';
 
 /// Primary Place Discovery Screen implementing the mandatory 4-state UI contract.
-/// Renders search query input, category filter chips, and responsive place cards with cached artwork.
-class PlaceListScreen extends StatelessWidget {
+/// Features search query input, category filter chips with selected visual states,
+/// and responsive place cards with infinite scroll pagination.
+class PlaceListScreen extends StatefulWidget {
   const PlaceListScreen({super.key});
+
+  @override
+  State<PlaceListScreen> createState() => _PlaceListScreenState();
+}
+
+class _PlaceListScreenState extends State<PlaceListScreen> {
+  late final ScrollController _scrollController;
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController()..addListener(_onScroll);
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_isBottom) {
+      context.read<PlaceBloc>().add(const PlaceNextPageFetched());
+    }
+  }
+
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    // Trigger next page when user has scrolled past 85% of content
+    return currentScroll >= (maxScroll * 0.85);
+  }
 
   // ---------------------------------------------------------------------------
   // 1. Screen Scaffold & Reactive State Builder
@@ -72,6 +110,20 @@ class PlaceListScreen extends StatelessWidget {
                                   color: Colors.grey.shade600,
                                 ),
                               ),
+                              if (state.selectedCategory != null ||
+                                  state.searchQuery != null) ...[
+                                const SizedBox(height: 16),
+                                OutlinedButton.icon(
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    context.read<PlaceBloc>().add(
+                                      const PlaceFetchStarted(),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.clear_all_rounded),
+                                  label: const Text('Reset filters'),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -101,7 +153,7 @@ class PlaceListScreen extends StatelessWidget {
                               ElevatedButton.icon(
                                 onPressed: () {
                                   context.read<PlaceBloc>().add(
-                                    const PlaceFetchStarted(),
+                                    const PlaceRefreshRequested(),
                                   );
                                 },
                                 icon: const Icon(Icons.refresh),
@@ -113,20 +165,42 @@ class PlaceListScreen extends StatelessWidget {
                       );
                     }
 
-                    // State 4: Success Loaded List with Pull-to-Refresh
+                    // State 4: Success Loaded List with Pull-to-Refresh & Infinite Scroll
                     if (state is PlaceLoaded) {
                       return RefreshIndicator(
                         onRefresh: () async {
                           context.read<PlaceBloc>().add(
-                            const PlaceFetchStarted(),
+                            const PlaceRefreshRequested(),
                           );
                         },
                         child: ListView.separated(
+                          controller: _scrollController,
                           padding: const EdgeInsets.all(16.0),
-                          itemCount: state.places.length,
-                          separatorBuilder: (_, _) => const SizedBox(height: 16),
+                          itemCount:
+                              state.hasReachedMax
+                                  ? state.places.length
+                                  : state.places.length + 1,
+                          separatorBuilder:
+                              (_, _) => const SizedBox(height: 16),
                           itemBuilder: (context, index) {
-                            return _buildPlaceCard(context, state.places[index]);
+                            if (index >= state.places.length) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 20.0),
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                            return _buildPlaceCard(
+                              context,
+                              state.places[index],
+                            );
                           },
                         ),
                       );
@@ -150,9 +224,23 @@ class PlaceListScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
       child: TextField(
+        controller: _searchController,
         decoration: InputDecoration(
           hintText: 'Search places, attractions, cafes in Da Nang...',
           prefixIcon: const Icon(Icons.search, color: Colors.indigo),
+          suffixIcon:
+              _searchController.text.isNotEmpty
+                  ? IconButton(
+                    icon: const Icon(Icons.clear, size: 20, color: Colors.grey),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {});
+                      context.read<PlaceBloc>().add(
+                        const PlaceSearchQueryChanged(''),
+                      );
+                    },
+                  )
+                  : null,
           filled: true,
           fillColor: Colors.grey.shade100,
           border: OutlineInputBorder(
@@ -161,6 +249,7 @@ class PlaceListScreen extends StatelessWidget {
           ),
           contentPadding: const EdgeInsets.symmetric(vertical: 14),
         ),
+        onChanged: (_) => setState(() {}),
         onSubmitted: (query) {
           context.read<PlaceBloc>().add(PlaceSearchQueryChanged(query));
         },
@@ -182,30 +271,70 @@ class PlaceListScreen extends StatelessWidget {
       'CAFE',
     ];
 
-    return SizedBox(
-      height: 44,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        itemCount: categories.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final cat = categories[index];
-          return ActionChip(
-            label: Text(
-              cat,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-            ),
-            backgroundColor: Colors.grey.shade100,
-            side: BorderSide(color: Colors.grey.shade300),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            onPressed: () {
-              final selected = cat == 'ALL' ? null : cat;
-              context.read<PlaceBloc>().add(PlaceCategoryChanged(selected));
+    return BlocBuilder<PlaceBloc, PlaceState>(
+      buildWhen: (prev, curr) {
+        final prevCat =
+            prev is PlaceLoaded
+                ? prev.selectedCategory
+                : (prev is PlaceEmpty ? prev.selectedCategory : null);
+        final currCat =
+            curr is PlaceLoaded
+                ? curr.selectedCategory
+                : (curr is PlaceEmpty ? curr.selectedCategory : null);
+        return prevCat != currCat;
+      },
+      builder: (context, state) {
+        final activeCategory =
+            state is PlaceLoaded
+                ? state.selectedCategory
+                : (state is PlaceEmpty ? state.selectedCategory : null);
+
+        return SizedBox(
+          height: 44,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            itemCount: categories.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final cat = categories[index];
+              final isSelected =
+                  (cat == 'ALL' && activeCategory == null) ||
+                  (cat == activeCategory);
+
+              return FilterChip(
+                label: Text(
+                  cat,
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    fontSize: 12,
+                    color:
+                        isSelected
+                            ? Colors.indigo.shade900
+                            : Colors.grey.shade700,
+                  ),
+                ),
+                selected: isSelected,
+                showCheckmark: false,
+                selectedColor: Colors.indigo.shade50,
+                backgroundColor: Colors.grey.shade100,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(
+                    color: isSelected ? Colors.indigo : Colors.grey.shade300,
+                    width: isSelected ? 1.5 : 1.0,
+                  ),
+                ),
+                onSelected: (_) {
+                  final target =
+                      cat == 'ALL' ? null : (isSelected ? null : cat);
+                  context.read<PlaceBloc>().add(PlaceCategoryChanged(target));
+                },
+              );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -243,32 +372,41 @@ class PlaceListScreen extends StatelessWidget {
                   child: CachedNetworkImage(
                     imageUrl: place.imageUrl!,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey.shade200,
-                      child: const Center(
-                        child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey.shade100,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.photo_outlined, size: 40, color: Colors.grey.shade400),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Photo preview unavailable',
-                              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                    placeholder:
+                        (context, url) => Container(
+                          color: Colors.grey.shade200,
+                          child: const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
+                    errorWidget:
+                        (context, url, error) => Container(
+                          color: Colors.grey.shade100,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.photo_outlined,
+                                  size: 40,
+                                  color: Colors.grey.shade400,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Photo preview unavailable',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                   ),
                 ),
               // Category Pill Badge overlay
@@ -276,7 +414,10 @@ class PlaceListScreen extends StatelessWidget {
                 top: 12,
                 left: 12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.65),
                     borderRadius: BorderRadius.circular(12),
@@ -315,7 +456,10 @@ class PlaceListScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.amber.shade50,
                         borderRadius: BorderRadius.circular(8),
@@ -324,7 +468,11 @@ class PlaceListScreen extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
+                          const Icon(
+                            Icons.star_rounded,
+                            size: 16,
+                            color: Colors.amber,
+                          ),
                           const SizedBox(width: 3),
                           Text(
                             place.averageRating.toStringAsFixed(1),
@@ -342,19 +490,27 @@ class PlaceListScreen extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Icon(Icons.location_on_outlined, size: 14, color: Colors.grey.shade600),
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: Colors.grey.shade600,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         place.address,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                if (place.description != null && place.description!.isNotEmpty) ...[
+                if (place.description != null &&
+                    place.description!.isNotEmpty) ...[
                   const SizedBox(height: 10),
                   Text(
                     place.description!,
@@ -375,14 +531,20 @@ class PlaceListScreen extends StatelessWidget {
                       children: [
                         Text(
                           'Price: ',
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
                         ),
                         Row(children: priceIcons),
                       ],
                     ),
                     Text(
                       '${place.totalReviews} reviews',
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                      ),
                     ),
                   ],
                 ),

@@ -11,7 +11,7 @@ abstract class PlaceEvent extends Equatable {
 // ---------------------------------------------------------------------------
 // 1. Initial Fetch Event
 // ---------------------------------------------------------------------------
-/// Triggered when the place discovery screen is first mounted or pulled to refresh.
+/// Triggered when the place discovery screen is mounted or explicitly initialized.
 class PlaceFetchStarted extends PlaceEvent {
   final String? category;
   final String? query;
@@ -25,7 +25,8 @@ class PlaceFetchStarted extends PlaceEvent {
 // ---------------------------------------------------------------------------
 // 2. Filter & Category Selection Event
 // ---------------------------------------------------------------------------
-/// Triggered when the user taps on a category chip (e.g. HISTORICAL, CAFE)
+/// Triggered when the user taps on a category chip (e.g. HISTORICAL, CAFE).
+/// Preserves active search query.
 class PlaceCategoryChanged extends PlaceEvent {
   final String? category;
 
@@ -38,7 +39,8 @@ class PlaceCategoryChanged extends PlaceEvent {
 // ---------------------------------------------------------------------------
 // 3. Search Keyword Submission Event
 // ---------------------------------------------------------------------------
-/// Triggered when the user types a search keyword in the search bar
+/// Triggered when the user updates the search keyword in the search bar.
+/// Preserves active category filter.
 class PlaceSearchQueryChanged extends PlaceEvent {
   final String query;
 
@@ -46,4 +48,20 @@ class PlaceSearchQueryChanged extends PlaceEvent {
 
   @override
   List<Object?> get props => [query];
+}
+
+// ---------------------------------------------------------------------------
+// 4. Infinite Scroll Pagination Event
+// ---------------------------------------------------------------------------
+/// Triggered when the user scrolls near the bottom of the place list.
+class PlaceNextPageFetched extends PlaceEvent {
+  const PlaceNextPageFetched();
+}
+
+// ---------------------------------------------------------------------------
+// 5. Pull-To-Refresh Event
+// ---------------------------------------------------------------------------
+/// Triggered on swipe-down pull-to-refresh; resets pagination to page 0 while preserving active filters.
+class PlaceRefreshRequested extends PlaceEvent {
+  const PlaceRefreshRequested();
 }

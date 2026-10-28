@@ -112,11 +112,11 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handle illegal argument or business precondition failures.
+     * Handle illegal argument failures caused by invalid client inputs or preconditions.
      */
-    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
+    @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiErrorResponse> handleIllegalArgumentException(
-            RuntimeException ex,
+            IllegalArgumentException ex,
             HttpServletRequest request
     ) {
         String traceId = generateTraceId();
@@ -132,6 +132,29 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * Handle illegal internal state exceptions representing unexpected system state.
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiErrorResponse> handleIllegalStateException(
+            IllegalStateException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        log.error("Illegal internal state [traceId={}] on path {}: {}", traceId, request.getRequestURI(), ex.getMessage(), ex);
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .code("INTERNAL_SERVER_ERROR")
+                .message("An internal system state error occurred. Please contact support with traceId: " + traceId)
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
     /**

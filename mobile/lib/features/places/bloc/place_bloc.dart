@@ -7,7 +7,9 @@ import 'place_state.dart';
 
 /// Business Logic Component managing state transitions for the Place Discovery domain.
 /// Enforces unidirectional reactive data flow (Event -> Bloc -> State).
+/// Preserves active filters across search and category selection, and coordinates infinite scroll pagination.
 class PlaceBloc extends Bloc<PlaceEvent, PlaceState> {
+  static const int defaultPageSize = 10;
   final PlaceRepository placeRepository;
 
   // ---------------------------------------------------------------------------
@@ -17,62 +19,190 @@ class PlaceBloc extends Bloc<PlaceEvent, PlaceState> {
     on<PlaceFetchStarted>(_onFetchStarted);
     on<PlaceCategoryChanged>(_onCategoryChanged);
     on<PlaceSearchQueryChanged>(_onSearchQueryChanged);
+    on<PlaceNextPageFetched>(_onNextPageFetched);
+    on<PlaceRefreshRequested>(_onRefreshRequested);
   }
 
   // ---------------------------------------------------------------------------
-  // 2. Fetch Places Handler (Enforces 4-State Lifecycle)
+  // Helper Getters to Extract Active Filters
+  // ---------------------------------------------------------------------------
+  String? get _currentCategory {
+    final s = state;
+    if (s is PlaceLoaded) return s.selectedCategory;
+    if (s is PlaceEmpty) return s.selectedCategory;
+    if (s is PlaceError) return s.selectedCategory;
+    return null;
+  }
+
+  String? get _currentQuery {
+    final s = state;
+    if (s is PlaceLoaded) return s.searchQuery;
+    if (s is PlaceEmpty) return s.searchQuery;
+    if (s is PlaceError) return s.searchQuery;
+    return null;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 2. Fetch Places Handler (Initial & Clean Reload)
   // ---------------------------------------------------------------------------
   Future<void> _onFetchStarted(
     PlaceFetchStarted event,
     Emitter<PlaceState> emit,
   ) async {
     emit(PlaceLoading());
-    try {
-      final places = await placeRepository.getPlaces(
-        category: event.category,
-        query: event.query,
-      );
-
-      if (places.isEmpty) {
-        emit(const PlaceEmpty());
-      } else {
-        emit(
-          PlaceLoaded(
-            places: places,
-            selectedCategory: event.category,
-            searchQuery: event.query,
-          ),
-        );
-      }
-    } on DioException catch (dioError) {
-      emit(PlaceError(message: _mapDioExceptionToMessage(dioError)));
-    } catch (e) {
-      emit(
-        const PlaceError(
-          message: 'An unexpected system error occurred. Please try again.',
-        ),
-      );
-    }
+    await _fetchInitialPage(
+      category: event.category,
+      query: event.query,
+      emit: emit,
+    );
   }
 
   // ---------------------------------------------------------------------------
-  // 3. Category Filter Changed Handler
+  // 3. Category Filter Changed Handler (Preserves Search Query)
   // ---------------------------------------------------------------------------
   Future<void> _onCategoryChanged(
     PlaceCategoryChanged event,
     Emitter<PlaceState> emit,
   ) async {
-    add(PlaceFetchStarted(category: event.category));
+    final activeQuery = _currentQuery;
+    emit(PlaceLoading());
+    await _fetchInitialPage(
+      category: event.category,
+      query: activeQuery,
+      emit: emit,
+    );
   }
 
   // ---------------------------------------------------------------------------
-  // 4. Search Keyword Changed Handler
+  // 4. Search Keyword Changed Handler (Preserves Selected Category)
   // ---------------------------------------------------------------------------
   Future<void> _onSearchQueryChanged(
     PlaceSearchQueryChanged event,
     Emitter<PlaceState> emit,
   ) async {
-    add(PlaceFetchStarted(query: event.query));
+    final activeCategory = _currentCategory;
+    final normalizedQuery =
+        event.query.trim().isEmpty ? null : event.query.trim();
+    emit(PlaceLoading());
+    await _fetchInitialPage(
+      category: activeCategory,
+      query: normalizedQuery,
+      emit: emit,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // 5. Pull-To-Refresh Handler
+  // ---------------------------------------------------------------------------
+  Future<void> _onRefreshRequested(
+    PlaceRefreshRequested event,
+    Emitter<PlaceState> emit,
+  ) async {
+    await _fetchInitialPage(
+      category: _currentCategory,
+      query: _currentQuery,
+      emit: emit,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // 6. Infinite Scroll Pagination Handler
+  // ---------------------------------------------------------------------------
+  Future<void> _onNextPageFetched(
+    PlaceNextPageFetched event,
+    Emitter<PlaceState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! PlaceLoaded) return;
+    if (currentState.hasReachedMax || currentState.isFetchingNextPage) return;
+
+    emit(currentState.copyWith(isFetchingNextPage: true));
+
+    final nextPage = currentState.currentPage + 1;
+    try {
+      final newPlaces = await placeRepository.getPlaces(
+        category: currentState.selectedCategory,
+        query: currentState.searchQuery,
+        page: nextPage,
+        size: defaultPageSize,
+      );
+
+      if (newPlaces.isEmpty) {
+        emit(
+          currentState.copyWith(hasReachedMax: true, isFetchingNextPage: false),
+        );
+      } else {
+        emit(
+          currentState.copyWith(
+            places: List.of(currentState.places)..addAll(newPlaces),
+            currentPage: nextPage,
+            hasReachedMax: newPlaces.length < defaultPageSize,
+            isFetchingNextPage: false,
+          ),
+        );
+      }
+    } catch (_) {
+      // On pagination failure, do not obliterate existing list; simply reset fetching flag
+      emit(currentState.copyWith(isFetchingNextPage: false));
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private Helper: Fetch First Page (Page 0)
+  // ---------------------------------------------------------------------------
+  Future<void> _fetchInitialPage({
+    required String? category,
+    required String? query,
+    required Emitter<PlaceState> emit,
+  }) async {
+    try {
+      final places = await placeRepository.getPlaces(
+        category: category,
+        query: query,
+        page: 0,
+        size: defaultPageSize,
+      );
+
+      if (places.isEmpty) {
+        emit(
+          PlaceEmpty(
+            selectedCategory: category,
+            searchQuery: query,
+            message:
+                (query != null || category != null)
+                    ? 'No tourist places found matching your filter criteria.'
+                    : 'No tourist places currently available.',
+          ),
+        );
+      } else {
+        emit(
+          PlaceLoaded(
+            places: places,
+            selectedCategory: category,
+            searchQuery: query,
+            currentPage: 0,
+            hasReachedMax: places.length < defaultPageSize,
+            isFetchingNextPage: false,
+          ),
+        );
+      }
+    } on DioException catch (dioError) {
+      emit(
+        PlaceError(
+          message: _mapDioExceptionToMessage(dioError),
+          selectedCategory: category,
+          searchQuery: query,
+        ),
+      );
+    } catch (_) {
+      emit(
+        PlaceError(
+          message: 'An unexpected system error occurred. Please try again.',
+          selectedCategory: category,
+          searchQuery: query,
+        ),
+      );
+    }
   }
 
   // ---------------------------------------------------------------------------

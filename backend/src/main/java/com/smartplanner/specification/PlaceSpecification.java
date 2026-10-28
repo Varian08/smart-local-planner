@@ -20,7 +20,7 @@ public final class PlaceSpecification {
     public static Specification<Place> hasCategory(String category) {
         return (root, query, criteriaBuilder) -> {
             if (category == null || category.isBlank()) {
-                return criteriaBuilder.conjunction(); // Không lọc điều kiện này
+                return criteriaBuilder.conjunction(); // No predicate applied
             }
             return criteriaBuilder.equal(
                     criteriaBuilder.lower(root.get("category")),

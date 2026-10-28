@@ -28,7 +28,7 @@ import java.util.UUID;
 @Tag(name = "Places", description = "Tourist Places Discovery & Search APIs")
 public class PlaceController {
 
-    // 👉 ĐÚNG CHUẨN SOLID: Controller CHỈ BIẾT ĐẾN INTERFACE "PlaceService"!
+    // SOLID Dependency Inversion: Controller depends exclusively on PlaceService abstraction
     private final PlaceService placeService;
 
     /**

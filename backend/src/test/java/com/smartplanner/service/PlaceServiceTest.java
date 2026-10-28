@@ -73,7 +73,7 @@ class PlaceServiceTest {
     @Test
     @DisplayName("getPlaces() with valid filters should return paged PlaceResponse")
     void getPlaces_withValidFilters_returnsPagedPlaces() {
-        // Given (Giả định đầu vào)
+        // Given
         PlaceFilterRequest request = PlaceFilterRequest.builder()
                 .category("CULTURE")
                 .page(0)
@@ -85,10 +85,10 @@ class PlaceServiceTest {
         Page<Place> placePage = new PageImpl<>(List.of(mockPlace));
         when(placeRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(placePage);
 
-        // When (Gọi hàm thực thi)
+        // When
         Page<PlaceResponse> responsePage = placeService.getPlaces(request);
 
-        // Then (Xác minh kết quả đầu ra)
+        // Then
         assertThat(responsePage).isNotNull();
         assertThat(responsePage.getContent()).hasSize(1);
         PlaceResponse response = responsePage.getContent().get(0);

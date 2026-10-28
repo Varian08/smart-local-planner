@@ -1,4 +1,4 @@
-name: Backend CI Quality Gate
+name: Continuous Integration Quality Gate
 
 on:
   push:
@@ -34,4 +34,36 @@ jobs:
       # Sprint 1 Quality Gate: Compiles backend and executes all unit tests cleanly
       - name: Run Backend Unit Tests & Verify Quality Gate
         run: mvn -B clean test
+
+  mobile-build-check:
+    name: Flutter Mobile Quality Gate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17 (Android Build Environment)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Static Code Analysis (Linter)
+        run: flutter analyze
+
+      - name: Run Automated Mobile Tests
+        run: flutter test
 

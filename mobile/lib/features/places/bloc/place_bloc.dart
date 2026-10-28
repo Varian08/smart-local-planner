@@ -1,3 +1,4 @@
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,14 +14,17 @@ class PlaceBloc extends Bloc<PlaceEvent, PlaceState> {
   final PlaceRepository placeRepository;
 
   // ---------------------------------------------------------------------------
-  // 1. Constructor & Event Handler Registration
+  // 1. Constructor & Event Handler Registration (Concurrent Transformers)
   // ---------------------------------------------------------------------------
   PlaceBloc({required this.placeRepository}) : super(PlaceInitial()) {
-    on<PlaceFetchStarted>(_onFetchStarted);
-    on<PlaceCategoryChanged>(_onCategoryChanged);
-    on<PlaceSearchQueryChanged>(_onSearchQueryChanged);
-    on<PlaceNextPageFetched>(_onNextPageFetched);
-    on<PlaceRefreshRequested>(_onRefreshRequested);
+    // restartable(): Cancels superseded in-flight requests when new queries/filters arrive
+    on<PlaceFetchStarted>(_onFetchStarted, transformer: restartable());
+    on<PlaceCategoryChanged>(_onCategoryChanged, transformer: restartable());
+    on<PlaceSearchQueryChanged>(_onSearchQueryChanged, transformer: restartable());
+    on<PlaceRefreshRequested>(_onRefreshRequested, transformer: restartable());
+
+    // droppable(): Ignores duplicate pagination requests until current page loads
+    on<PlaceNextPageFetched>(_onNextPageFetched, transformer: droppable());
   }
 
   // ---------------------------------------------------------------------------
@@ -217,6 +221,10 @@ class PlaceBloc extends Bloc<PlaceEvent, PlaceState> {
       case DioExceptionType.connectionError:
         return 'Cannot establish connection to backend service. Please verify server status.';
       case DioExceptionType.badResponse:
+        final data = error.response?.data;
+        if (data is Map<String, dynamic> && data['message'] != null) {
+          return data['message'].toString();
+        }
         final statusCode = error.response?.statusCode;
         return 'Server responded with error status: ${statusCode ?? 'Unknown'}.';
       case DioExceptionType.cancel:

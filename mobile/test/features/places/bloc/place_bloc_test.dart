@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_local_planner/features/places/bloc/place_bloc.dart';
 import 'package:smart_local_planner/features/places/bloc/place_event.dart';
@@ -12,6 +13,7 @@ class MockPlaceRepository implements PlaceRepository {
   int? lastPage;
   int? lastSize;
   bool shouldThrow = false;
+  Object? customException;
 
   @override
   Future<List<PlaceModel>> getPlaces({
@@ -22,6 +24,9 @@ class MockPlaceRepository implements PlaceRepository {
     int size = 10,
     String sort = 'averageRating,desc',
   }) async {
+    if (customException != null) {
+      throw customException!;
+    }
     if (shouldThrow) {
       throw Exception('Repository simulated error');
     }
@@ -222,4 +227,39 @@ void main() {
       expect(repository.lastPage, 1);
     },
   );
+
+  test(
+    'Emits [PlaceLoading, PlaceError] with message extracted from ApiErrorResponse',
+    () async {
+      repository.customException = DioException(
+        requestOptions: RequestOptions(path: '/places'),
+        type: DioExceptionType.badResponse,
+        response: Response(
+          requestOptions: RequestOptions(path: '/places'),
+          statusCode: 400,
+          data: {
+            'timestamp': '2026-10-28T12:00:00Z',
+            'status': 400,
+            'code': 'VALIDATION_FAILED',
+            'message': 'Page size must not exceed 50.',
+          },
+        ),
+      );
+
+      bloc.add(const PlaceFetchStarted());
+
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          isA<PlaceLoading>(),
+          isA<PlaceError>().having(
+            (s) => s.message,
+            'message',
+            'Page size must not exceed 50.',
+          ),
+        ]),
+      );
+    },
+  );
 }
+

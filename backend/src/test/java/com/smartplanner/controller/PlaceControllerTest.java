@@ -184,4 +184,28 @@ class PlaceControllerTest {
                 .andExpect(jsonPath("$[0].id").value(placeId.toString()))
                 .andExpect(jsonPath("$[0].name").value("Cầu Rồng"));
     }
+
+    @Test
+    @DisplayName("GET /api/v1/places/{id} with invalid UUID format should return 400 Bad Request and INVALID_ARGUMENT")
+    void getPlaceById_withInvalidUuid_returns400BadRequest() throws Exception {
+        mockMvc.perform(get("/api/v1/places/{id}", "not-a-valid-uuid")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("INVALID_ARGUMENT"))
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Failed to convert parameter 'id'")))
+                .andExpect(jsonPath("$.traceId").exists());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/places/top without required category parameter should return 400 Bad Request and MISSING_PARAMETER")
+    void getTopPlacesByCategory_withoutCategoryParam_returns400BadRequest() throws Exception {
+        mockMvc.perform(get("/api/v1/places/top")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("MISSING_PARAMETER"))
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Required request parameter 'category'")))
+                .andExpect(jsonPath("$.traceId").exists());
+    }
 }

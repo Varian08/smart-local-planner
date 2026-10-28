@@ -5,10 +5,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -123,6 +127,105 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST.value())
                 .code("BAD_REQUEST")
                 .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * Handle method argument type mismatch (e.g. invalid UUID in path or non-numeric query param).
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiErrorResponse> handleTypeMismatchException(
+            MethodArgumentTypeMismatchException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        String requiredType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown";
+        String message = String.format("Failed to convert parameter '%s' with value '%s' to required type '%s'.",
+                ex.getName(), ex.getValue(), requiredType);
+        log.warn("Method argument type mismatch [traceId={}] on path {}: {}", traceId, request.getRequestURI(), message);
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .code("INVALID_ARGUMENT")
+                .message(message)
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * Handle missing required query parameters (e.g. missing @RequestParam).
+     */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiErrorResponse> handleMissingParameterException(
+            MissingServletRequestParameterException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        String message = String.format("Required request parameter '%s' of type '%s' is not present.",
+                ex.getParameterName(), ex.getParameterType());
+        log.warn("Missing request parameter [traceId={}] on path {}: {}", traceId, request.getRequestURI(), message);
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .code("MISSING_PARAMETER")
+                .message(message)
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * Handle unsupported HTTP methods (e.g. POST on GET-only endpoint).
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiErrorResponse> handleMethodNotSupportedException(
+            HttpRequestMethodNotSupportedException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        String message = String.format("HTTP method '%s' is not supported for this endpoint.", ex.getMethod());
+        log.warn("HTTP method not supported [traceId={}] on path {}: {}", traceId, request.getRequestURI(), message);
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.METHOD_NOT_ALLOWED.value())
+                .code("METHOD_NOT_ALLOWED")
+                .message(message)
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(errorResponse);
+    }
+
+    /**
+     * Handle malformed or unreadable HTTP request bodies (e.g. invalid JSON payload).
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        String message = "Malformed JSON request body or unparseable input payload.";
+        log.warn("Malformed HTTP message body [traceId={}] on path {}: {}", traceId, request.getRequestURI(), ex.getMessage());
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .code("MALFORMED_JSON")
+                .message(message)
                 .path(request.getRequestURI())
                 .traceId(traceId)
                 .build();

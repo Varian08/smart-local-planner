@@ -112,7 +112,7 @@
 * **Access:** Public
 * **Query Parameters:**
   - `query` (string, optional): Keyword search matching place name or address
-  - `category` (string, optional): `CAFE`, `RESTAURANT`, `ATTRACTION`, `HISTORICAL`
+  - `category` (string, optional): `ATTRACTION`, `CULTURE`, `NATURE`, `BEACH`, `RESTAURANT`, `CAFE`
   - `priceLevel` (int, optional): `1`, `2`, `3`, `4`
   - `page` (int, default: `0`): Page index
   - `size` (int, default: `10`): Items per page

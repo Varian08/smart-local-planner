@@ -7,12 +7,19 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mock.http.MockHttpInputMessage;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -108,6 +115,80 @@ class GlobalExceptionHandlerTest {
         assertThat(body).isNotNull();
         assertThat(body.getCode()).isEqualTo("BAD_REQUEST");
         assertThat(body.getMessage()).isEqualTo("Invalid argument provided");
+    }
+
+    @Test
+    @DisplayName("handleTypeMismatchException maps to 400 BAD_REQUEST with INVALID_ARGUMENT")
+    void handleTypeMismatchException_returns400WithInvalidArgument() {
+        // Given
+        MethodArgumentTypeMismatchException ex = new MethodArgumentTypeMismatchException(
+                "abc-xyz", UUID.class, "id", null, null
+        );
+
+        // When
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleTypeMismatchException(ex, request);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        ApiErrorResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(400);
+        assertThat(body.getCode()).isEqualTo("INVALID_ARGUMENT");
+        assertThat(body.getMessage()).contains("Failed to convert parameter 'id'");
+    }
+
+    @Test
+    @DisplayName("handleMissingParameterException maps to 400 BAD_REQUEST with MISSING_PARAMETER")
+    void handleMissingParameterException_returns400WithMissingParameter() {
+        // Given
+        MissingServletRequestParameterException ex = new MissingServletRequestParameterException("category", "String");
+
+        // When
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleMissingParameterException(ex, request);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        ApiErrorResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(400);
+        assertThat(body.getCode()).isEqualTo("MISSING_PARAMETER");
+        assertThat(body.getMessage()).contains("Required request parameter 'category'");
+    }
+
+    @Test
+    @DisplayName("handleMethodNotSupportedException maps to 405 METHOD_NOT_ALLOWED")
+    void handleMethodNotSupportedException_returns405() {
+        // Given
+        HttpRequestMethodNotSupportedException ex = new HttpRequestMethodNotSupportedException("POST");
+
+        // When
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleMethodNotSupportedException(ex, request);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
+        ApiErrorResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(405);
+        assertThat(body.getCode()).isEqualTo("METHOD_NOT_ALLOWED");
+        assertThat(body.getMessage()).contains("HTTP method 'POST' is not supported");
+    }
+
+    @Test
+    @DisplayName("handleHttpMessageNotReadableException maps to 400 BAD_REQUEST with MALFORMED_JSON")
+    void handleHttpMessageNotReadableException_returns400() {
+        // Given
+        HttpMessageNotReadableException ex = new HttpMessageNotReadableException("Malformed JSON input", new MockHttpInputMessage(new byte[0]));
+
+        // When
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleHttpMessageNotReadableException(ex, request);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        ApiErrorResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(400);
+        assertThat(body.getCode()).isEqualTo("MALFORMED_JSON");
+        assertThat(body.getMessage()).contains("Malformed JSON request body");
     }
 
     @Test

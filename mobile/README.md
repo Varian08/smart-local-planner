@@ -15,24 +15,19 @@ The codebase strictly enforces unidirectional 3-tier decoupling:
 mobile/
 ├── assets/                         # Static vectors, icons, and bundled artwork
 ├── lib/
-│   ├── app/                        # Application Root
-│   │   ├── app_router.dart         # Declarative navigation with go_router
-│   │   ├── app_theme.dart          # Design tokens and Material 3 theme data
-│   │   └── main.dart               # Main entrypoint
+│   ├── main.dart                   # Application entrypoint & dependency wiring
+│   ├── app/                        # Application Root (Router & Themes - Sprint 2/3)
 │   ├── core/                       # Shared modules across features
-│   │   ├── constants/              # ApiEndpoints, AppColors, StorageKeys
-│   │   ├── network/                # Dio Client, AuthInterceptor (Token Rotation), ErrorMapper
-│   │   ├── storage/                # SecureStorageService (Hardware Keystore / Keychain)
-│   │   └── widgets/                # Reusable UI widgets: AppButton, AppLoading, ErrorRetry, CachedImage
-│   └── features/                   # Independent vertical feature slices
-│       ├── auth/                   # Registration, Login, Session Management
-│       │   ├── data/               # AuthRepository, AuthRemoteDataSource, AuthModels
-│       │   ├── bloc/               # AuthBloc, AuthEvent, AuthState
-│       │   └── presentation/       # LoginScreen, RegisterScreen, widgets/
-│       ├── places/                 # Place Discovery & Details (Sprint 1)
-│       │   ├── data/               # PlaceRepository, PlaceModel, PaginationResponse
-│       │   ├── bloc/               # PlaceBloc, PlaceEvent, PlaceState
-│       │   └── presentation/       # PlaceListScreen, PlaceDetailScreen, widgets/
+│   │   ├── constants/              # ApiEndpoints
+│   │   ├── network/                # DioClient (SLA timeouts, logging, error handling)
+│   │   ├── storage/                # SecureStorageService (Sprint 2 - Keystore/Keychain)
+│   │   └── widgets/                # Reusable UI widgets
+│   └── features/                   # Feature-first vertical slices
+│       ├── places/                 # Place Discovery & Search (Sprint 1 Active)
+│       │   ├── data/               # PlaceRepository, PlaceModel, PageResponse
+│       │   ├── bloc/               # PlaceBloc, PlaceEvent, PlaceState (Concurrency Hardened)
+│       │   └── presentation/       # PlaceListScreen, PlaceCard, Search & Category Filters
+│       ├── auth/                   # Registration, Login, Session Management (Sprint 2)
 │       ├── favorites/              # Personal Bookmarks (Sprint 2)
 │       └── itineraries/            # Multi-day Travel Itinerary Management (Sprint 3)
 └── README.md

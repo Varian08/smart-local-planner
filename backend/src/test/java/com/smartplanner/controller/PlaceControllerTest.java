@@ -125,12 +125,16 @@ class PlaceControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/places?size=100 should return 400 Bad Request due to @Max(50)")
+    @DisplayName("GET /api/v1/places?size=100 should return 400 Bad Request and ApiErrorResponse due to @Max(50)")
     void getPlaces_withExcessiveSize_returns400BadRequest() throws Exception {
         mockMvc.perform(get("/api/v1/places")
                         .param("size", "100")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.fieldErrors.size").value("Page size must not exceed 50"))
+                .andExpect(jsonPath("$.traceId").exists());
     }
 
     @Test
@@ -149,7 +153,7 @@ class PlaceControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/places/{id} when not found should return 404 NOT_FOUND")
+    @DisplayName("GET /api/v1/places/{id} when not found should return 404 NOT_FOUND and ApiErrorResponse")
     void getPlaceById_whenNotFound_returns404() throws Exception {
         // Given
         UUID notFoundId = UUID.randomUUID();
@@ -159,7 +163,11 @@ class PlaceControllerTest {
         // When & Then
         mockMvc.perform(get("/api/v1/places/{id}", notFoundId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("Place not found with id: " + notFoundId))
+                .andExpect(jsonPath("$.traceId").exists());
     }
 
     @Test

@@ -1,10 +1,12 @@
 package com.smartplanner.controller;
 
 import com.smartplanner.dto.request.PlaceFilterRequest;
+import com.smartplanner.dto.response.PageResponse;
 import com.smartplanner.dto.response.PlaceResponse;
 import com.smartplanner.service.PlaceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -37,9 +39,9 @@ public class PlaceController {
      */
     @GetMapping
     @Operation(summary = "Search places with dynamic filters and pagination")
-    public ResponseEntity<Page<PlaceResponse>> getPlaces(@ParameterObject PlaceFilterRequest filterRequest) {
+    public ResponseEntity<PageResponse<PlaceResponse>> getPlaces(@ParameterObject @Valid PlaceFilterRequest filterRequest) {
         Page<PlaceResponse> places = placeService.getPlaces(filterRequest);
-        return ResponseEntity.ok(places);
+        return ResponseEntity.ok(PageResponse.from(places));
     }
 
     /**

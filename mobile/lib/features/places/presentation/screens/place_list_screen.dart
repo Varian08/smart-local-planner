@@ -267,7 +267,7 @@ class _PlaceListScreenState extends State<PlaceListScreen> {
       'CULTURE',
       'NATURE',
       'BEACH',
-      'FOOD',
+      'RESTAURANT',
       'CAFE',
     ];
 

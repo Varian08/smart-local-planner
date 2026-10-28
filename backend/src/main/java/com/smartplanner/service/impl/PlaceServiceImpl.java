@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -29,32 +30,53 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class PlaceServiceImpl implements PlaceService {
 
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "averageRating",
+            "name",
+            "priceLevel",
+            "createdAt",
+            "totalReviews"
+    );
+
     private final PlaceRepository placeRepository;
 
     @Override
     public Page<PlaceResponse> getPlaces(PlaceFilterRequest request) {
-        // 1. Defensively validate and sanitize pagination & sorting arguments
+        // 1. Defensively validate and sanitize pagination arguments (max size 50)
         int page = (request.getPage() != null && request.getPage() >= 0) ? request.getPage() : 0;
-        int size = (request.getSize() != null && request.getSize() > 0) ? request.getSize() : 10;
+        int rawSize = (request.getSize() != null && request.getSize() > 0) ? request.getSize() : 10;
+        int size = Math.min(rawSize, 50);
 
+        // 2. Parse and resolve sort parameters (supports 'sort=name,asc' or 'sortBy' / 'sortDirection')
+        String requestedSortBy = request.getSortBy();
         Sort.Direction direction = "ASC".equalsIgnoreCase(request.getSortDirection())
                 ? Sort.Direction.ASC : Sort.Direction.DESC;
 
-        // Whitelist sort fields to ensure SQL query stability
+        if (request.getSort() != null && !request.getSort().isBlank()) {
+            String[] parts = request.getSort().split(",");
+            requestedSortBy = parts[0].trim();
+            if (parts.length > 1 && "asc".equalsIgnoreCase(parts[1].trim())) {
+                direction = Sort.Direction.ASC;
+            } else if (parts.length > 1 && "desc".equalsIgnoreCase(parts[1].trim())) {
+                direction = Sort.Direction.DESC;
+            }
+        }
+
+        // Whitelist sort fields to guarantee stability and prevent PropertyReferenceException
         String sortBy = "averageRating";
-        if (request.getSortBy() != null && !request.getSortBy().isBlank() && !"string".equalsIgnoreCase(request.getSortBy())) {
-            sortBy = request.getSortBy();
+        if (requestedSortBy != null && ALLOWED_SORT_FIELDS.contains(requestedSortBy)) {
+            sortBy = requestedSortBy;
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        // 2. Compose dynamic query predicates via JPA Specification
+        // 3. Compose dynamic query predicates via JPA Specification
         Specification<Place> spec = Specification.where(PlaceSpecification.hasCategory(request.getCategory()))
                 .and(PlaceSpecification.hasPriceLevel(request.getPriceLevel()))
                 .and(PlaceSpecification.hasMinRating(request.getMinRating()))
-                .and(PlaceSpecification.containsKeyword(request.getKeyword()));
+                .and(PlaceSpecification.containsKeyword(request.getEffectiveKeyword()));
 
-        // 3. Execute dynamic query and map Entities to immutable Response DTOs
+        // 4. Execute dynamic query and map Entities to immutable Response DTOs
         return placeRepository.findAll(spec, pageable).map(this::mapToResponse);
     }
 

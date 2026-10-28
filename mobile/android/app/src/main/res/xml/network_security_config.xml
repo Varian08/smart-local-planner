@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext HTTP communication strictly for local development domains -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Android Emulator default host loopback to development workstation -->
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <!-- Standard loopback hosts for local development and ADB reverse socket forwarding -->
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>

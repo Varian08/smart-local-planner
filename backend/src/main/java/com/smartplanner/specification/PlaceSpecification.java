@@ -55,18 +55,30 @@ public final class PlaceSpecification {
 
     /**
      * Search across name, address, and description using keyword.
+     * Safely escapes SQL LIKE wildcards (%, _, \) using '\' as escape character.
      */
     public static Specification<Place> containsKeyword(String keyword) {
         return (root, query, criteriaBuilder) -> {
             if (keyword == null || keyword.isBlank()) {
                 return criteriaBuilder.conjunction();
             }
-            String pattern = "%" + keyword.trim().toLowerCase() + "%";
+            String escaped = escapeLikeWildcards(keyword.trim().toLowerCase());
+            String pattern = "%" + escaped + "%";
             return criteriaBuilder.or(
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("address")), pattern),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), pattern)
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern, '\\'),
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("address")), pattern, '\\'),
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), pattern, '\\')
             );
         };
+    }
+
+    /**
+     * Escape special SQL LIKE pattern wildcards.
+     */
+    private static String escapeLikeWildcards(String input) {
+        return input
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
     }
 }

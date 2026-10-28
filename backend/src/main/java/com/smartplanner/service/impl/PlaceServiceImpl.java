@@ -92,7 +92,10 @@ public class PlaceServiceImpl implements PlaceService {
 
     @Override
     public List<PlaceResponse> getTopPlacesByCategory(String category) {
-        return placeRepository.findTop5ByCategoryOrderByAverageRatingDesc(category)
+        if (category == null || category.isBlank()) {
+            return List.of();
+        }
+        return placeRepository.findTop5ByCategoryIgnoreCaseOrderByAverageRatingDesc(category.trim())
                 .stream()
                 .map(this::mapToResponse)
                 .toList();

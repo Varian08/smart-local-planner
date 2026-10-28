@@ -58,17 +58,12 @@ class DioClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
     CancelToken? cancelToken,
-  }) async {
-    try {
-      return await _dio.get<T>(
-        path,
-        queryParameters: queryParameters,
-        options: options,
-        cancelToken: cancelToken,
-      );
-    } on DioException {
-      // Re-throw to be handled by domain-specific error mappers or repositories
-      rethrow;
-    }
+  }) {
+    return _dio.get<T>(
+      path,
+      queryParameters: queryParameters,
+      options: options,
+      cancelToken: cancelToken,
+    );
   }
 }

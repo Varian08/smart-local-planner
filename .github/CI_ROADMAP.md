@@ -9,15 +9,15 @@
 ## Sprint-by-Sprint CI Evolution Map
 
 ```text
-[ Sprint 0: Foundation ] ──► [ Sprint 1: Core Logic ] ──► [ Sprint 2: Fullstack ] ──► [ Sprint 3+: Release ]
-  - Java 21 LTS Setup          - Backend Unit Tests          - Flutter Analyzer         - Docker Build Verification
-  - Maven Dependency Cache     - Spotless / Google Style     - Flutter Widget Tests     - Sonatype / Trivy Security
-  - mvn test-compile           - Test Failure Blockers       - Flyway Migration Check   - Multi-platform Quality Gate
+[ Sprint 0: Foundation ] ──► [ Sprint 1: Dual Gate & Hardening ] ──► [ Sprint 2: Fullstack Auth ] ──► [ Sprint 3+: Release ]
+  - Java 21 LTS Setup          - Backend Unit Tests (20/20)         - Integration Auth Tests     - Docker Build Verification
+  - Maven Dependency Cache     - Flutter Analyze & Test (8/8)       - JWT Security Validation    - Sonatype / Trivy Security
+  - mvn test-compile           - CI Timeouts & Concurrency Cancel   - Token Rotation Tests       - Multi-platform Quality Gate
 ```
 
 ---
 
-## Phase 1: Sprint 0 (Infrastructure Foundation)
+## Phase 1: Sprint 0 (Infrastructure Foundation - Completed)
 
 ### Objective
 Guarantee that Java 21 backend builds and compiles cleanly, dependencies are cached, line endings are normalized, and developers are not prematurely blocked before test suites exist.
@@ -35,64 +35,25 @@ Guarantee that Java 21 backend builds and compiles cleanly, dependencies are cac
 
 ---
 
-## Phase 2: Sprint 1 (Core Domain & Data Layer)
+## Phase 2: Sprint 1 (Dual Quality Gate & CI Hardening - Completed)
 
 ### Objective
-As JPA Entities (`Place`), Repositories, Services, and unit tests are introduced: **Enforce 100% test pass rate on all Pull Requests targeting `develop`.**
+Enforce strict 100% test pass rate across both Spring Boot 3 backend and Flutter mobile client on all Pull Requests targeting `develop`, bounded with execution timeouts and concurrency controls (`[SLP-4]`, `[SLP-6]`, `[SLP-14]`).
 
-### Workflow Configuration Update
-Upgrade verification command from `test-compile` to active test suite execution:
-
-```yaml
-      - name: Run Backend Unit Tests with Maven
-        working-directory: backend
-        run: mvn -B test
-```
+### Active Production Workflow Configuration (`.github/workflows/ci.yml`)
+* **Concurrency:** `cancel-in-progress: true` keyed by `${{ github.workflow }}-${{ github.ref }}` (auto-cancels redundant runs).
+* **Job 1: `backend-build-check`** (Java 21 Temurin, Maven cache, `timeout-minutes: 10`, `mvn -B clean test`).
+* **Job 2: `mobile-build-check`** (Java 17 Temurin, Flutter stable SDK, pub cache, `timeout-minutes: 10`, `flutter analyze` + `flutter test`).
 
 ### Quality Gate Enforcement
-* Any commit that breaks existing unit tests triggers **CI Failure ➔ Block Merge**.
+* Any commit breaking unit tests, contracts, or Dart static analysis triggers **CI Failure ➔ Block Merge**.
 
 ---
 
-## Phase 3: Sprint 2 (Fullstack Integration - Mobile Flutter)
+## Phase 3: Sprint 2 (Authentication & Token Security Quality Gates)
 
 ### Objective
-As mobile features (`flutter_bloc`, presentation screens) are authored under `mobile/`: Introduce a parallel Job to validate Dart code quality and widget tests (analogous to the `frontend` job in `eform`).
-
-### Parallel Mobile Job Configuration
-
-```yaml
-  mobile-ci:
-    name: Mobile Quality Gate (Flutter)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Java 17 (Android Build Tools)
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Set up Flutter SDK
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          cache: true
-
-      - name: Install Mobile Dependencies
-        working-directory: mobile
-        run: flutter pub get
-
-      - name: Static Analysis (Dart Analyzer)
-        working-directory: mobile
-        run: flutter analyze
-
-      - name: Run Headless Mobile Tests
-        working-directory: mobile
-        run: flutter test --coverage
-```
+As stateless JWT authentication, refresh token rotation, and hardware keystore bookmarking are introduced: expand quality gates to enforce integration test coverage, secure storage tests, and auth error-mapping specifications.
 
 ---
 

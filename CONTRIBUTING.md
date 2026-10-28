@@ -1,7 +1,7 @@
 # Developer Playbook & Contribution Guide
 
 > **Project:** Smart Local Planner  
-> **Status:** Sprint 0 Foundation Complete ➔ Entering Sprint 1  
+> **Status:** Sprint 1 Hardening Complete ➔ Entering Sprint 2 (Authentication & Favorites)  
 > **Target Audience:** All Engineers (Backend, Mobile), AI Agents, and Code Reviewers  
 > **Standard:** Enterprise Greenfield Guidelines & Zero-Tolerance Pitfall Prevention
 
@@ -23,10 +23,10 @@ Before writing any code, review these 5 non-negotiable rules. Violating any of t
 | Pitfall | Root Risk | Mandatory Enterprise Rule |
 | :--- | :--- | :--- |
 | **1. Modifying Historical Migrations** | Causes `FlywayChecksumMismatch` and crashes peer databases. | **NEVER touch existing `V1__...` files.** Always create a new incremental `V2__...sql` file. |
-| **2. Direct Push to Protected Branches** | Destroys branch integrity and bypasses automated tests. | **NEVER push directly to `develop` or `main`.** Always branch off `develop` via `feat/<domain>-<task>` and submit a PR. |
+| **2. Direct Push to Protected Branches** | Destroys branch integrity and bypasses automated tests. | **NEVER push directly to `develop` or `main`.** Always branch off `develop` via `<type>/<issue_number>-<short-description>` and submit a PR. |
 | **3. Credential or Secret Leaks** | Compromises database credentials and API service keys. | **NEVER commit `.env`, passwords, or private keys.** Only `.env.example` with dummy placeholders is tracked. |
 | **4. Architectural Layer Bleeding** | Couples storage layer with external HTTP transport. | **Backend:** Controllers must never return JPA Entities.<br>**Mobile:** UI must handle all 4 states (Loading, Success, Error, Empty). |
-| **5. Uninformative Commit Messages** | Prevents automated changelog generation and commit auditing. | **Commits like "fix", "wip", "update" are blocked.** All commits must follow `<type>(<scope>): <subject>`. |
+| **5. Uninformative Commit Messages** | Prevents automated changelog generation and commit auditing. | **Commits like "fix", "wip", "update" are blocked.** All commits must follow `<type>(<scope>): [SLP-X] <subject> (closes #<issue>)`. |
 
 ---
 
@@ -87,39 +87,50 @@ git pull origin develop
 
 ### Step 2: Create a feature branch
 ```bash
-# For backend tasks:
-git switch -c feat/backend-<task-name>
-
-# For mobile tasks:
-git switch -c feat/mobile-<task-name>
+# Branch format: <type>/<issue_number>-<short-description>
+git switch -c feat/22-api-contract-alignment
+# or for bug fixes / hardening:
+git switch -c fix/24-android-network-readiness
 ```
 
 ### Step 3: Write code & test locally
 Verify that your changes compile and pass tests before pushing:
 ```bash
-# Backend verification:
+# Backend verification (executes all unit tests and quality gate):
 cd backend
-./mvnw clean test-compile
+./mvnw test
 
-# Mobile verification:
+# Mobile verification (static analysis linter and test suite):
 cd mobile
 flutter analyze
+flutter test
 ```
 
 ### Step 4: Commit with Conventional Commits
-Format: `<type>(<scope>): <subject>`
+Format: `<type>(<scope>): [SLP-X] <subject> (closes #<issue_number>)`
 
 ```bash
 git add .
-git commit -m "feat(places): add search endpoint with pagination"
-git push -u origin feat/backend-<task-name>
+git commit -m "feat(places): [SLP-2] add search endpoint with pagination (closes #22)"
+git push -u origin feat/22-api-contract-alignment
 ```
 
 ### Step 5: Open Pull Request
-* Base branch: `develop` ⬅️ Compare branch: `feat/backend-<task-name>`.
-* Provide a concise 2-sentence summary of changes.
-* Attach test evidence or Swagger screenshot.
-* Request 1 review approval from your peer.
+* Base branch: `develop` ⬅️ Compare branch: `<type>/<issue_number>-<short-description>`.
+* Use the standardized 3-section enterprise PR template:
+  ```markdown
+  ## Summary of Changes
+  - **<Component> (`<files>`)**:
+    - <Bullet item 1>
+    - <Bullet item 2>
+
+  ## Verification
+  - <Test results / quality gate evidence>
+
+  Closes #<issue_number>
+  ```
+* Wait for dual CI quality gate (`Spring Boot 3 Compile & Verification` and `Flutter Mobile Quality Gate`) to turn green.
+* Merge PR into `develop`, delete feature branch, and sync local `develop`.
 
 ---
 

@@ -16,7 +16,7 @@ import java.util.UUID;
 public interface PlaceRepository extends JpaRepository<Place, UUID>, JpaSpecificationExecutor<Place> {
 
     /**
-     * Find top 5 places in a category ordered by highest rating.
+     * Find top 5 places in a category ordered by highest rating (case-insensitive).
      */
-    List<Place> findTop5ByCategoryOrderByAverageRatingDesc(String category);
+    List<Place> findTop5ByCategoryIgnoreCaseOrderByAverageRatingDesc(String category);
 }

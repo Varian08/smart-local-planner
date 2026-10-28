@@ -138,20 +138,27 @@ class PlaceServiceTest {
     }
 
     @Test
-    @DisplayName("getTopPlacesByCategory() should return list of top rated places")
+    @DisplayName("getTopPlacesByCategory() should return list of top rated places with case-insensitive category")
     void getTopPlacesByCategory_returnsTopPlacesList() {
         // Given
-        when(placeRepository.findTop5ByCategoryOrderByAverageRatingDesc("CULTURE"))
+        when(placeRepository.findTop5ByCategoryIgnoreCaseOrderByAverageRatingDesc("culture"))
                 .thenReturn(List.of(mockPlace));
 
-        // When
-        List<PlaceResponse> result = placeService.getTopPlacesByCategory("CULTURE");
+        // When (passing lowercase with whitespace to verify trimming and case-insensitivity)
+        List<PlaceResponse> result = placeService.getTopPlacesByCategory("  culture  ");
 
         // Then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getName()).isEqualTo("Cầu Rồng");
 
-        verify(placeRepository, times(1)).findTop5ByCategoryOrderByAverageRatingDesc("CULTURE");
+        verify(placeRepository, times(1)).findTop5ByCategoryIgnoreCaseOrderByAverageRatingDesc("culture");
+    }
+
+    @Test
+    @DisplayName("getTopPlacesByCategory() with null or blank category should return empty list")
+    void getTopPlacesByCategory_withBlankCategory_returnsEmptyList() {
+        assertThat(placeService.getTopPlacesByCategory(null)).isEmpty();
+        assertThat(placeService.getTopPlacesByCategory("   ")).isEmpty();
     }
 
     @Test

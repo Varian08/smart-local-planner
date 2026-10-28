@@ -165,8 +165,39 @@
   "imageUrl": "https://res.cloudinary.com/smartplanner/image/upload/v1/landmark.webp",
   "averageRating": 4.6,
   "totalReviews": 38,
-  "isFavorite": false
+  "createdAt": "2026-10-18T08:00:00Z",
+  "updatedAt": "2026-10-18T08:00:00Z"
 }
+```
+
+---
+
+### 2.3. Get Top-Rated Places in Category
+* **Endpoint:** `GET /api/v1/places/top`
+* **Access:** Public
+* **Query Parameters:**
+  - `category` (string, required): Category identifier (case-insensitive, e.g. `CAFE`, `culture`, `attraction`)
+
+#### Response: `200 OK`
+```json
+[
+  {
+    "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
+    "name": "Cầu Rồng",
+    "description": "Cây cầu biểu tượng bắc qua sông Hàn với kiến trúc mô phỏng rồng thời Lý.",
+    "category": "ATTRACTION",
+    "address": "Đường Nguyễn Văn Linh, Hải Châu, Đà Nẵng",
+    "latitude": 16.0611,
+    "longitude": 108.2272,
+    "priceLevel": 1,
+    "openingHours": "24/7 (Phun lửa 21:00 T7 & CN)",
+    "imageUrl": "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b",
+    "averageRating": 4.8,
+    "totalReviews": 1250,
+    "createdAt": "2026-10-18T08:00:00Z",
+    "updatedAt": "2026-10-18T08:00:00Z"
+  }
+]
 ```
 
 ---

@@ -80,6 +80,19 @@ class FlywayMigrationAndPlaceRepositoryIntegrationTest {
         Page<Place> searchResults = placeRepository.findAll(keywordSpec, PageRequest.of(0, 10));
         assertThat(searchResults.getContent()).isNotEmpty();
         assertThat(searchResults.getContent().get(0).getName()).contains("Cầu Rồng");
+
+        // Verify keyword search with escaped wildcard characters (%) doesn't match all records or throw SQL error
+        Specification<Place> wildcardSpec = PlaceSpecification.containsKeyword("%");
+        Page<Place> wildcardResults = placeRepository.findAll(wildcardSpec, PageRequest.of(0, 10));
+        assertThat(wildcardResults.getContent()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Verify findTop5ByCategoryIgnoreCaseOrderByAverageRatingDesc executes case-insensitively on PostgreSQL")
+    void verifyTopPlacesCaseInsensitive() {
+        List<Place> cultureTopPlaces = placeRepository.findTop5ByCategoryIgnoreCaseOrderByAverageRatingDesc("culture");
+        assertThat(cultureTopPlaces).isNotEmpty();
+        assertThat(cultureTopPlaces).allMatch(p -> "CULTURE".equalsIgnoreCase(p.getCategory()));
     }
 }
 

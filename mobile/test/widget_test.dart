@@ -26,6 +26,28 @@ class FakePlaceRepository implements PlaceRepository {
   }
 }
 
+class FakePlaceRepositoryWithData implements PlaceRepository {
+  final List<PlaceModel> places;
+  const FakePlaceRepositoryWithData({required this.places});
+
+  @override
+  Future<List<PlaceModel>> getPlaces({
+    String? query,
+    String? category,
+    int? priceLevel,
+    int page = 0,
+    int size = 10,
+    String sort = 'averageRating,desc',
+  }) async {
+    return places;
+  }
+
+  @override
+  Future<PlaceModel> getPlaceById(String id) async {
+    return places.firstWhere((p) => p.id == id);
+  }
+}
+
 void main() {
   testWidgets('App smoke test initializes successfully', (
     WidgetTester tester,
@@ -38,5 +60,35 @@ void main() {
 
     // Verify root app widget is mounted
     expect(find.byType(SmartLocalPlannerApp), findsOneWidget);
+  });
+
+  testWidgets('PlaceCard renders placeholder banner when imageUrl is null', (
+    WidgetTester tester,
+  ) async {
+    final fakeRepoWithNullImage = FakePlaceRepositoryWithData(
+      places: [
+        const PlaceModel(
+          id: 'place-no-img-1',
+          name: 'Bảo tàng không ảnh',
+          category: 'CULTURE',
+          address: '01 Trần Phú, Hải Châu, Đà Nẵng',
+          imageUrl: null,
+          averageRating: 4.5,
+          totalReviews: 20,
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      SmartLocalPlannerApp(placeRepository: fakeRepoWithNullImage),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify place name is rendered
+    expect(find.text('Bảo tàng không ảnh'), findsOneWidget);
+    // Verify fallback placeholder banner text is rendered cleanly
+    expect(find.text('Photo preview unavailable'), findsOneWidget);
+    // Verify Category badge is displayed
+    expect(find.text('CULTURE'), findsWidgets);
   });
 }

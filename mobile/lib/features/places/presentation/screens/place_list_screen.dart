@@ -366,49 +366,28 @@ class _PlaceListScreenState extends State<PlaceListScreen> {
           // Place Artwork with AspectRatio & Category Overlay
           Stack(
             children: [
-              if (place.imageUrl != null && place.imageUrl!.isNotEmpty)
-                AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: CachedNetworkImage(
-                    imageUrl: place.imageUrl!,
-                    fit: BoxFit.cover,
-                    placeholder:
-                        (context, url) => Container(
-                          color: Colors.grey.shade200,
-                          child: const Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          ),
-                        ),
-                    errorWidget:
-                        (context, url, error) => Container(
-                          color: Colors.grey.shade100,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.photo_outlined,
-                                  size: 40,
-                                  color: Colors.grey.shade400,
+              AspectRatio(
+                aspectRatio: 16 / 9,
+                child: (place.imageUrl != null && place.imageUrl!.trim().isNotEmpty)
+                    ? CachedNetworkImage(
+                        imageUrl: place.imageUrl!.trim(),
+                        fit: BoxFit.cover,
+                        placeholder:
+                            (context, url) => Container(
+                              color: Colors.grey.shade200,
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
                                 ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Photo preview unavailable',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade500,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ),
-                  ),
-                ),
+                        errorWidget:
+                            (context, url, error) => _buildPlaceholderBanner(),
+                      )
+                    : _buildPlaceholderBanner(),
+              ),
               // Category Pill Badge overlay
               Positioned(
                 top: 12,
@@ -552,6 +531,32 @@ class _PlaceListScreenState extends State<PlaceListScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderBanner() {
+    return Container(
+      color: Colors.grey.shade100,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.photo_outlined,
+              size: 40,
+              color: Colors.grey.shade400,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Photo preview unavailable',
+              style: TextStyle(
+                color: Colors.grey.shade500,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

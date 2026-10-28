@@ -14,6 +14,7 @@ class MockPlaceRepository implements PlaceRepository {
   int? lastSize;
   bool shouldThrow = false;
   Object? customException;
+  Duration delay = Duration.zero;
 
   @override
   Future<List<PlaceModel>> getPlaces({
@@ -24,6 +25,9 @@ class MockPlaceRepository implements PlaceRepository {
     int size = 10,
     String sort = 'averageRating,desc',
   }) async {
+    if (delay > Duration.zero) {
+      await Future.delayed(delay);
+    }
     if (customException != null) {
       throw customException!;
     }
@@ -259,6 +263,58 @@ void main() {
           ),
         ]),
       );
+    },
+  );
+
+  test(
+    'Preserves search query when category changed while search request is in-flight (overlapping events)',
+    () async {
+      repository.delay = const Duration(milliseconds: 50);
+      repository.returnPlaces = [_createDummyPlace('1', 'Dragon Bridge')];
+
+      // 1. User types search query
+      bloc.add(const PlaceSearchQueryChanged('Dragon'));
+      // 2. While request is in-flight (state is PlaceLoading), user selects category
+      await Future.delayed(const Duration(milliseconds: 10));
+      bloc.add(const PlaceCategoryChanged('CULTURE'));
+
+      await expectLater(
+        bloc.stream,
+        emitsThrough(
+          isA<PlaceLoaded>()
+              .having((s) => s.searchQuery, 'searchQuery', 'Dragon')
+              .having((s) => s.selectedCategory, 'selectedCategory', 'CULTURE'),
+        ),
+      );
+
+      expect(repository.lastQuery, 'Dragon');
+      expect(repository.lastCategory, 'CULTURE');
+    },
+  );
+
+  test(
+    'Preserves category filter when search query changed while category request is in-flight (overlapping events)',
+    () async {
+      repository.delay = const Duration(milliseconds: 50);
+      repository.returnPlaces = [_createDummyPlace('1', 'Dragon Bridge')];
+
+      // 1. User selects category
+      bloc.add(const PlaceCategoryChanged('CULTURE'));
+      // 2. While request is in-flight (state is PlaceLoading), user types search query
+      await Future.delayed(const Duration(milliseconds: 10));
+      bloc.add(const PlaceSearchQueryChanged('Dragon'));
+
+      await expectLater(
+        bloc.stream,
+        emitsThrough(
+          isA<PlaceLoaded>()
+              .having((s) => s.searchQuery, 'searchQuery', 'Dragon')
+              .having((s) => s.selectedCategory, 'selectedCategory', 'CULTURE'),
+        ),
+      );
+
+      expect(repository.lastQuery, 'Dragon');
+      expect(repository.lastCategory, 'CULTURE');
     },
   );
 }

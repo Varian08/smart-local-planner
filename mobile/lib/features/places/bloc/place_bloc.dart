@@ -13,6 +13,15 @@ class PlaceBloc extends Bloc<PlaceEvent, PlaceState> {
   static const int defaultPageSize = 10;
   final PlaceRepository placeRepository;
 
+  // Authoritative active filters tracked at the Bloc lifecycle level
+  // Eliminates race conditions when in-flight requests emit intermediate PlaceLoading
+  String? _activeCategory;
+  String? _activeQuery;
+
+  /// Exposes active filter criteria for UI synchronization or testing
+  String? get activeCategory => _activeCategory;
+  String? get activeQuery => _activeQuery;
+
   // ---------------------------------------------------------------------------
   // 1. Constructor & Event Handler Registration (Concurrent Transformers)
   // ---------------------------------------------------------------------------
@@ -28,35 +37,18 @@ class PlaceBloc extends Bloc<PlaceEvent, PlaceState> {
   }
 
   // ---------------------------------------------------------------------------
-  // Helper Getters to Extract Active Filters
-  // ---------------------------------------------------------------------------
-  String? get _currentCategory {
-    final s = state;
-    if (s is PlaceLoaded) return s.selectedCategory;
-    if (s is PlaceEmpty) return s.selectedCategory;
-    if (s is PlaceError) return s.selectedCategory;
-    return null;
-  }
-
-  String? get _currentQuery {
-    final s = state;
-    if (s is PlaceLoaded) return s.searchQuery;
-    if (s is PlaceEmpty) return s.searchQuery;
-    if (s is PlaceError) return s.searchQuery;
-    return null;
-  }
-
-  // ---------------------------------------------------------------------------
   // 2. Fetch Places Handler (Initial & Clean Reload)
   // ---------------------------------------------------------------------------
   Future<void> _onFetchStarted(
     PlaceFetchStarted event,
     Emitter<PlaceState> emit,
   ) async {
+    _activeCategory = event.category;
+    _activeQuery = event.query;
     emit(PlaceLoading());
     await _fetchInitialPage(
-      category: event.category,
-      query: event.query,
+      category: _activeCategory,
+      query: _activeQuery,
       emit: emit,
     );
   }
@@ -68,11 +60,11 @@ class PlaceBloc extends Bloc<PlaceEvent, PlaceState> {
     PlaceCategoryChanged event,
     Emitter<PlaceState> emit,
   ) async {
-    final activeQuery = _currentQuery;
+    _activeCategory = event.category;
     emit(PlaceLoading());
     await _fetchInitialPage(
-      category: event.category,
-      query: activeQuery,
+      category: _activeCategory,
+      query: _activeQuery,
       emit: emit,
     );
   }
@@ -84,13 +76,12 @@ class PlaceBloc extends Bloc<PlaceEvent, PlaceState> {
     PlaceSearchQueryChanged event,
     Emitter<PlaceState> emit,
   ) async {
-    final activeCategory = _currentCategory;
-    final normalizedQuery =
+    _activeQuery =
         event.query.trim().isEmpty ? null : event.query.trim();
     emit(PlaceLoading());
     await _fetchInitialPage(
-      category: activeCategory,
-      query: normalizedQuery,
+      category: _activeCategory,
+      query: _activeQuery,
       emit: emit,
     );
   }
@@ -103,8 +94,8 @@ class PlaceBloc extends Bloc<PlaceEvent, PlaceState> {
     Emitter<PlaceState> emit,
   ) async {
     await _fetchInitialPage(
-      category: _currentCategory,
-      query: _currentQuery,
+      category: _activeCategory,
+      query: _activeQuery,
       emit: emit,
     );
   }
@@ -125,8 +116,8 @@ class PlaceBloc extends Bloc<PlaceEvent, PlaceState> {
     final nextPage = currentState.currentPage + 1;
     try {
       final newPlaces = await placeRepository.getPlaces(
-        category: currentState.selectedCategory,
-        query: currentState.searchQuery,
+        category: _activeCategory,
+        query: _activeQuery,
         page: nextPage,
         size: defaultPageSize,
       );

@@ -33,14 +33,14 @@ public class PlaceServiceImpl implements PlaceService {
 
     @Override
     public Page<PlaceResponse> getPlaces(PlaceFilterRequest request) {
-        // 1. Phòng thủ an toàn các tham số phân trang & sắp xếp
+        // 1. Defensively validate and sanitize pagination & sorting arguments
         int page = (request.getPage() != null && request.getPage() >= 0) ? request.getPage() : 0;
         int size = (request.getSize() != null && request.getSize() > 0) ? request.getSize() : 10;
 
         Sort.Direction direction = "ASC".equalsIgnoreCase(request.getSortDirection())
                 ? Sort.Direction.ASC : Sort.Direction.DESC;
 
-        // Chỉ cho phép sort theo các cột hợp lệ của Place, tránh lỗi khi truyền chuỗi bừa
+        // Whitelist sort fields to ensure SQL query stability
         String sortBy = "averageRating";
         if (request.getSortBy() != null && !request.getSortBy().isBlank() && !"string".equalsIgnoreCase(request.getSortBy())) {
             sortBy = request.getSortBy();
@@ -48,13 +48,13 @@ public class PlaceServiceImpl implements PlaceService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        // 2. Ghép các mảnh lego điều kiện lọc động (Criteria API Specification)
+        // 2. Compose dynamic query predicates via JPA Specification
         Specification<Place> spec = Specification.where(PlaceSpecification.hasCategory(request.getCategory()))
                 .and(PlaceSpecification.hasPriceLevel(request.getPriceLevel()))
                 .and(PlaceSpecification.hasMinRating(request.getMinRating()))
                 .and(PlaceSpecification.containsKeyword(request.getKeyword()));
 
-        // 3. Thực thi truy vấn động và đúc kết quả sang DTO
+        // 3. Execute dynamic query and map Entities to immutable Response DTOs
         return placeRepository.findAll(spec, pageable).map(this::mapToResponse);
     }
 

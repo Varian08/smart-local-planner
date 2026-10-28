@@ -18,13 +18,13 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class PlaceFilterRequest {
 
-    // --- CÁC TIÊU CHÍ LỌC TÙY CHỌN (OPTIONAL FILTERS) ---
+    // Optional filter criteria
     private String category;
     private Integer priceLevel;
     private BigDecimal minRating;
     private String keyword;
 
-    // --- CÁC THAM SỐ PHÂN TRANG & SẮP XẾP (PAGINATION & SORT) ---
+    // Pagination and sorting parameters
     @Builder.Default
     private Integer page = 0;
 

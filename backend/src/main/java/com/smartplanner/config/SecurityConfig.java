@@ -1,5 +1,6 @@
 package com.smartplanner.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,29 +14,36 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+/**
+ * Spring Security configuration establishing stateless web security, CORS policies,
+ * and endpoint authorization boundaries.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Value("${cors.allowed-origins:http://localhost:3000,http://localhost:5173,http://localhost:8080,http://127.0.0.1:3000,http://10.0.2.2:8080}")
+    private List<String> allowedOrigins;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Cho phép Cross-Origin Resource Sharing (CORS) cho Flutter Web / Mobile Client
+            // Enable Cross-Origin Resource Sharing (CORS) with property-driven origin whitelist
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // Tắt CSRF vì API sử dụng JWT stateless
+            // Disable CSRF protection as API communication relies on stateless tokens
             .csrf(AbstractHttpConfigurer::disable)
-            // Không lưu session trên server (Stateless)
+            // Enforce stateless session policy on the server
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            // Cấu hình phân quyền đường dẫn
+            // Endpoint-level authorization rules
             .authorizeHttpRequests(auth -> auth
-                // Cho phép tự do xem tài liệu Swagger UI & Actuator Health
+                // Public access to Swagger OpenAPI documentation and Actuator health check
                 .requestMatchers(
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/actuator/health"
                 ).permitAll()
-                // Tất cả các request khác tạm thời cho phép để phát triển MVP
+                // All other requests permitted for initial MVP exploration; will be guarded by JWT in Sprint 2
                 .anyRequest().permitAll()
             );
 
@@ -45,10 +53,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

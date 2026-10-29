@@ -17,11 +17,12 @@
 
 All architectural standards, engineering guidelines, API specifications, and Architecture Decision Records (ADRs) are documented in:
 
+* **[docs/DEVELOPER_WORKFLOW_PLAYBOOK.md](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)** — Step-by-Step Agile Execution Playbook, Issue Lifecycle & Psychological Safety Matrix.
 * **[docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md)** — Comprehensive System Architecture Specification (Technical English).
 * **[docs/DEVELOPMENT_GUIDELINES.md](docs/DEVELOPMENT_GUIDELINES.md)** — Clean Coding Standards, 3-Layer Isolation, and Quality Gate Checklist.
 * **[CONTRIBUTING.md](CONTRIBUTING.md)** — Developer Playbook, Zero-Tolerance Pitfalls & Git Workflow.
 * **[docs/API_SPECIFICATION.md](docs/API_SPECIFICATION.md)** — Complete Request/Response JSON Contract for all 14 MVP Endpoints.
-* **[docs/schema.sql](docs/schema.sql)** — Production-ready PostgreSQL 16 DDL Schema (UUID v4, Foreign Keys, B-Tree & Spatial Indexes).
+* **[backend/src/main/resources/db/migration/](backend/src/main/resources/db/migration/)** — Production Flyway Database-as-Code Versioned Migrations.
 * **[docs/adr/README.md](docs/adr/README.md)** — Architecture Decision Records Index (ADR 0001 through 0005).
 
 ---
@@ -59,12 +60,12 @@ The platform follows an iterative **Agile / Scrum delivery lifecycle** partition
 │          │                             │ - Bruno Collection & GitHub Actions CI Gate   │
 ├──────────┼─────────────────────────────┼───────────────────────────────────────────────┤
 │ Sprint 1 │ Place Discovery & Search    │ - places JPA Entity, Repository & Spatial Qs  │
-│ (Active) │ (First Vertical Slice)      │ - Search, Category & Price Level Filter APIs  │
+│ (Done)   │ (First Vertical Slice)      │ - Search, Category & Price Level Filter APIs  │
 │          │                             │ - Infinite Scroll Pagination UI (PlaceList)   │
 │          │                             │ - Cloudinary Cached Image Component           │
 ├──────────┼─────────────────────────────┼───────────────────────────────────────────────┤
 │ Sprint 2 │ Authentication & Favorites  │ - Stateless JWT Auth Service & Token Rotation │
-│          │                             │ - User Favorites Collection CRUD APIs         │
+│ (Active) │                             │ - User Favorites Collection CRUD APIs         │
 │          │                             │ - Hardware Keystore Integration (Storage)     │
 │          │                             │ - Bookmark Toggle with Optimistic UI Sync     │
 ├──────────┼─────────────────────────────┼───────────────────────────────────────────────┤
@@ -119,6 +120,8 @@ HTTP Request
 ```text
 smart-local-planner/
 ├── .github/                           # GitHub Enterprise Standards
+│   ├── ISSUE_TEMPLATE/                # Automated Enterprise Issue Templates (Feature & Bug)
+│   ├── pull_request_template.md       # Standard 3-Section PR Submission Template
 │   ├── CI_ROADMAP.md                  # Evolution Guide & Multi-Sprint Quality Gates
 │   └── workflows/
 │       └── ci.yml                     # Automated Maven Compile & Verification Pipeline
@@ -229,20 +232,20 @@ This project adheres strictly to **Trunk-Based / GitFlow Integration Branching**
 [develop] ────────────────────────────────────────────► Integration Baseline (DEFAULT BRANCH)
    ▲                     ▲
    │ (PR Backend)        │ (PR Mobile)
-[feature/backend-...] [feature/flutter-...]           ► Short-lived Feature Branches
+[feat/<issue_id>-...] [fix/<issue_id>-...]             ► Short-lived Feature Branches
 ```
 
 ### Collaboration Rules:
 1. **Default Branch:** `develop` is the default integration branch. All feature branches must branch off `develop` and open Pull Requests against `develop`.
-2. **Branch Naming Conventions:**
-   - Backend Features: `feature/backend-<task-name>` (e.g., `feature/backend-places`)
-   - Mobile Features: `feature/flutter-<task-name>` (e.g., `feature/flutter-places`)
-   - Bugfixes: `fix/<issue-description>`
+2. **Single Unified Branch Naming Rule (GitHub Native):**
+   - Feature branches: `feat/<issue_number>-<short-description>` (e.g., `feat/49-jwt-architecture`)
+   - Bugfix branches: `fix/<issue_number>-<short-description>` (e.g., `fix/44-place-card-null-image-fallback`)
+   - *Never include words like `close` or `closes` in branch names.*
 3. **Conventional Commits Standard:**
    - `feat(places): implement place search endpoint with pagination`
    - `fix(auth): prevent token race condition during refresh rotation`
    - `docs(readme): standardize documentation into technical english`
-4. **Zero Direct Commits:** Never commit directly to `main` or `develop`. All changes require a Pull Request with an associated Definition of Done (DoD) checklist and test evidence.
+4. **Pull Request Quality Gates & Safe Exemption:** All application code, migrations, and configs strictly mandate feature PRs with green CI. Pure markdown documentation (`.md`) or typo edits may be pushed directly to `develop` after running `git pull origin develop`. Complete operational SOP is detailed in [docs/DEVELOPER_WORKFLOW_PLAYBOOK.md](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md).
 
 ---
 

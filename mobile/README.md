@@ -3,7 +3,7 @@
 > **Subsystem:** Cross-Platform Mobile Client (Android & iOS)  
 > **Architecture:** Feature-First Clean Architecture with `flutter_bloc` State Management  
 > **Assigned Engineer:** Mobile Software Engineer (Engineer B)  
-> **Reference Specs:** [docs/ARCHITECTURE_BLUEPRINT.md](../docs/ARCHITECTURE_BLUEPRINT.md) | [docs/API_SPECIFICATION.md](../docs/API_SPECIFICATION.md)
+> **Reference Specs:** [docs/DEVELOPER_WORKFLOW_PLAYBOOK.md](../docs/DEVELOPER_WORKFLOW_PLAYBOOK.md) | [docs/ARCHITECTURE_BLUEPRINT.md](../docs/ARCHITECTURE_BLUEPRINT.md) | [docs/API_SPECIFICATION.md](../docs/API_SPECIFICATION.md)
 
 ---
 
@@ -23,11 +23,11 @@ mobile/
 │   │   ├── storage/                # SecureStorageService (Sprint 2 - Keystore/Keychain)
 │   │   └── widgets/                # Reusable UI widgets
 │   └── features/                   # Feature-first vertical slices
-│       ├── places/                 # Place Discovery & Search (Sprint 1 Active)
+│       ├── places/                 # Place Discovery & Search (Sprint 1 Complete)
 │       │   ├── data/               # PlaceRepository, PlaceModel, PageResponse
 │       │   ├── bloc/               # PlaceBloc, PlaceEvent, PlaceState (Concurrency Hardened)
 │       │   └── presentation/       # PlaceListScreen, PlaceCard, Search & Category Filters
-│       ├── auth/                   # Registration, Login, Session Management (Sprint 2)
+│       ├── auth/                   # Registration, Login, Session Management (Sprint 2 Active)
 │       ├── favorites/              # Personal Bookmarks (Sprint 2)
 │       └── itineraries/            # Multi-day Travel Itinerary Management (Sprint 3)
 └── README.md

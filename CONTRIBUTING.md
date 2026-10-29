@@ -2,14 +2,19 @@
 
 > **Project:** Smart Local Planner  
 > **Status:** Sprint 1 Hardening Complete ➔ Entering Sprint 2 (Authentication & Favorites)  
-> **Target Audience:** All Engineers (Backend, Mobile), AI Agents, and Code Reviewers  
-> **Standard:** Enterprise Greenfield Guidelines & Zero-Tolerance Pitfall Prevention
+> **Target Audience:** All Contributing Engineers, Peer Reviewers, and AI Assistants  
+> **Standard:** Enterprise Greenfield Guidelines & Zero-Tolerance Pitfall Prevention  
+> **Operational Runbook:** See the comprehensive [Developer Workflow Playbook](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md) for step-by-step issue, board, and PR execution.
 
 ---
 
 ## 1. Engineering Philosophy
 
 Welcome to **Smart Local Planner**! This repository is engineered following strict enterprise architectural patterns. To maintain velocity, code health, and zero merge headaches across the team, all contributors **must strictly comply** with this guide.
+
+* **Project Governance & Red Lines:** Defined in this document (`CONTRIBUTING.md`).
+* **Daily Sprint Execution & Board SOP:** Detailed step-by-step in [`docs/DEVELOPER_WORKFLOW_PLAYBOOK.md`](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md).
+* **AI Coding Protocols & Prompt Templates:** Included in [`docs/DEVELOPER_WORKFLOW_PLAYBOOK.md §5`](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md#5-ai-pair-programming-protocol-prompting-guide).
 
 ---
 
@@ -147,6 +152,7 @@ git push -u origin feat/22-api-contract-alignment
 
 ## 6. Associated Documentation Links
 
+* Step-by-Step Sprint Playbook: [docs/DEVELOPER_WORKFLOW_PLAYBOOK.md](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)
 * System Architecture: [docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md)
 * Coding Guidelines: [docs/DEVELOPMENT_GUIDELINES.md](docs/DEVELOPMENT_GUIDELINES.md)
 * API JSON Specification: [docs/API_SPECIFICATION.md](docs/API_SPECIFICATION.md)

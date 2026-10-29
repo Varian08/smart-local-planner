@@ -107,10 +107,10 @@ Before submitting a feature branch, Engineer B must verify:
 ### 6.1. Branching Strategy
 All branch management strictly aligns with the [Developer Workflow Playbook](DEVELOPER_WORKFLOW_PLAYBOOK.md) and [CONTRIBUTING.md](../CONTRIBUTING.md):
 * `main`: Production release branch. Strictly protected.
-* `develop`: Active integration branch. Direct pushes blocked.
-* Feature branches: `feat/<issue_number>-<short-description>` (e.g. `feat/46-jwt-architecture`)
-* Bugfix branches: `fix/<issue_number>-<short-description>` (e.g. `fix/44-place-card-null-image-fallback`)
-* Documentation / Refactoring branches: `docs/...`, `refactor/...`, `chore/...`
+* `develop`: Active integration branch. Direct pushes of application code/db are blocked.
+* Feature branches (Unified Standard): `feat/<issue_number>-<short-description>` (e.g. `feat/49-jwt-architecture`). Never include `close` or `closes` in branch names.
+* Bugfix branches: `fix/<issue_number>-<short-description>` (e.g. `fix/44-place-card-null-image-fallback`).
+* Pure Documentation edits (`.md` / typo fixes): May be pushed directly to `develop` after running `git pull origin develop`.
 
 ### 6.2. Conventional Commits Standard
 

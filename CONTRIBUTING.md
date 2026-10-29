@@ -28,10 +28,10 @@ Before writing any code, review these 5 non-negotiable rules. Violating any of t
 | Pitfall | Root Risk | Mandatory Enterprise Rule |
 | :--- | :--- | :--- |
 | **1. Modifying Historical Migrations** | Causes `FlywayChecksumMismatch` and crashes peer databases. | **NEVER touch existing `V1__...` files.** Always create a new incremental `V2__...sql` file. |
-| **2. Direct Push to Protected Branches** | Destroys branch integrity and bypasses automated tests. | **NEVER push directly to `develop` or `main`.** Always branch off `develop` via `<type>/<issue_number>-<short-description>` and submit a PR. |
+| **2. Direct Push of Code to develop/main** | Destroys branch integrity and bypasses CI automated quality gates. | **NEVER push application code, migrations, or configs directly to `develop`/`main`.** Always branch off `develop` via `<type>/<issue_number>-<short-description>` and submit a PR.<br>*(Pragmatic Exemption: Pure documentation `.md` / typo fixes can be pushed directly to `develop` after running `git pull origin develop`)*. |
 | **3. Credential or Secret Leaks** | Compromises database credentials and API service keys. | **NEVER commit `.env`, passwords, or private keys.** Only `.env.example` with dummy placeholders is tracked. |
 | **4. Architectural Layer Bleeding** | Couples storage layer with external HTTP transport. | **Backend:** Controllers must never return JPA Entities.<br>**Mobile:** UI must handle all 4 states (Loading, Success, Error, Empty). |
-| **5. Uninformative Commit Messages** | Prevents automated changelog generation and commit auditing. | **Commits like "fix", "wip", "update" are blocked.** All commits must follow `<type>(<scope>): [SLP-X] <subject> (closes #<issue>)`. |
+| **5. Uninformative Commit Messages** | Prevents automated changelog generation and commit auditing. | **Commits like "fix", "wip", "update" are blocked.** All commits must follow `<type>(<scope>): [SLP-X] <subject>`. (The `Closes #<issue_number>` keyword belongs in the PR Description). |
 
 ---
 
@@ -112,11 +112,12 @@ flutter test
 ```
 
 ### Step 4: Commit with Conventional Commits
-Format: `<type>(<scope>): [SLP-X] <subject> (closes #<issue_number>)`
+Format: `<type>(<scope>): [SLP-X] <subject>`  
+*(Note: Do not put `closes #...` in branch names or commit messages. The `Closes #<issue_number>` keyword belongs cleanly in the PR Description!)*
 
 ```bash
 git add .
-git commit -m "feat(places): [SLP-2] add search endpoint with pagination (closes #22)"
+git commit -m "feat(places): [SLP-2] add search endpoint with pagination"
 git push -u origin feat/22-api-contract-alignment
 ```
 

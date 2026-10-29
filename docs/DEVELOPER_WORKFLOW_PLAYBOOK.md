@@ -74,7 +74,12 @@ flowchart TD
 ---
 
 ### Step 3: Git Branch Creation
-Always branch from the latest, pristine `develop` branch:
+Always branch from the latest, pristine `develop` branch.
+
+> [!IMPORTANT]
+> **Single Unified Branch Naming Rule (GitHub Native):**
+> Format: `<type>/<issue_number>-<short-description>`  
+> *Never include words like `close` or `closes` in branch names!*
 
 ```bash
 # Ensure local develop is clean and up to date
@@ -82,9 +87,8 @@ git checkout develop
 git pull origin develop
 
 # Create feature or fix branch mapped to the GitHub issue number
-# Format: <type>/<issue_number>-<short-description>
-git checkout -b feat/46-jwt-architecture
-# or for bug fixes / maintenance:
+git checkout -b feat/49-jwt-architecture
+# or for bug fixes:
 git checkout -b fix/44-place-card-null-image-fallback
 ```
 
@@ -119,7 +123,8 @@ flutter analyze
 ---
 
 ### Step 5: Conventional Commit & Push
-Stage only the modified project files and construct a Conventional Commit containing the ticket identifier and closing keyword:
+Stage only the modified project files and construct a Conventional Commit.  
+*(Note: Keep commit messages clean: `<type>(<scope>): [SLP-X] <imperative description>`. The `Closes #<issue_number>` keyword belongs in the PR Description!)*
 
 ```bash
 # Review modified files
@@ -129,11 +134,11 @@ git status
 git add .
 
 # Conventional Commit Format:
-# <type>(<scope>): [SLP-X] <imperative description> (closes #<issue_number>)
-git commit -m "feat(auth): [SLP-22] add jwt token provider and user entity (closes #46)"
+# <type>(<scope>): [SLP-X] <imperative description>
+git commit -m "feat(auth): [SLP-22] add jwt token provider and user entity"
 
 # Push branch to remote origin
-git push -u origin feat/46-jwt-architecture
+git push -u origin feat/49-jwt-architecture
 ```
 
 ---
@@ -212,7 +217,7 @@ flowchart TD
 | Dangerous Action | Impact | Prevention & Emergency Recovery |
 | :--- | :--- | :--- |
 | **Modifying historical migrations (`V1`, `V2`, `V3`)** | Calculates a different SHA-256 checksum; crashes peer and server Flyway initialization. | **Rule:** Never edit existing SQL migrations. Always create an incremental `V4__...sql`.<br>**Recovery:** `git restore backend/src/main/resources/db/migration/V1...` |
-| **Direct push or `git push --force` to `develop`/`main`** | Overwrites shared history and bypasses CI quality gates. | **Rule:** Always work on `feat/...` or `fix/...`.<br>**Protection:** Branch protection rules on GitHub strictly block direct pushes. |
+| **Direct push of application code/db to `develop`/`main`** | Bypasses automated CI quality gates and risks breaking shared codebase. | **Rule:** Always work on `feat/<issue_number>-<desc>` or `fix/...` for code, db migrations, and build configs.<br>**Exemption:** Pure markdown documentation (`.md`) or typo edits can be pushed directly to `develop` after running `git pull origin develop`. |
 | **Committing secrets (`.env`, passwords, JWT secrets, Cloudinary keys)** | Security breach; captured by public/private scanner bots. | **Rule:** `.gitignore` blocks `.env`. Only commit placeholder values in `.env.example`. |
 | **Breaking API Contract silently** | Modifying DTO field names without updating `API_SPECIFICATION.md` breaks mobile app parsing. | **Rule:** API contracts are sacred. Update spec and coordinate with frontend before altering schemas. |
 

@@ -32,20 +32,31 @@ flowchart TD
    [SLP-X] <Imperative Summary of Feature or Bugfix>
    ```
    *Example:* `[SLP-22] Implement JWT architecture, User entity and refresh token migration`
-3. **Description Template:**
+3. **Standard Enterprise Issue Template (Gold Standard):**
    ```markdown
-   ### Description
-   <High-level summary of the architectural requirement and context>
+   ## Problem Statement
+   <Describe the current problem, architectural gap, or motivation for this ticket. Why does this work need to be done?>
 
-   ### Key Tasks
-   1. <Task 1>
-   2. <Task 2>
-   3. <Task 3>
+   ## User Story
+   As a <role / mobile traveler / backend consumer>,
+   I want <functional capability or technical improvement>,
+   So that <business value, enhanced UX, or security guarantee>.
 
-   ### Acceptance Criteria
-   - [ ] <Measurable outcome 1>
-   - [ ] <Measurable outcome 2>
-   - [ ] All local and CI test suites pass with zero warnings.
+   ## Acceptance Criteria
+   - [ ] <Measurable functional requirement 1>
+   - [ ] <Measurable functional requirement 2>
+   - [ ] <Defensive error handling requirement>
+
+   ## Implementation Tasks
+   1. [Backend/Mobile] <Specific technical task 1>
+   2. [Backend/Mobile] <Specific technical task 2>
+   3. [Testing] Add automated tests covering happy path and edge cases.
+
+   ## Definition of Done
+   - [ ] Unit & slice tests pass locally with 100% success (`mvn test` / `flutter test`).
+   - [ ] Static analysis passes with 0 warnings (`flutter analyze`).
+   - [ ] Pull Request submitted using standard 3-section template and approved by Lead.
+   - [ ] Dual CI quality gates (Backend + Mobile) pass on GitHub Actions.
    ```
 4. **Metadata Sidebar (Mandatory):**
    * **Assignees:** Assign yourself (the developer executing the task).
@@ -277,3 +288,4 @@ Before requesting a PR review, verify every item on this checklist:
 - [ ] PR title follows Conventional Commits format.
 - [ ] PR description uses the standard 3-section template and contains `Closes #<issue_number>`.
 - [ ] Sprint Board card is placed in **In Review**.
+

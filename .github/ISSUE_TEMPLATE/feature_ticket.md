@@ -29,3 +29,4 @@ So that <business value, enhanced UX, or security guarantee>.
 - [ ] Static analysis passes with 0 warnings (`flutter analyze`).
 - [ ] Pull Request submitted using standard 3-section template and approved by Lead.
 - [ ] Dual CI quality gates (Backend + Mobile) pass on GitHub Actions.
+

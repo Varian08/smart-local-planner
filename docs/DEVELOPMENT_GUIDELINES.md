@@ -105,10 +105,12 @@ Before submitting a feature branch, Engineer B must verify:
 ## 6. Git Workflow & Conventional Commits
 
 ### 6.1. Branching Strategy
-* `main`: Production release branch. Protected.
-* `develop`: Integration branch.
-* `feature/backend-<task-name>`: Backend feature branch.
-* `feature/flutter-<task-name>`: Mobile feature branch.
+All branch management strictly aligns with the [Developer Workflow Playbook](DEVELOPER_WORKFLOW_PLAYBOOK.md) and [CONTRIBUTING.md](../CONTRIBUTING.md):
+* `main`: Production release branch. Strictly protected.
+* `develop`: Active integration branch. Direct pushes blocked.
+* Feature branches: `feat/<issue_number>-<short-description>` (e.g. `feat/46-jwt-architecture`)
+* Bugfix branches: `fix/<issue_number>-<short-description>` (e.g. `fix/44-place-card-null-image-fallback`)
+* Documentation / Refactoring branches: `docs/...`, `refactor/...`, `chore/...`
 
 ### 6.2. Conventional Commits Standard
 

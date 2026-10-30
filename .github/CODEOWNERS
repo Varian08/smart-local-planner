@@ -1,0 +1,7 @@
+﻿# Every change requires review from the code owner (Tech Lead).
+* @Varian08
+
+# Database migrations and CI are high-risk areas.
+/backend/src/main/resources/db/migration/ @Varian08
+/.github/ @Varian08
+/docs/API_SPECIFICATION.md @Varian08

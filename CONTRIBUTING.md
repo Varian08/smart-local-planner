@@ -76,12 +76,12 @@ Modifying an already executed migration (e.g. editing `V1__init_schema.sql` to a
 ```mermaid
 gitGraph
    commit id: "develop (stable)"
-   branch feat/backend-places
-   checkout feat/backend-places
-   commit id: "feat(places): add entity & repo"
-   commit id: "feat(places): add service & tests"
+   branch feat/49-jwt-architecture
+   checkout feat/49-jwt-architecture
+   commit id: "feat(auth): [SLP-22] add entity & repo"
+   commit id: "feat(auth): [SLP-22] add jwt service & tests"
    checkout develop
-   merge feat/backend-places id: "Squash & Merge (PR #5)"
+   merge feat/49-jwt-architecture id: "Squash & Merge (PR #50)"
 ```
 
 ### Step 1: Synchronize with integration baseline

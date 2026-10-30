@@ -1,7 +1,7 @@
 # Developer Guidelines & Engineering Standards
 
 > **Project:** Smart Local Planner  
-> **Target Audience:** Backend Engineer (Engineer A), Mobile Engineer (Engineer B), and AI Agents  
+> **Target Audience:** Full-stack Engineers (Backend + Mobile), Reviewers, and AI Agents  
 > **Language Standard:** English for code, commit messages, and technical documentation  
 
 ---
@@ -117,7 +117,7 @@ All branch management strictly aligns with the [Developer Workflow Playbook](DEV
 All commit messages across the team must follow the industry-standard **Conventional Commits** specification:
 
 ```text
-<type>(<scope>): <subject>
+<type>(<scope>): [SLP-X] <subject>
 ```
 
 #### Commit Types Quick Reference

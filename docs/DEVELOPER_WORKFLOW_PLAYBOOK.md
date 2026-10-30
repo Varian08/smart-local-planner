@@ -16,7 +16,7 @@ flowchart TD
     Step1["1. Create Issue on GitHub<br/>(Set Assignee, Label, Project)"] --> Step2["2. Move Card to IN PROGRESS<br/>(Only manual drag! Signals active work)"]
     Step2 --> Step3["3. Branch off develop<br/>(feat/&lt;issue-id&gt;-&lt;short-desc&gt;)"]
     Step3 --> Step4["4. Implement & Verify Locally<br/>(mvn test & flutter test)"]
-    Step4 --> Step5["5. Conventional Commit & Push<br/>(... closes #&lt;issue-id&gt;)"]
+    Step4 --> Step5["5. Conventional Commit & Push<br/>(type(scope): [SLP-X] subject)"]
     Step5 --> Step6["6. Open PR on GitHub<br/>(3-section PR template)"]
     Step6 --> Step7["7. Review, CI Green & Squash Merge<br/>(Auto-closes Issue directly to DONE!)"]
 ```
@@ -274,7 +274,7 @@ Before proposing any code, review and adhere strictly to these project standards
 1. Architecture: Spring Boot 3 (Java 21) layered architecture and Flutter 3 (BLoC pattern).
 2. Database: Flyway migrations are immutable. Never modify V1, V2, V3. Add new migrations incrementally (e.g., V4).
 3. API Contracts: All REST endpoints, status codes, and DTO structures must conform exactly to docs/API_SPECIFICATION.md.
-4. Git Discipline: Changes must belong to an isolated branch 'feat/<issue_number>-<desc>'. Commits must follow Conventional Commits: '<type>(<scope>): [SLP-X] <subject> (closes #<issue>)'.
+4. Git Discipline: Changes must belong to an isolated branch 'feat/<issue_number>-<desc>'. Commits must follow Conventional Commits: '<type>(<scope>): [SLP-X] <subject>'. The 'Closes #<issue>' keyword goes in the PR description, never in commits or branch names.
 5. Quality Gate: Code must compile and pass all tests (mvn test and flutter test / flutter analyze) with 0 warnings.
 6. Language: Code, comments, commits, and PRs must be 100% Technical English.
 Always verify that your proposed changes do not break existing test suites.
@@ -292,6 +292,24 @@ Before requesting a PR review, verify every item on this checklist:
 - [ ] Backend test suite passes locally (`./mvnw test`).
 - [ ] Mobile tests pass and static analysis is completely clean (`flutter analyze` & `flutter test`).
 - [ ] PR title follows Conventional Commits format.
-- [ ] PR description uses the standard 3-section template and contains `Closes #<issue_number>`.
-- [ ] PR is linked to the issue via `Closes #<issue_number>` for automated transition to **Done** upon merge.
+- [ ] PR description uses the standard 3-section template and contains `Closes #<issue_number>` (auto-closes the issue and moves the card to **Done** on merge).
 
+
+---
+
+## 7. Reviewer Checklist (Tech Lead Gate)
+
+The reviewer verifies every item before clicking **Squash and merge**:
+
+| # | Check | How to verify |
+| :-: | :--- | :--- |
+| 1 | **Scope matches the issue** | Diff only touches what the Acceptance Criteria require; no unrelated refactors. |
+| 2 | **No historical migration edited** | `git diff` shows no changes to existing `V1`/`V2`/`V3`...; new schema changes live in a new `V<N>__*.sql`. |
+| 3 | **API contract respected** | Request/response shapes and status codes match `docs/API_SPECIFICATION.md`; if the contract changed, the spec is updated in the same PR. |
+| 4 | **No secrets** | No `.env`, passwords, JWT secrets, or tokens in the diff (search for `secret`, `password`, `key`). |
+| 5 | **Layering respected** | Controllers never return JPA entities or call repositories; mobile widgets never call Dio directly. |
+| 6 | **Tests cover behavior** | Happy path plus at least one failure/edge case per new endpoint or BLoC event. |
+| 7 | **CI is green** | Both `Spring Boot 3 Compile & Verification` and `Flutter Mobile Quality Gate` pass. |
+| 8 | **PR hygiene** | 3-section PR body, `Closes #<issue_number>`, conventional title. |
+
+> If any item fails, request changes on the PR. The author fixes it on the same branch; nothing on `develop` is affected.

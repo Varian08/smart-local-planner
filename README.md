@@ -18,10 +18,13 @@
 All architectural standards, engineering guidelines, API specifications, and Architecture Decision Records (ADRs) are documented in:
 
 * **[docs/DEVELOPER_WORKFLOW_PLAYBOOK.md](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)** — Step-by-Step Agile Execution Playbook, Issue Lifecycle & Psychological Safety Matrix.
+* **[docs/ONBOARDING.md](docs/ONBOARDING.md)** — Local setup, daily rhythm, and troubleshooting (Flyway, CORS, Docker).
+* **[docs/SPRINT_2_PLAN.md](docs/SPRINT_2_PLAN.md)** — Sprint 2 work packages, milestone gates, and API contract rules.
+* **[SECURITY.md](SECURITY.md)** — Vulnerability reporting and secret-leak response.
 * **[docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md)** — Comprehensive System Architecture Specification (Technical English).
 * **[docs/DEVELOPMENT_GUIDELINES.md](docs/DEVELOPMENT_GUIDELINES.md)** — Clean Coding Standards, 3-Layer Isolation, and Quality Gate Checklist.
 * **[CONTRIBUTING.md](CONTRIBUTING.md)** — Developer Playbook, Zero-Tolerance Pitfalls & Git Workflow.
-* **[docs/API_SPECIFICATION.md](docs/API_SPECIFICATION.md)** — Complete Request/Response JSON Contract for all 14 MVP Endpoints.
+* **[docs/API_SPECIFICATION.md](docs/API_SPECIFICATION.md)** — Complete Request/Response JSON Contract for all MVP Endpoints.
 * **[backend/src/main/resources/db/migration/](backend/src/main/resources/db/migration/)** — Production Flyway Database-as-Code Versioned Migrations.
 * **[docs/adr/README.md](docs/adr/README.md)** — Architecture Decision Records Index (ADR 0001 through 0005).
 
@@ -128,8 +131,9 @@ smart-local-planner/
 ├── docs/                              # Architecture Blueprints, API Contracts & ADRs
 │   ├── ARCHITECTURE_BLUEPRINT.md      # Full system technical specification
 │   ├── DEVELOPMENT_GUIDELINES.md      # Clean Code standards & Git rules
-│   ├── API_SPECIFICATION.md           # 14 REST endpoint contracts
-│   ├── schema.sql                     # Complete PostgreSQL 16 schema
+│   ├── API_SPECIFICATION.md           # REST API JSON contracts (single source of truth)
+│   ├── ONBOARDING.md                  # Local setup, run & troubleshooting guide
+│   ├── SPRINT_2_PLAN.md               # Sprint 2 work packages, gates & API contract rules
 │   └── adr/                           # Architecture Decision Records 0001 - 0005
 ├── backend/                           # Spring Boot 3 REST API Service
 │   ├── src/main/java/com/smartplanner/

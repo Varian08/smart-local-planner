@@ -19,7 +19,6 @@ All architectural standards, engineering guidelines, API specifications, and Arc
 
 * **[docs/DEVELOPER_WORKFLOW_PLAYBOOK.md](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)** — Step-by-Step Agile Execution Playbook, Issue Lifecycle & Psychological Safety Matrix.
 * **[docs/ONBOARDING.md](docs/ONBOARDING.md)** — Local setup, daily rhythm, and troubleshooting (Flyway, CORS, Docker).
-* **[docs/SPRINT_2_PLAN.md](docs/SPRINT_2_PLAN.md)** — Sprint 2 work packages, milestone gates, and API contract rules.
 * **[SECURITY.md](SECURITY.md)** — Vulnerability reporting and secret-leak response.
 * **[docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md)** — Comprehensive System Architecture Specification (Technical English).
 * **[docs/DEVELOPMENT_GUIDELINES.md](docs/DEVELOPMENT_GUIDELINES.md)** — Clean Coding Standards, 3-Layer Isolation, and Quality Gate Checklist.
@@ -133,7 +132,6 @@ smart-local-planner/
 │   ├── DEVELOPMENT_GUIDELINES.md      # Clean Code standards & Git rules
 │   ├── API_SPECIFICATION.md           # REST API JSON contracts (single source of truth)
 │   ├── ONBOARDING.md                  # Local setup, run & troubleshooting guide
-│   ├── SPRINT_2_PLAN.md               # Sprint 2 work packages, gates & API contract rules
 │   └── adr/                           # Architecture Decision Records 0001 - 0005
 ├── backend/                           # Spring Boot 3 REST API Service
 │   ├── src/main/java/com/smartplanner/

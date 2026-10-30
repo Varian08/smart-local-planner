@@ -1,7 +1,7 @@
 # Onboarding & Troubleshooting Guide
 
 > **Audience:** New engineers and AI assistants joining Smart Local Planner.  
-> **Read first:** [CONTRIBUTING.md](../CONTRIBUTING.md) (rules) → [DEVELOPER_WORKFLOW_PLAYBOOK.md](DEVELOPER_WORKFLOW_PLAYBOOK.md) (how to work) → [SPRINT_2_PLAN.md](SPRINT_2_PLAN.md) (what to work on).
+> **Read first:** [CONTRIBUTING.md](../CONTRIBUTING.md) (rules) → [DEVELOPER_WORKFLOW_PLAYBOOK.md](DEVELOPER_WORKFLOW_PLAYBOOK.md) (how to work) → [GitHub Projects Sprint Board](https://github.com/Varian08/smart-local-planner/projects) (what to work on).
 
 ---
 
@@ -96,3 +96,4 @@ Testcontainers tests are skipped when Docker is not running (`disabledWithoutDoc
 ## 5. Working With an AI Assistant
 
 Paste the system prompt from [DEVELOPER_WORKFLOW_PLAYBOOK.md §5](DEVELOPER_WORKFLOW_PLAYBOOK.md#5-ai-pair-programming-protocol-prompting-guide) at the start of every session, and always review AI-generated diffs before committing.
+

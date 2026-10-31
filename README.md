@@ -13,19 +13,18 @@
 
 ---
 
-## 1. Architecture Blueprint & System Contracts
+## 1. Documentation & Technical Specifications
 
-All architectural standards, engineering guidelines, API specifications, and Architecture Decision Records (ADRs) are documented in:
+To ensure architectural integrity and frictionless developer onboarding, all system specifications are maintained as living contracts:
 
-* **[docs/DEVELOPER_WORKFLOW_PLAYBOOK.md](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)** — Step-by-Step Agile Execution Playbook, Issue Lifecycle & Psychological Safety Matrix.
-* **[docs/ONBOARDING.md](docs/ONBOARDING.md)** — Local setup, daily rhythm, and troubleshooting (Flyway, CORS, Docker).
-* **[SECURITY.md](SECURITY.md)** — Vulnerability reporting and secret-leak response.
-* **[docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md)** — Comprehensive System Architecture Specification (Technical English).
-* **[docs/DEVELOPMENT_GUIDELINES.md](docs/DEVELOPMENT_GUIDELINES.md)** — Clean Coding Standards, 3-Layer Isolation, and Quality Gate Checklist.
-* **[CONTRIBUTING.md](CONTRIBUTING.md)** — Developer Playbook, Zero-Tolerance Pitfalls & Git Workflow.
-* **[docs/API_SPECIFICATION.md](docs/API_SPECIFICATION.md)** — Complete Request/Response JSON Contract for all MVP Endpoints.
-* **[backend/src/main/resources/db/migration/](backend/src/main/resources/db/migration/)** — Production Flyway Database-as-Code Versioned Migrations.
-* **[docs/adr/README.md](docs/adr/README.md)** — Architecture Decision Records Index (ADR 0001 through 0005).
+| Domain | Document | Target Audience & Purpose |
+| :--- | :--- | :--- |
+| **System Design** | **[Architecture Blueprint](docs/ARCHITECTURE_BLUEPRINT.md)** | Full system architecture, layer decoupling & concurrency model |
+| **API Contract** | **[API Specification](docs/API_SPECIFICATION.md)** | Single Source of Truth for all REST JSON request/response contracts |
+| **Decisions** | **[Architecture Decision Records](docs/adr/README.md)** | Formal ADR history (ADR-0001 through ADR-0005) |
+| **Onboarding** | **[Onboarding Runbook](docs/ONBOARDING.md)** | 5-minute local environment setup & battle-tested troubleshooting |
+| **Process** | **[Workflow Playbook](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)** | 7-step sprint lifecycle, branch naming, PR conventions & checklist |
+| **Governance** | **[Contributing Guidelines](CONTRIBUTING.md)** | Zero-tolerance engineering red lines, code rules & [Security Policy](SECURITY.md) |
 
 ---
 

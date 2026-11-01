@@ -100,3 +100,4 @@ public class LoginRateLimitingFilter extends OncePerRequestFilter {
         return request.getRemoteAddr() != null ? request.getRemoteAddr() : "unknown";
     }
 }
+

@@ -47,3 +47,10 @@ management:
 # Cross-Origin Resource Sharing (CORS) Configuration
 cors:
   allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*,http://10.0.2.2:*}
+
+# JWT Authentication Configuration (Stateless Token Rotation)
+jwt:
+  secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:1800000}
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+

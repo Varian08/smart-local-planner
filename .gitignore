@@ -10,10 +10,7 @@ Desktop.ini
 # IDE & Editors
 # ========================================================
 .idea/
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
+.vscode/
 *.sublime-project
 *.sublime-workspace
 *.swp

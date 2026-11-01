@@ -2,6 +2,8 @@ package com.smartplanner.controller;
 
 import com.smartplanner.dto.request.PlaceFilterRequest;
 import com.smartplanner.dto.response.PlaceResponse;
+import com.smartplanner.repository.UserRepository;
+import com.smartplanner.service.JwtService;
 import com.smartplanner.service.PlaceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,6 +45,12 @@ class PlaceControllerTest {
 
     @MockBean
     private PlaceService placeService;
+
+    @MockBean
+    private JwtService jwtService;
+
+    @MockBean
+    private UserRepository userRepository;
 
     private PlaceResponse mockPlaceResponse;
     private UUID placeId;

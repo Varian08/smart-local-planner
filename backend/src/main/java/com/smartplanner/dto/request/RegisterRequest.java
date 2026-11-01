@@ -33,3 +33,4 @@ public class RegisterRequest {
     @Size(max = 120, message = "Full name must not exceed 120 characters")
     private String fullName;
 }
+

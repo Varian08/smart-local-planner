@@ -8,7 +8,9 @@ import com.smartplanner.dto.response.AuthResponse;
 import com.smartplanner.dto.response.UserResponse;
 import com.smartplanner.exception.InvalidTokenException;
 import com.smartplanner.exception.UserAlreadyExistsException;
+import com.smartplanner.repository.UserRepository;
 import com.smartplanner.service.AuthService;
+import com.smartplanner.service.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,6 +44,12 @@ class AuthControllerTest {
 
     @MockBean
     private AuthService authService;
+
+    @MockBean
+    private JwtService jwtService;
+
+    @MockBean
+    private UserRepository userRepository;
 
     private AuthResponse mockAuthResponse;
     private UUID userId;

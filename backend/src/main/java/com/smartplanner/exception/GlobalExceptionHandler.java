@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -86,6 +87,78 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(ex.getStatusCode()).body(errorResponse);
+    }
+
+    /**
+     * Handle duplicate user email during registration.
+     * Returns 409 CONFLICT with ApiErrorResponse per API specification.
+     */
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ApiErrorResponse> handleUserAlreadyExistsException(
+            UserAlreadyExistsException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        log.warn("User already exists [traceId={}] on path {}: {}", traceId, request.getRequestURI(), ex.getMessage());
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .code("USER_ALREADY_EXISTS")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    /**
+     * Handle authentication bad credentials (invalid email or password).
+     * Returns 401 UNAUTHORIZED with ApiErrorResponse per API specification §6.2.
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiErrorResponse> handleBadCredentialsException(
+            BadCredentialsException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        log.warn("Bad credentials [traceId={}] on path {}: {}", traceId, request.getRequestURI(), ex.getMessage());
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .code("UNAUTHORIZED")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    /**
+     * Handle invalid, expired, or revoked refresh token.
+     * Returns 401 UNAUTHORIZED with ApiErrorResponse per API specification §6.2.
+     */
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ApiErrorResponse> handleInvalidTokenException(
+            InvalidTokenException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        log.warn("Invalid token [traceId={}] on path {}: {}", traceId, request.getRequestURI(), ex.getMessage());
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .code("UNAUTHORIZED")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
     /**

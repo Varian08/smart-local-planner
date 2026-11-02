@@ -236,3 +236,4 @@ class FavoriteServiceTest {
         verify(favoriteRepository, never()).deleteByUserIdAndPlaceId(any(), any());
     }
 }
+

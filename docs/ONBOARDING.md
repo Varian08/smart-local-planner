@@ -47,6 +47,14 @@ Smoke checks: `http://localhost:8080/actuator/health` returns `{"status":"UP"}`,
 
 ## 3. Daily Rhythm
 
+```mermaid
+flowchart LR
+    Step1["<b>1. Sync develop</b><br/>git pull origin develop"] --> Step2["<b>2. Pick Ticket</b><br/>Drag Todo → In Progress"]
+    Step2 --> Step3["<b>3. Create Branch</b><br/>feat/&lt;issue&gt;-&lt;desc&gt;"]
+    Step3 --> Step4["<b>4. Code & Verify</b><br/>mvn test & flutter test"]
+    Step4 --> Step5["<b>5. Submit PR</b><br/>Await CI Green & Review"]
+```
+
 1. `git checkout develop && git pull origin develop`
 2. Pick your ticket from the Sprint Board; drag it **Todo → In Progress** (the only manual drag).
 3. `git checkout -b feat/<issue_number>-<short-description>`

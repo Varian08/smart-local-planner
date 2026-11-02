@@ -48,39 +48,13 @@ To ensure architectural integrity and frictionless developer onboarding, all sys
 
 The platform follows an iterative **Agile / Scrum delivery lifecycle** partitioned into five sequential milestones:
 
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ PRODUCT ROADMAP & SPRINT DELIVERABLES                                                  │
-├──────────┬─────────────────────────────┬───────────────────────────────────────────────┤
-│ Sprint   │ Focus Area                  │ Shipped Capabilities & Key Artifacts          │
-├──────────┼─────────────────────────────┼───────────────────────────────────────────────┤
-│ Sprint 0 │ Foundation & Scaffolding    │ - Docker Compose with PostgreSQL 16 Alpine    │
-│ (Done)   │                             │ - Spring Boot 3 Skeleton & Actuator Health    │
-│          │                             │ - Flyway Baseline Schema Migration (V1)       │
-│          │                             │ - Flutter SDK, Material 3 Theme & BLoC Setup  │
-│          │                             │ - Bruno Collection & GitHub Actions CI Gate   │
-├──────────┼─────────────────────────────┼───────────────────────────────────────────────┤
-│ Sprint 1 │ Place Discovery & Search    │ - places JPA Entity, Repository & Spatial Qs  │
-│ (Done)   │ (First Vertical Slice)      │ - Search, Category & Price Level Filter APIs  │
-│          │                             │ - Infinite Scroll Pagination UI (PlaceList)   │
-│          │                             │ - Cloudinary Cached Image Component           │
-├──────────┼─────────────────────────────┼───────────────────────────────────────────────┤
-│ Sprint 2 │ Authentication & Favorites  │ - Stateless JWT Auth Service & Token Rotation │
-│ (Active) │                             │ - User Favorites Collection CRUD APIs         │
-│          │                             │ - Hardware Keystore Integration (Storage)     │
-│          │                             │ - Bookmark Toggle with Optimistic UI Sync     │
-├──────────┼─────────────────────────────┼───────────────────────────────────────────────┤
-│ Sprint 3 │ Multi-Day Itineraries       │ - Multi-Day Travel Itinerary CRUD Engine      │
-│          │ & Reviews Engine            │ - Strict Resource Ownership Guards            │
-│          │                             │ - Itinerary Schedule Timeline & Place Ordering│
-│          │                             │ - Community Reviews & Star Ratings Service    │
-├──────────┼─────────────────────────────┼───────────────────────────────────────────────┤
-│ Sprint 4 │ Production Release & Cloud  │ - Provision Managed Neon.tech Cloud PostgreSQL│
-│          │ Deployment                  │ - Containerized Backend Deploy on Render.com  │
-│          │                             │ - Automated Release APK Packaging via CI/CD   │
-│          │                             │ - End-to-End Latency & Offline UX Audit       │
-└──────────┴─────────────────────────────┴───────────────────────────────────────────────┘
-```
+| Sprint | Focus Area | Status | Shipped Capabilities & Key Artifacts |
+| :--- | :--- | :---: | :--- |
+| **Sprint 0** | **Foundation & Scaffolding** | ![Done](https://img.shields.io/badge/Status-Done-brightgreen) | • Docker Compose with PostgreSQL 16 Alpine<br/>• Spring Boot 3 Skeleton & Actuator Health<br/>• Flyway Baseline Schema Migration (V1)<br/>• Flutter SDK, Material 3 Theme & BLoC Setup<br/>• Bruno Collection & GitHub Actions CI Gate |
+| **Sprint 1** | **Place Discovery & Search**<br/>*(First Vertical Slice)* | ![Done](https://img.shields.io/badge/Status-Done-brightgreen) | • `places` JPA Entity, Repository & Spatial Queries<br/>• Search, Category & Price Level Filter APIs<br/>• Infinite Scroll Pagination UI (`PlaceListScreen`)<br/>• Cloudinary Cached Image Component with Fallback |
+| **Sprint 2** | **Authentication & Favorites** | ![Active](https://img.shields.io/badge/Status-Active-blue) | • Stateless JWT Auth Service & Refresh Token Rotation<br/>• Spring Security Filter Chain & Rate Limiting (5 req/min)<br/>• User Favorites Collection CRUD APIs<br/>• Secure Hardware Keystore Integration (`FlutterSecureStorage`)<br/>• Bookmark Toggle with Optimistic UI Sync |
+| **Sprint 3** | **Multi-Day Itineraries & Reviews** | ![Planned](https://img.shields.io/badge/Status-Planned-lightgrey) | • Multi-Day Travel Itinerary CRUD Engine<br/>• Strict Resource Ownership Guards & Access Control<br/>• Itinerary Schedule Timeline & Place Ordering<br/>• Community Reviews & Star Ratings Service |
+| **Sprint 4** | **Production Release & Cloud Deploy** | ![Planned](https://img.shields.io/badge/Status-Planned-lightgrey) | • Provision Managed Neon.tech Cloud PostgreSQL<br/>• Containerized Backend Deploy on Render.com<br/>• Automated Release APK Packaging via CI/CD<br/>• End-to-End Latency & Offline UX Audit |
 
 ---
 
@@ -89,29 +63,50 @@ The platform follows an iterative **Agile / Scrum delivery lifecycle** partition
 Following enterprise decoupling standards, both subsystems operate strictly with unidirectional dependencies:
 
 ### Backend 3-Tier Layer Boundaries
-```
-HTTP Request
-     │
-     ▼
-[ Controller Layer ]  ──► Ingests Request DTOs, triggers Jakarta Validation (@Valid), returns HTTP Status
-     │
-     ▼
-[  Service Layer   ]  ──► Core business logic, data transformation, @Transactional integrity
-     │
-     ▼
-[ Repository Layer ]  ──► Spring Data JPA parameterized queries, returns Entities (Never leaks to Controller)
-     │
-     ▼
-[  PostgreSQL 16   ]  ──► Managed strictly via Flyway Versioned Migrations
+
+```mermaid
+flowchart TD
+    Client(["Mobile Client / Web Consumer"]) -->|HTTP Request / JSON| Controller
+
+    subgraph BackendApp ["Spring Boot 3.3.4 (Backend Application Tier)"]
+        Controller["<b>Controller Layer</b><br/>• Ingests Request DTOs<br/>• Jakarta Validation (@Valid)<br/>• Enforces HTTP Status & RFC 7807"]
+        Service["<b>Service Layer</b><br/>• Core Business Logic & Rules<br/>• DTO ↔ Entity Transformation<br/>• @Transactional Boundaries"]
+        Repository["<b>Repository Layer</b><br/>• Spring Data JPA Parameterized Queries<br/>• Entity Isolation (Never leaks to Controller)"]
+        
+        Controller -->|Passes Validated DTO| Service
+        Service -->|Calls Repository Operations| Repository
+    end
+
+    subgraph PersistenceTier ["Persistence Infrastructure"]
+        Postgres[("<b>PostgreSQL 16 Alpine</b><br/>• Flyway Versioned Migrations<br/>• Relational Integrity & Cascades")]
+    end
+
+    Repository -->|SQL Execution via JDBC| Postgres
 ```
 
 ### Mobile Feature-First BLoC Architecture
-```
-[ Presentation (UI) ] ──( Dispatches Event )──► [      BLoC Layer      ]
-          ▲                                             │
-          │                                      ( Invokes Methods )
-          │                                             ▼
-          └───────( Emits Immutable State )───── [ Repository & Dio HTTP ]
+
+```mermaid
+flowchart LR
+    subgraph UI_Layer ["Presentation Layer"]
+        UI["<b>UI Components</b><br/>• Stateless Widgets<br/>• BlocBuilder & BlocListener"]
+    end
+
+    subgraph BLoC_Layer ["Business Logic Tier"]
+        Bloc["<b>BLoC State Machine</b><br/>• Event Handler<br/>• Concurrency Transformers<br/>• State Emitter"]
+    end
+
+    subgraph Data_Layer ["Data Tier"]
+        Repo["<b>Feature Repository</b><br/>• Domain Model Mapping<br/>• In-Memory / Local Cache"]
+        Network["<b>Dio HTTP Client</b><br/>• JWT Interceptor & Rotation<br/>• Structured Error Handling"]
+    end
+
+    UI -->|1. Dispatches Event| Bloc
+    Bloc -->|2. Requests Domain Operations| Repo
+    Repo -->|3. Performs HTTP Calls| Network
+    Network -->|4. Returns DTO / Error| Repo
+    Repo -->|5. Returns Domain Model| Bloc
+    Bloc -->|6. Emits Immutable State (4-State Contract)| UI
 ```
 
 ---
@@ -226,14 +221,21 @@ Refer to the dedicated mobile setup guide: **[mobile/README.md](mobile/README.md
 
 This project adheres strictly to **Trunk-Based / GitFlow Integration Branching**:
 
-```
-[main] ───────────────────────────────────────────────► Stable Production Releases (Protected)
-   ▲
-   │ (Sprint Review Pull Request)
-[develop] ────────────────────────────────────────────► Integration Baseline (DEFAULT BRANCH)
-   ▲                     ▲
-   │ (PR Backend)        │ (PR Mobile)
-[feat/<issue_id>-...] [fix/<issue_id>-...]             ► Short-lived Feature Branches
+```mermaid
+flowchart LR
+    subgraph ProtectedBases ["Protected Baseline Branches"]
+        Main["<b>main</b><br/>Stable Production Releases<br/>(Protected)"]
+        Develop["<b>develop</b><br/>Integration Baseline<br/>(DEFAULT BRANCH)"]
+    end
+
+    subgraph FeatureBranches ["Short-lived Topic Branches"]
+        FeatBranch["<b>feat/&lt;issue_id&gt;-...</b><br/>(Backend Features)"]
+        FixBranch["<b>fix/&lt;issue_id&gt;-...</b><br/>(Mobile Bugfixes)"]
+    end
+
+    FeatBranch -->|Squash & Merge PR<br/>+ CI Green + CodeOwner Approval| Develop
+    FixBranch -->|Squash & Merge PR<br/>+ CI Green + CodeOwner Approval| Develop
+    Develop -->|Sprint Release Review PR| Main
 ```
 
 ### Collaboration Rules:

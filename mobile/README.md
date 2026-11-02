@@ -7,7 +7,7 @@
 
 ---
 
-## 🏗️ 1. Directory Scaffolding (Feature-First Clean Architecture)
+## 1. Directory Scaffolding (Feature-First Clean Architecture)
 
 The codebase strictly enforces unidirectional 3-tier decoupling:
 
@@ -35,7 +35,7 @@ mobile/
 
 ---
 
-## ⚖️ 2. Architectural Invariants (Non-Negotiable Rules)
+## 2. Architectural Invariants (Non-Negotiable Rules)
 
 1. **Mandatory 4-State UI Contract:**
    Every data-driven screen must explicitly handle 4 distinct lifecycle states:
@@ -54,7 +54,7 @@ mobile/
 
 ---
 
-## 🌐 3. Local Backend Connectivity Guide
+## 3. Local Backend Connectivity Guide
 
 When running the Spring Boot backend on the host machine (`http://localhost:8080`), configure the base URL according to the mobile runtime target:
 
@@ -66,7 +66,7 @@ When running the Spring Boot backend on the host machine (`http://localhost:8080
 
 ---
 
-## 🚀 4. Mobile Engineering Roadmap
+## 4. Mobile Engineering Roadmap
 
 * **Sprint 0 (Foundation):** Establish application skeleton, configure Dio client with `AuthInterceptor`, establish Material 3 theme tokens, and scaffold directory structure.
 * **Sprint 1 (The First Vertical Slice):** Implement Place Discovery screen (`PlaceListScreen`), integrate infinite scroll pagination, render Cloudinary-optimized images, and enforce the 4-state UI contract.

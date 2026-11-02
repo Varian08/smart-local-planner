@@ -61,26 +61,22 @@ The system strictly adheres to **Independent Layered Architecture** across both 
 
 ### 3.1. Physical 3-Tier Architecture
 
-```text
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ 1. CLIENT / PRESENTATION TIER                                                          │
-│    User Mobile Device (Android / iOS) — Running Flutter Client (Material 3)            │
-└────────────────────────────────────────┬───────────────────────────────────────────────┘
-                                         │ HTTPS / JSON + Bearer JWT
-                                         ▼
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ 2. APPLICATION / LOGIC TIER                                                            │
-│    Web Service: Spring Boot 3 on Render.com PaaS Container                            │
-│    - Security Filter Chain: Spring Security, JWT Filter, Rate Limiter, CORS Whitelist │
-│    - Business Engines: Places Discovery, Itineraries CRUD, Reviews Management          │
-└───────────────────┬────────────────────────────────────────────┬───────────────────────┘
-                    │ HikariCP Connection Pool (JDBC)            │ HTTPS REST API / SDK
-                    ▼                                            ▼
-┌───────────────────────────────────────────────┐ ┌──────────────────────────────────────┐
-│ 3A. DATA TIER (Relational Database)           │ │ 3B. ASSET TIER (Object Storage / CDN)│
-│     PostgreSQL 16 on Neon.tech (Local: Docker)│ │     Cloudinary Media CDN             │
-│     Stores: Users, Places, Itineraries, Reviews│ │     Auto-Resize, WebP Optimization   │
-└───────────────────────────────────────────────┘ └──────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Client["<b>1. CLIENT / PRESENTATION TIER</b><br/>User Mobile Device (Android / iOS) • Flutter Client (Material 3)<br/>Hardware Keystore / SecureStorage for JWT Tokens"]
+
+    subgraph AppTier ["2. APPLICATION / LOGIC TIER (PaaS Container)"]
+        Backend["<b>Spring Boot 3 RESTful API Service</b><br/>• Security Shield: Spring Security 6, JWT Filter, Rate Limiter, CORS Whitelist<br/>• Business Engines: Places Discovery, Favorites, Itineraries CRUD, Reviews Engine"]
+    end
+
+    subgraph InfraTier ["3. PERSISTENCE & ASSET INFRASTRUCTURE"]
+        DB[("<b>3A. DATA TIER (Relational Database)</b><br/>• PostgreSQL 16 on Neon.tech (Local: Docker)<br/>• Stores: Users, Places, Favorites, Itineraries, Reviews<br/>• Managed strictly via Flyway Versioned Migrations")]
+        CDN["<b>3B. ASSET TIER (Object Storage & CDN)</b><br/>• Cloudinary Media CDN<br/>• Automated Image Resizing, WebP Delivery & Edge Caching"]
+    end
+
+    Client -->|HTTPS / JSON + Bearer JWT| Backend
+    Backend -->|HikariCP Connection Pool (JDBC)| DB
+    Backend -->|HTTPS REST API / SDK| CDN
 ```
 
 ---
@@ -89,28 +85,26 @@ The system strictly adheres to **Independent Layered Architecture** across both 
 
 The dependency flow between layers is strictly **unidirectional**. Skip-calling or reverse dependency is strictly forbidden:
 
-```text
-  [ Client HTTP Request ]
-             │
-             ▼
-┌──────────────────────────┐  • Receives HTTP request, deserializes JSON to Request DTO.
-│     Controller Layer     │  • Triggers Jakarta Validation annotations (@Valid, @NotBlank).
-└────────────┬─────────────┘  • Returns standard HTTP Status Codes (200, 201, 400, 401, 403, 404).
-             │
-             ▼
-┌──────────────────────────┐  • Heart of the application: executes all business workflows.
-│      Service Layer       │  • Enforces ownership checks (e.g., verifying user owns the itinerary).
-└────────────┬─────────────┘  • Manages transactional boundaries (@Transactional).
-             │
-             ▼
-┌──────────────────────────┐  • Encapsulates database communication via Spring Data JPA.
-│     Repository Layer     │  • 100% Parameterized queries to eliminate SQL injection risks.
-└────────────┬─────────────┘  • Never returns DTOs directly; communicates strictly with Entities.
-             │
-             ▼
-┌──────────────────────────┐  • Relational database tables and constraints.
-│      Database Layer      │  • Schema evolution strictly governed by Flyway SQL migrations.
-└──────────────────────────┘
+```mermaid
+flowchart TD
+    Req(["Client HTTP Request"]) --> Ctrl
+
+    subgraph BackendLayers ["Spring Boot N-Layer Architecture"]
+        Ctrl["<b>Controller Layer</b><br/>• Receives HTTP request, deserializes JSON to Request DTO<br/>• Triggers Jakarta Validation annotations (@Valid, @NotBlank)<br/>• Returns standard RFC 7807 responses & HTTP status codes"]
+        
+        Svc["<b>Service Layer</b><br/>• Heart of application: executes all business workflows<br/>• Enforces ownership checks & domain authorization<br/>• Manages transactional boundaries (@Transactional)"]
+        
+        Repo["<b>Repository Layer</b><br/>• Encapsulates database communication via Spring Data JPA<br/>• 100% Parameterized queries to eliminate SQL injection risks<br/>• Communicates strictly with Entities (never leaks DTOs)"]
+
+        Ctrl -->|Passes Validated DTO| Svc
+        Svc -->|Invokes Query Methods| Repo
+    end
+
+    subgraph DatabaseLayer ["Persistence Infrastructure"]
+        DB[("<b>Database Layer (PostgreSQL 16)</b><br/>• Relational database tables, constraints & cascades<br/>• Schema evolution strictly governed by Flyway SQL migrations")]
+    end
+
+    Repo -->|Executes Parameterized SQL| DB
 ```
 
 #### Backend Package Structure:
@@ -132,26 +126,22 @@ src/main/java/com/smartplanner/
 
 The mobile subsystem combines **Feature-First modularity** with **3-Layer presentation isolation**:
 
-```text
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ 1. PRESENTATION LAYER                                                                  │
-│    - Screens & Widgets: Pure UI declaration (StatelessWidget only).                    │
-│    - Renders 4 explicit states: Initial, Loading, Success, Error (with Retry action).   │
-└────────────────────────────────────────┬───────────────────────────────────────────────┘
-                                         │ Dispatches Events & Listens to States
-                                         ▼
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ 2. DOMAIN / STATE MANAGEMENT LAYER (flutter_bloc)                                      │
-│    - Bloc / Cubit: Receives UI events $\to$ calls Data Repositories $\to$ emits States.│
-│    - Completely decouples visual widgets from network clients and storage drivers.     │
-└────────────────────────────────────────┬───────────────────────────────────────────────┘
-                                         │ Invokes Asynchronous Data Methods (Future)
-                                         ▼
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ 3. DATA / INFRASTRUCTURE LAYER                                                         │
-│    - Data Sources: Dio Client (HTTP REST API), SecureStorageService (Token Keystore).  │
-│    - Mappers / Models: Deserializes JSON payloads into immutable Dart Model classes.   │
-└────────────────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph PresentationLayer ["1. Presentation Layer (Pure UI)"]
+        UI["<b>Screens & Widgets (StatelessWidget only)</b><br/>• Pure UI declaration via Material 3<br/>• Renders 4 explicit states: Initial, Loading, Success, Error"]
+    end
+
+    subgraph DomainLayer ["2. Domain / State Management Layer (flutter_bloc)"]
+        Bloc["<b>Bloc / Cubit State Machine</b><br/>• Receives UI events ➔ Invokes Repositories ➔ Emits States<br/>• Decouples visual widgets from network clients and storage drivers"]
+    end
+
+    subgraph DataLayer ["3. Data / Infrastructure Layer"]
+        DataSources["<b>Data Sources & Mappers</b><br/>• Dio Client (HTTP REST API with Token Rotation)<br/>• SecureStorageService (Keystore / Keychain Token Keystore)<br/>• Deserializes JSON payloads into immutable Dart Model classes"]
+    end
+
+    UI -->|Dispatches Events & Listens to States| Bloc
+    Bloc -->|Invokes Asynchronous Data Methods (Future)| DataSources
 ```
 
 #### Mobile Directory Structure:
@@ -270,23 +260,20 @@ Before handing off a screen, Engineer B must test:
 
 Security is designed in depth across 6 protective barriers:
 
-```text
-[ Mobile Client: Cleartext HTTP Blocked + Keystore/Keychain Hardware Encryption ]
-                                     │ (HTTPS Only)
-                                     ▼
-[ Network Layer: Rate Limiting (Brute-Force Guard) + CORS Whitelist ]
-                                     │
-                                     ▼
-[ Authentication: Spring Security JWT (Access 30m + Refresh Token Rotation 7d) ]
-                                     │
-                                     ▼
-[ Application Layer: Ownership Authorization + Jakarta Input DTO Validation ]
-                                     │
-                                     ▼
-[ Data Layer: 100% Parameterized JPA Queries + Flyway Versioned Migrations ]
-                                     │
-                                     ▼
-[ Secrets Management: GitHub Actions Secrets & Render Environment Variables ]
+```mermaid
+flowchart TD
+    Layer1["<b>1. Mobile Client Shield</b><br/>Cleartext HTTP blocked by OS policy • Keystore / Keychain hardware encryption"]
+    Layer2["<b>2. Network & Gateway Barrier</b><br/>CORS property-driven origin whitelist • Login rate limiting (5 req/min per IP)"]
+    Layer3["<b>3. Authentication Pipeline</b><br/>Spring Security 6 stateless filter chain • Access Token (30m) + Refresh Token Rotation (7d)"]
+    Layer4["<b>4. Application & Domain Guard</b><br/>Strict resource ownership authorization • Jakarta DTO validation (@Valid, @NotBlank)"]
+    Layer5["<b>5. Data Persistence Barrier</b><br/>100% Parameterized JPA queries (SQL injection immune) • Flyway schema versioning"]
+    Layer6["<b>6. Secrets Management</b><br/>GitHub Actions Repository Secrets • Cloud Environment Variables (Zero hardcoded credentials)"]
+
+    Layer1 -->|HTTPS Only| Layer2
+    Layer2 --> Layer3
+    Layer3 --> Layer4
+    Layer4 --> Layer5
+    Layer5 --> Layer6
 ```
 
 1. **Rate Limiting:** Auth endpoints (`/login`, `/register`) are capped at 5 attempts per minute per IP to thwart brute-force password guessing (returns `429 Too Many Requests`).

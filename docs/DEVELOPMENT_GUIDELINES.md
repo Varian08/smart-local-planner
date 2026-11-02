@@ -21,20 +21,24 @@ Smart Local Planner is in **Greenfield, Pre-Production** stage.
 ### 2.1. Strict 3-Layer Architecture
 The dependency arrow is strictly **unidirectional**:
 
-```text
-HTTP Request
-     │
-     ▼
-[ Controller Layer ]  ──► Receives DTO, triggers Jakarta Validation (@Valid), returns HTTP status
-     │
-     ▼
-[  Service Layer   ]  ──► Core business logic, ownership checks, @Transactional boundaries
-     │
-     ▼
-[ Repository Layer ]  ──► Spring Data JPA, parameterized queries, returns Entities to Service
-     │
-     ▼
-[ Database Layer   ]  ──► PostgreSQL managed via Flyway SQL migrations
+```mermaid
+flowchart TD
+    Req(["Client HTTP Request"]) --> Ctrl
+
+    subgraph Backend3Layer ["Strict 3-Layer Decoupling"]
+        Ctrl["<b>Controller Layer</b><br/>• Receives DTO, triggers Jakarta Validation (@Valid)<br/>• Enforces HTTP Status & RFC 7807"]
+        Svc["<b>Service Layer</b><br/>• Core business logic & ownership checks<br/>• Manages @Transactional boundaries"]
+        Repo["<b>Repository Layer</b><br/>• Spring Data JPA parameterized queries<br/>• Returns Entities to Service (never leaks to Controller)"]
+
+        Ctrl -->|Passes Validated DTO| Svc
+        Svc -->|Calls Repository Operations| Repo
+    end
+
+    subgraph Persistence ["Persistence Infrastructure"]
+        DB[("<b>Database Layer (PostgreSQL 16)</b><br/>• Managed strictly via Flyway SQL migrations")]
+    end
+
+    Repo -->|Executes Parameterized SQL| DB
 ```
 
 * **Golden Rule 1 (DTO Isolation):** Never expose JPA Entities directly via Controller endpoints. Always map between Entity and Request/Response DTOs.

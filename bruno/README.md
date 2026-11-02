@@ -5,7 +5,7 @@
 
 ---
 
-## 🛠️ Usage Instructions
+## Usage Instructions
 
 1. **Install Bruno:** Download the desktop client from [https://www.usebruno.com/downloads](https://www.usebruno.com/downloads).
 2. **Open the Collection:**

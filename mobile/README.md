@@ -66,7 +66,41 @@ When running the Spring Boot backend on the host machine (`http://localhost:8080
 
 ---
 
-## 4. Mobile Engineering Roadmap
+## 4. Getting Started & Execution Guide
+
+### Prerequisites
+- **Flutter SDK:** `>= 3.13.7` (`flutter --version`)
+- **Target Platform:** Google Chrome, Android Emulator, iOS Simulator, or a physical mobile device.
+
+### Step 1: Install Dependencies & Verify Environment
+From the `mobile/` directory:
+```bash
+flutter pub get
+flutter doctor
+```
+
+### Step 2: Local Quality Gates (Pre-Commit Verification)
+Always verify the test suite and static analysis before pushing changes:
+```bash
+# Run unit & BLoC tests
+flutter test
+
+# Run static lint analysis (must report 0 issues)
+flutter analyze
+```
+
+### Step 3: Run the Application
+
+| Target Environment | Execution Command | Connectivity Note |
+| :--- | :--- | :--- |
+| **Web Browser (Chrome)** | `flutter run -d chrome` | Connects directly to `http://localhost:8080/api/v1` |
+| **Android Emulator** | `flutter run -d android` | Auto-resolves `http://10.0.2.2:8080/api/v1` via `ApiEndpoints` |
+| **iOS Simulator** | `flutter run -d ios` | Connects to `http://localhost:8080/api/v1` |
+| **Physical Device (Wi-Fi)** | `flutter run --dart-define=API_BASE_URL=http://<HOST_LAN_IP>:8080/api/v1` | Explicitly overrides backend host IP for local subnet |
+
+---
+
+## 5. Mobile Engineering Roadmap
 
 * **Sprint 0 (Foundation):** Establish application skeleton, configure Dio client with `AuthInterceptor`, establish Material 3 theme tokens, and scaffold directory structure.
 * **Sprint 1 (The First Vertical Slice):** Implement Place Discovery screen (`PlaceListScreen`), integrate infinite scroll pagination, render Cloudinary-optimized images, and enforce the 4-state UI contract.

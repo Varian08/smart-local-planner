@@ -213,7 +213,13 @@ Once the server reports `Started BackendApplication in X seconds`:
 * **Automated API Testing:** Open `bruno/` directory within Bruno to execute the test collection.
 
 ### Step 4: Run Flutter Mobile App
-Refer to the dedicated mobile setup guide: **[mobile/README.md](mobile/README.md)**.
+Launch the cross-platform client in a new terminal:
+```bash
+cd mobile
+flutter pub get
+flutter run -d chrome    # Or launch on an Android emulator: flutter run -d android
+```
+> For multi-platform execution commands (Android, iOS, Physical Device Wi-Fi) and network connectivity matrices, refer to **[mobile/README.md](mobile/README.md)**.
 
 ---
 

@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../constants/api_endpoints.dart';
+import '../storage/secure_storage_service.dart';
+import 'auth_interceptor.dart';
 
 /// Enterprise HTTP Client wrapper based on Dio.
 /// Enforces SLA timeouts, centralized headers, and developer logging.
@@ -11,7 +13,10 @@ class DioClient {
   // ---------------------------------------------------------------------------
   // 1. Client Initialization & Interceptor Pipeline
   // ---------------------------------------------------------------------------
-  DioClient({Dio? dio}) {
+  DioClient({
+    Dio? dio,
+    SecureStorageService? storageService,
+  }) {
     _dio =
         dio ??
         Dio(
@@ -27,6 +32,14 @@ class DioClient {
             responseType: ResponseType.json,
           ),
         );
+
+    final storage = storageService ?? SecureStorageService();
+    _dio.interceptors.add(
+      AuthInterceptor(
+        storageService: storage,
+        dio: _dio,
+      ),
+    );
 
     // Enable verbose logging interceptor only during active development (Debug mode)
     if (kDebugMode) {
@@ -61,6 +74,40 @@ class DioClient {
   }) {
     return _dio.get<T>(
       path,
+      queryParameters: queryParameters,
+      options: options,
+      cancelToken: cancelToken,
+    );
+  }
+
+  /// Performs an HTTP POST request
+  Future<Response<T>> post<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) {
+    return _dio.post<T>(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+      cancelToken: cancelToken,
+    );
+  }
+
+  /// Performs an HTTP DELETE request
+  Future<Response<T>> delete<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) {
+    return _dio.delete<T>(
+      path,
+      data: data,
       queryParameters: queryParameters,
       options: options,
       cancelToken: cancelToken,

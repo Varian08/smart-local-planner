@@ -46,9 +46,19 @@ class ApiEndpoints {
   // ---------------------------------------------------------------------------
   // 3. API Resource Routes (Strictly mapped to docs/API_SPECIFICATION.md)
   // ---------------------------------------------------------------------------
+  // Authentication Domain
+  static const String register = '/auth/register';
+  static const String login = '/auth/login';
+  static const String refreshToken = '/auth/refresh-token';
+  static const String logout = '/auth/logout';
+
   // Places Discovery Domain
   static const String places = '/places';
   static String placeDetails(String id) => '/places/$id';
+
+  // Favorites Domain
+  static const String favorites = '/favorites';
+  static String favoritePlace(String placeId) => '/favorites/$placeId';
 
   // ---------------------------------------------------------------------------
   // 4. Standardized Query Parameters Contract

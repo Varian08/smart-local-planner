@@ -94,9 +94,14 @@ flutter analyze
 | Target Environment | Execution Command | Connectivity Note |
 | :--- | :--- | :--- |
 | **Web Browser (Chrome)** | `flutter run -d chrome` | Connects directly to `http://localhost:8080/api/v1` |
+| **Web Browser (Edge)** | `flutter run -d edge` | Pre-installed native browser on Windows, zero extra setup |
 | **Android Emulator** | `flutter run -d android` | Auto-resolves `http://10.0.2.2:8080/api/v1` via `ApiEndpoints` |
 | **iOS Simulator** | `flutter run -d ios` | Connects to `http://localhost:8080/api/v1` |
-| **Physical Device (Wi-Fi)** | `flutter run --dart-define=API_BASE_URL=http://<HOST_LAN_IP>:8080/api/v1` | Explicitly overrides backend host IP for local subnet |
+| **Physical Device (USB/Wi-Fi)** | `flutter run --dart-define=API_BASE_URL=http://<HOST_LAN_IP>:8080/api/v1` | Explicitly overrides backend host IP for local Wi-Fi subnet |
+
+> [!NOTE]
+> **Windows Desktop vs. Mobile & Web Execution:**  
+> Running `flutter run -d windows` attempts to build a native Windows desktop executable (`.exe`), which requires the heavy Microsoft Visual Studio 2022 C++ desktop toolchain (~15GB). Because Smart Local Planner is designed specifically as a cross-platform mobile client, building for Windows desktop is **not required**. Always execute against **Web (`-d chrome` / `-d edge`)**, an **Android Studio Virtual Device (`-d android`)**, or a **physical mobile device via USB debugging**.
 
 ---
 

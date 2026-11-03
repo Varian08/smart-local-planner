@@ -212,14 +212,22 @@ Once the server reports `Started BackendApplication in X seconds`:
 * **Actuator Health Check:** [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health) (Returns `{"status":"UP"}`)
 * **Automated API Testing:** Open `bruno/` directory within Bruno to execute the test collection.
 
-### Step 4: Run Flutter Mobile App
-Launch the cross-platform client in a new terminal:
+### Step 4: Run Flutter Mobile App (Quick Smoke Test)
+Launch the client in a new terminal for fast UI validation:
 ```bash
 cd mobile
 flutter pub get
-flutter run -d chrome    # Or launch on an Android emulator: flutter run -d android
+
+# 1. Quick smoke test on browser (Fastest UI testing, no heavy emulator required):
+flutter run -d chrome    # Or Microsoft Edge: flutter run -d edge
+
+# 2. (Optional) Launch on connected Android Emulator or Physical Device:
+# flutter run -d android
+
+# Tip: List all detected runtime devices on your machine:
+# flutter devices
 ```
-> For multi-platform execution commands (Android, iOS, Physical Device Wi-Fi) and network connectivity matrices, refer to **[mobile/README.md](mobile/README.md)**.
+> For complete mobile engineering guides (Android Studio Emulator, Physical Device USB/Wi-Fi debugging) and network loopback details, refer to the dedicated guide: **[mobile/README.md](mobile/README.md)**.
 
 ---
 

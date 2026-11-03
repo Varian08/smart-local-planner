@@ -35,3 +35,4 @@ public interface FavoriteService {
      */
     void removeFavorite(UUID userId, UUID placeId);
 }
+

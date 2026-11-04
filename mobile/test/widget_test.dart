@@ -1,5 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:smart_local_planner/features/auth/data/models/auth_request_model.dart';
+import 'package:smart_local_planner/features/auth/data/models/auth_response_model.dart';
+import 'package:smart_local_planner/features/auth/data/repositories/auth_repository.dart';
 import 'package:smart_local_planner/features/places/data/models/place_model.dart';
 import 'package:smart_local_planner/features/places/data/repositories/place_repository.dart';
 import 'package:smart_local_planner/main.dart';
@@ -48,13 +51,39 @@ class FakePlaceRepositoryWithData implements PlaceRepository {
   }
 }
 
+/// Test double simulating AuthRepository in unauthenticated state for widget tests.
+class FakeAuthRepository implements AuthRepository {
+  const FakeAuthRepository();
+
+  @override
+  Future<AuthResponseModel> login(LoginRequestModel request) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<AuthResponseModel> register(RegisterRequestModel request) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> logout() async {}
+
+  @override
+  Future<bool> isAuthenticated() async => false;
+
+  @override
+  Future<String?> getAccessToken() async => null;
+}
+
 void main() {
   testWidgets('App smoke test initializes successfully', (
     WidgetTester tester,
   ) async {
-    // Build our app with injected FakePlaceRepository and trigger a frame.
     await tester.pumpWidget(
-      const SmartLocalPlannerApp(placeRepository: FakePlaceRepository()),
+      const SmartLocalPlannerApp(
+        placeRepository: FakePlaceRepository(),
+        authRepository: FakeAuthRepository(),
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -80,7 +109,10 @@ void main() {
     );
 
     await tester.pumpWidget(
-      SmartLocalPlannerApp(placeRepository: fakeRepoWithNullImage),
+      SmartLocalPlannerApp(
+        placeRepository: fakeRepoWithNullImage,
+        authRepository: const FakeAuthRepository(),
+      ),
     );
     await tester.pumpAndSettle();
 

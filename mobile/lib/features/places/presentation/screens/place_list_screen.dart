@@ -2,6 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../auth/bloc/auth_bloc.dart';
+import '../../../auth/bloc/auth_event.dart';
+import '../../../auth/bloc/auth_state.dart';
+import '../../../auth/presentation/screens/login_screen.dart';
 import '../../bloc/place_bloc.dart';
 import '../../bloc/place_event.dart';
 import '../../bloc/place_state.dart';
@@ -70,6 +74,57 @@ class _PlaceListScreenState extends State<PlaceListScreen> {
         elevation: 0,
         centerTitle: false,
         backgroundColor: Colors.white,
+        actions: [
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, authState) {
+              if (authState is AuthAuthenticated) {
+                return PopupMenuButton<String>(
+                  icon: const CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.indigo,
+                    child: Icon(Icons.person, size: 18, color: Colors.white),
+                  ),
+                  tooltip: 'Account',
+                  onSelected: (value) {
+                    if (value == 'logout') {
+                      context.read<AuthBloc>().add(const AuthLogoutRequested());
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem<String>(
+                      enabled: false,
+                      child: Text(
+                        authState.user?.fullName ?? 'Signed In',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem<String>(
+                      value: 'logout',
+                      child: Row(
+                        children: [
+                          Icon(Icons.logout, size: 18, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Sign Out', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return TextButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  );
+                },
+                icon: const Icon(Icons.login_rounded, size: 18),
+                label: const Text('Sign In'),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Center(
         // Responsive Container constraint: Keeps layout elegant on wide desktop monitors

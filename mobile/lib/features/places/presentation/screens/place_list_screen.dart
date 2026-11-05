@@ -6,6 +6,9 @@ import '../../../auth/bloc/auth_bloc.dart';
 import '../../../auth/bloc/auth_event.dart';
 import '../../../auth/bloc/auth_state.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
+import '../../../favorites/bloc/favorite_bloc.dart';
+import '../../../favorites/bloc/favorite_event.dart';
+import '../../../favorites/bloc/favorite_state.dart';
 import '../../bloc/place_bloc.dart';
 import '../../bloc/place_event.dart';
 import '../../bloc/place_state.dart';
@@ -30,6 +33,11 @@ class _PlaceListScreenState extends State<PlaceListScreen> {
     super.initState();
     _scrollController = ScrollController()..addListener(_onScroll);
     _searchController = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && context.read<AuthBloc>().state is AuthAuthenticated) {
+        context.read<FavoriteBloc>().add(const FavoriteFetchStarted());
+      }
+    });
   }
 
   @override
@@ -126,7 +134,33 @@ class _PlaceListScreenState extends State<PlaceListScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Center(
+      body: MultiBlocListener(
+        listeners: [
+          BlocListener<AuthBloc, AuthState>(
+            listener: (context, authState) {
+              if (authState is AuthAuthenticated) {
+                context.read<FavoriteBloc>().add(const FavoriteFetchStarted());
+              } else if (authState is AuthUnauthenticated) {
+                context.read<FavoriteBloc>().add(const FavoriteResetRequested());
+              }
+            },
+          ),
+          BlocListener<FavoriteBloc, FavoriteState>(
+            listener: (context, favoriteState) {
+              if (favoriteState is FavoriteLoaded &&
+                  favoriteState.errorMessage != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(favoriteState.errorMessage!),
+                    backgroundColor: Colors.red.shade700,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+          ),
+        ],
+        child: Center(
         // Responsive Container constraint: Keeps layout elegant on wide desktop monitors
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 640),
@@ -269,8 +303,9 @@ class _PlaceListScreenState extends State<PlaceListScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ---------------------------------------------------------------------------
   // 2. Search Input Component
@@ -465,6 +500,63 @@ class _PlaceListScreenState extends State<PlaceListScreen> {
                       letterSpacing: 0.5,
                     ),
                   ),
+                ),
+              ),
+              // Favorite / Bookmark Heart Button Overlay
+              Positioned(
+                top: 8,
+                right: 8,
+                child: BlocBuilder<FavoriteBloc, FavoriteState>(
+                  builder: (context, favoriteState) {
+                    final isFavorite = favoriteState is FavoriteLoaded &&
+                        favoriteState.favoritePlaceIds.contains(place.id);
+
+                    return Material(
+                      color: Colors.black.withValues(alpha: 0.4),
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () {
+                          final authState = context.read<AuthBloc>().state;
+                          if (authState is! AuthAuthenticated) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text(
+                                  'Please sign in to save favorite places.',
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                                action: SnackBarAction(
+                                  label: 'Sign In',
+                                  textColor: Colors.amber,
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => const LoginScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          context.read<FavoriteBloc>().add(
+                                FavoriteToggleRequested(place),
+                              );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(
+                            isFavorite
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            color: isFavorite ? Colors.redAccent : Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

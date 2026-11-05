@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_local_planner/features/auth/data/models/auth_request_model.dart';
 import 'package:smart_local_planner/features/auth/data/models/auth_response_model.dart';
 import 'package:smart_local_planner/features/auth/data/repositories/auth_repository.dart';
+import 'package:smart_local_planner/features/favorites/data/repositories/favorite_repository.dart';
 import 'package:smart_local_planner/features/places/data/models/place_model.dart';
 import 'package:smart_local_planner/features/places/data/repositories/place_repository.dart';
 import 'package:smart_local_planner/main.dart';
@@ -75,6 +76,20 @@ class FakeAuthRepository implements AuthRepository {
   Future<String?> getAccessToken() async => null;
 }
 
+/// Test double simulating FavoriteRepository in empty state for widget tests.
+class FakeFavoriteRepository implements FavoriteRepository {
+  const FakeFavoriteRepository();
+
+  @override
+  Future<List<PlaceModel>> getFavorites() async => const [];
+
+  @override
+  Future<void> addFavorite(String placeId) async {}
+
+  @override
+  Future<void> removeFavorite(String placeId) async {}
+}
+
 void main() {
   testWidgets('App smoke test initializes successfully', (
     WidgetTester tester,
@@ -83,6 +98,7 @@ void main() {
       const SmartLocalPlannerApp(
         placeRepository: FakePlaceRepository(),
         authRepository: FakeAuthRepository(),
+        favoriteRepository: FakeFavoriteRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -112,6 +128,7 @@ void main() {
       SmartLocalPlannerApp(
         placeRepository: fakeRepoWithNullImage,
         authRepository: const FakeAuthRepository(),
+        favoriteRepository: const FakeFavoriteRepository(),
       ),
     );
     await tester.pumpAndSettle();

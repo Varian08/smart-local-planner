@@ -1,7 +1,7 @@
 # Developer Playbook & Contribution Guide
 
 > **Project:** Smart Local Planner  
-> **Status:** Active Engineering — Sprint 2 Complete (Auth & Favorites) ➔ Preparing Sprint 3 (Itineraries & Reviews)  
+> **Status:** Active Engineering — Enterprise Monorepo Governance & Standards  
 > **Target Audience:** All Contributing Engineers, Peer Reviewers, and AI Assistants  
 > **Standard:** Enterprise Greenfield Guidelines & Zero-Tolerance Pitfall Prevention  
 > **Operational Runbook:** See the comprehensive [Developer Workflow Playbook](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md) for step-by-step issue, board, and PR execution.
@@ -27,7 +27,7 @@ Before writing any code, review these 5 non-negotiable rules. Violating any of t
 
 | Pitfall | Root Risk | Mandatory Enterprise Rule |
 | :--- | :--- | :--- |
-| **1. Modifying Historical Migrations** | Causes `FlywayChecksumMismatch` and crashes peer databases. | **NEVER touch existing `V1__...` files.** Always create a new incremental `V2__...sql` file. |
+| **1. Modifying Historical Migrations** | Causes `FlywayChecksumMismatch` and crashes peer databases. | **NEVER touch existing historical migrations (`V1`, `V2`, `V3`, `V4`, ...).** Always check `backend/src/main/resources/db/migration/` and create the next incremental `V<N+1>__<description>.sql` file. |
 | **2. Direct Push of Code to develop/main** | Destroys branch integrity and bypasses CI automated quality gates. | **NEVER push application code, migrations, or configs directly to `develop`/`main`.** Always branch off `develop` via `<type>/<issue_number>-<short-description>` and submit a PR.<br>*(Pragmatic Exemption: Pure documentation `.md` / typo fixes can be pushed directly to `develop` after running `git pull origin develop`)*. |
 | **3. Credential or Secret Leaks** | Compromises database credentials and API service keys. | **NEVER commit `.env`, passwords, or private keys.** Only `.env.example` with dummy placeholders is tracked. |
 | **4. Architectural Layer Bleeding** | Couples storage layer with external HTTP transport. | **Backend:** Controllers must never return JPA Entities.<br>**Mobile:** UI must handle all 4 states (Loading, Success, Error, Empty). |
@@ -40,17 +40,14 @@ Before writing any code, review these 5 non-negotiable rules. Violating any of t
 Flyway calculates a **cryptographic SHA-256 checksum** of every migration file upon first execution and records it in `flyway_schema_history`.
 
 ### Anti-Pattern: Modifying Existing Migrations
-Modifying an already executed migration (e.g. editing `V1__init_schema.sql` to alter a column).  
+Modifying an already executed migration (e.g. editing `V1__init_schema.sql` or `V4__create_refresh_tokens.sql` to alter a column).  
 **Consequence:** Next time the application starts, Flyway throws:
-`FlywayValidateException: Migration checksum mismatch for migration version 1` and terminates the process.
+`FlywayValidateException: Migration checksum mismatch for migration version ...` and terminates the process.
 
 ### Standard: Add Incremental Migrations
-1. Leave `V1__init_schema.sql` untouched forever.
-2. Create a new file under `backend/src/main/resources/db/migration/`:
-   ```text
-   V2__add_phone_to_users.sql
-   ```
-3. Write standard DDL:
+1. Leave all existing historical migrations (`V1` through `V4`) untouched forever.
+2. Inspect `backend/src/main/resources/db/migration/` to find the highest existing version `N`.
+3. Create the next consecutive incremental file `V<N+1>__<short_description>.sql` (e.g., `V5__add_user_preferences.sql`):
    ```sql
    ALTER TABLE users ADD COLUMN phone VARCHAR(20);
    ```
@@ -58,13 +55,15 @@ Modifying an already executed migration (e.g. editing `V1__init_schema.sql` to a
 ### Emergency Local Recovery (Resolving Local Checksum Discrepancies)
 * **Option A (Revert Local File):**
   ```bash
-  git restore backend/src/main/resources/db/migration/V1__init_schema.sql
+  git restore backend/src/main/resources/db/migration/
   ```
-* **Option B (Flyway Repair):**
+* **Option B (Flyway Repair — run from `backend/`):**
   ```bash
-  ./mvnw flyway:repair
+  cd backend && ./mvnw flyway:repair
+  # On Windows PowerShell:
+  cd backend; .\mvnw.cmd flyway:repair
   ```
-* **Option C (Fresh Docker Reset - Takes 3 seconds):**
+* **Option C (Fresh Docker Reset — run from repository root):**
   ```bash
   docker compose down -v && docker compose up -d
   ```
@@ -94,10 +93,10 @@ gitGraph
 | Element | Standard Formula Pattern | Concrete Real-World Example | Purpose & Notes |
 | :--- | :--- | :--- | :--- |
 | **Integration Baseline** | `develop` | `develop` | The single source of truth for ongoing sprint work. |
-| **Feature Branch** | `feat/<issue_number>-<short-description>` | `feat/49-jwt-architecture` | Branches off `develop`. Uses GitHub Issue ID. |
+| **Feature Branch** | `feat/<issue_number>-<short-description>` | `feat/49-jwt-architecture` | Branches off `develop`. Uses GitHub Issue ID (`#49`). |
 | **Bugfix / Hardening Branch** | `fix/<issue_number>-<short-description>` | `fix/44-place-card-null-image` | Quick fixes or hardening issues. |
-| **Commit Message** | `<type>(<scope>): [SLP-X] <subject>` | `feat(auth): [SLP-22] add jwt service` | Follows Conventional Commits with Jira-style task key. |
-| **PR Merge Strategy** | `Squash and merge` into `develop` | `PR #58` merged into `develop` | Collapses branch commits into 1 atomic history commit. |
+| **Commit Message** | `<type>(<scope>): [SLP-X] <subject>` | `feat(auth): [SLP-22] add jwt service` | Follows Conventional Commits with Jira backlog key (`[SLP-22]`). |
+| **PR Merge Strategy** | `Squash and merge` into `develop` | `PR #58` merged into `develop` | Collapses branch commits into 1 atomic history commit.<br>*(Note: GitHub PR numbers auto-increment globally and will differ from the Issue number)*. |
 
 ---
 
@@ -121,14 +120,17 @@ git switch -c fix/44-place-card-null-image
 ### Step 3: Write code & test locally
 Verify that your changes compile and pass tests before pushing:
 ```bash
-# Backend verification (executes all unit tests and quality gate):
+# 1. Backend verification (unit tests & quality gate):
 cd backend
-./mvnw test
+./mvnw test               # On Windows PowerShell: .\mvnw.cmd test
 
-# Mobile verification (static analysis linter and test suite):
-cd mobile
+# 2. Mobile verification (static analysis linter and test suite):
+cd ../mobile
 flutter analyze
 flutter test
+
+# 3. Return to repository root:
+cd ..
 ```
 
 ### Step 4: Commit with Conventional Commits
@@ -165,6 +167,7 @@ git push -u origin feat/49-jwt-architecture
 | Issue / Error | Root Cause | Remediation Command |
 | :--- | :--- | :--- |
 | `bash: ./mvnw: Permission denied` | Git index missing Linux executable bit | Run `git update-index --chmod=+x backend/mvnw` and commit. |
+| `File ... mvnw cannot be loaded (ExecutionPolicy)` | Windows PowerShell script execution policy restricted | Run `.\mvnw.cmd test` or `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`. |
 | `Git LF will be replaced by CRLF` | Windows vs Linux line ending differences | Managed automatically via `.gitattributes`. |
 | `Protected branch hook declined` | Attempted direct push to `develop` | Branch protection active. Create a `feat/...` branch and open a PR. |
 | `Exit code 137 (OOM Killer)` | Maven process exceeded runner memory limit | `MAVEN_OPTS` is configured to `-Xmx2048m` in `ci.yml` to prevent exhaustion. |

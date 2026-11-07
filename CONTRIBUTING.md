@@ -108,28 +108,20 @@ git pull origin develop
 ```
 
 ### Step 2: Create a feature branch
-Follow the `<type>/<issue_number>-<short-description>` formula:
-
+Format: `<type>/<issue_number>-<short-description>`
 ```bash
-# General Command Template:
 git switch -c <type>/<issue_number>-<short-description>
-
-# Real-world Examples:
-git switch -c feat/49-jwt-architecture          # Feature linked to Issue #49
-git switch -c fix/44-place-card-null-image       # Bugfix linked to Issue #44
+# Example: git switch -c feat/49-jwt-architecture
 ```
 
-### Step 3: Write code & test locally
-Verify that your changes compile and pass tests before pushing:
+### Step 3: Run local quality gates
+Verify that your changes compile and pass all tests before pushing:
 ```bash
-# 1. Backend verification (unit tests & quality gate):
-cd backend
-./mvnw test               # On Windows PowerShell: .\mvnw.cmd test
+# 1. Backend verification (Spring Boot 3 / Java 21):
+cd backend && ./mvnw test                  # Windows PowerShell: cd backend; .\mvnw.cmd test
 
-# 2. Mobile verification (static analysis linter and test suite):
-cd ../mobile
-flutter analyze
-flutter test
+# 2. Mobile verification (Flutter 3 / Dart):
+cd ../mobile && flutter analyze && flutter test
 
 # 3. Return to repository root:
 cd ..
@@ -140,51 +132,31 @@ Format: `<type>(<scope>): [SLP-X] <subject>`
 *(Note: Do not put `closes #...` in branch names or commit messages. The `Closes #<issue_number>` keyword belongs cleanly in the PR Description!)*
 
 ```bash
-# General Command Template:
 git add .
-git commit -m "<type>(<scope>): [SLP-X] <imperative subject>"
+git commit -m "<type>(<scope>): [SLP-X] <imperative-subject>"
 git push -u origin <type>/<issue_number>-<short-description>
-
-# Real-world Example:
-git add .
-git commit -m "feat(auth): [SLP-22] add jwt token validation service"
-git push -u origin feat/49-jwt-architecture
+# Example: git commit -m "feat(auth): [SLP-22] add jwt token validation service"
+# Example: git push -u origin feat/49-jwt-architecture
 ```
 
-### Step 5: Open Pull Request
-* Base branch: `develop` ⬅️ Compare branch: `<type>/<issue_number>-<short-description>`.
-* Use the standardized 3-section enterprise PR template (copy and fill for your ticket):
-  ```markdown
-  ## Summary of Changes
-  - **<Component> (`<path/to/files>`):**
-    - <High-level summary of what was added, refactored, or fixed>
-    - <Additional detail on architectural alignment or error handling>
+### Step 5: Open Pull Request & Merge
+1. **Open PR on GitHub:** Base `develop` ⬅️ Compare `<type>/<issue_number>-<short-description>`.
+2. **Fill the 3-section PR template** (auto-loaded from `.github/pull_request_template.md`):
+   ```markdown
+   ## Summary of Changes
+   - **<Component> (`<path/to/files>`):**
+     - <High-level summary of what was added, refactored, or fixed>
+     - <Additional detail on architectural alignment or error handling>
 
-  ## Verification
-  - Backend verification: `<X>` tests passed (`./mvnw test`).
-  - Mobile verification: `<Y>` tests passed, `flutter analyze` 0 issues.
-  - CI quality gates: Dual CI green on GitHub Actions.
+   ## Verification
+   - Backend verification: `<X>` tests passed (`./mvnw test`).
+   - Mobile verification: `<Y>` tests passed, `flutter analyze` 0 issues.
+   - CI quality gates: Dual CI green on GitHub Actions.
 
-  Closes #<issue_number>
-  ```
-
-> [!TIP]
-> **Example PR Description for Issue #49:**
-> ```markdown
-> ## Summary of Changes
-> - **Auth (`backend/src/main/java/.../JwtService.java`)**:
->   - Implemented HMAC-SHA256 token verification with cached signing key.
->   - Added unit test suite covering expiration and signature tampering.
->
-> ## Verification
-> - Backend verification: 14 tests passed (`./mvnw test`).
-> - CI quality gates: Dual CI green on GitHub Actions.
->
-> Closes #49
-> ```
-
-* Wait for dual CI quality gate (`Spring Boot 3 Compile & Verification` and `Flutter Mobile Quality Gate`) to turn green.
-* Perform **Squash & Merge** into `develop`, delete feature branch, and sync local `develop`.
+   Closes #<issue_number>
+   ```
+3. **Quality Gate:** Await dual CI green (`Spring Boot 3 Compile & Verification` and `Flutter Mobile Quality Gate`).
+4. **Merge:** Perform **Squash & Merge** into `develop`, delete feature branch, and sync local `develop`.
 
 ---
 

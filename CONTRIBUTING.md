@@ -73,32 +73,49 @@ Modifying an already executed migration (e.g. editing `V1__init_schema.sql` to a
 
 ## 4. Standard Daily Git Workflow
 
+The diagram below illustrates the **Universal Enterprise Git Workflow** applied to every task in this repository. It demonstrates how a developer branches off `develop`, makes scoped conventional commits, and merges back cleanly via a Pull Request.
+
 ```mermaid
 gitGraph
    commit id: "main (release)"
    branch develop
    checkout develop
    commit id: "develop (baseline)"
-   branch feat/49-jwt-architecture
-   checkout feat/49-jwt-architecture
-   commit id: "feat(auth): [SLP-22] entity"
-   commit id: "feat(auth): [SLP-22] jwt service"
+   branch feat/issue-id-feature-name
+   checkout feat/issue-id-feature-name
+   commit id: "feat(scope): [SLP-X] implementation"
+   commit id: "test(scope): [SLP-X] add unit tests"
    checkout develop
-   merge feat/49-jwt-architecture id: "Squash & Merge (PR #58)"
+   merge feat/issue-id-feature-name id: "Squash & Merge (PR #...)"
 ```
 
+### Git Workflow Formula & Reference Matrix
+
+| Element | Standard Formula Pattern | Concrete Real-World Example | Purpose & Notes |
+| :--- | :--- | :--- | :--- |
+| **Integration Baseline** | `develop` | `develop` | The single source of truth for ongoing sprint work. |
+| **Feature Branch** | `feat/<issue_number>-<short-description>` | `feat/49-jwt-architecture` | Branches off `develop`. Uses GitHub Issue ID. |
+| **Bugfix / Hardening Branch** | `fix/<issue_number>-<short-description>` | `fix/44-place-card-null-image` | Quick fixes or hardening issues. |
+| **Commit Message** | `<type>(<scope>): [SLP-X] <subject>` | `feat(auth): [SLP-22] add jwt service` | Follows Conventional Commits with Jira-style task key. |
+| **PR Merge Strategy** | `Squash and merge` into `develop` | `PR #58` merged into `develop` | Collapses branch commits into 1 atomic history commit. |
+
+---
+
 ### Step 1: Synchronize with integration baseline
+Always ensure your local `develop` branch has the latest peer changes before creating your feature branch:
 ```bash
 git switch develop
 git pull origin develop
 ```
 
 ### Step 2: Create a feature branch
+Follow the `<type>/<issue_number>-<short-description>` formula:
 ```bash
-# Branch format: <type>/<issue_number>-<short-description>
-git switch -c feat/22-api-contract-alignment
-# or for bug fixes / hardening:
-git switch -c fix/24-android-network-readiness
+# Example for a new feature (GitHub Issue #49):
+git switch -c feat/49-jwt-architecture
+
+# Example for a bug fix (GitHub Issue #44):
+git switch -c fix/44-place-card-null-image
 ```
 
 ### Step 3: Write code & test locally
@@ -120,26 +137,26 @@ Format: `<type>(<scope>): [SLP-X] <subject>`
 
 ```bash
 git add .
-git commit -m "feat(places): [SLP-2] add search endpoint with pagination"
-git push -u origin feat/22-api-contract-alignment
+git commit -m "feat(auth): [SLP-22] add jwt token validation service"
+git push -u origin feat/49-jwt-architecture
 ```
 
 ### Step 5: Open Pull Request
-* Base branch: `develop` ⬅️ Compare branch: `<type>/<issue_number>-<short-description>`.
+* Base branch: `develop` ⬅️ Compare branch: `feat/49-jwt-architecture`.
 * Use the standardized 3-section enterprise PR template:
   ```markdown
   ## Summary of Changes
-  - **<Component> (`<files>`)**:
-    - <Bullet item 1>
-    - <Bullet item 2>
+  - **Auth (`JwtService.java`)**:
+    - Implemented HMAC-SHA256 token verification with cached signing key.
+    - Added unit test suite covering expiration and signature tampering.
 
   ## Verification
-  - <Test results / quality gate evidence>
+  - `./mvnw test` passed with 100% assertions green.
 
-  Closes #<issue_number>
+  Closes #49
   ```
 * Wait for dual CI quality gate (`Spring Boot 3 Compile & Verification` and `Flutter Mobile Quality Gate`) to turn green.
-* Merge PR into `develop`, delete feature branch, and sync local `develop`.
+* Perform **Squash & Merge** into `develop`, delete feature branch, and sync local `develop`.
 
 ---
 

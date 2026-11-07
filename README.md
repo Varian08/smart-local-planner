@@ -266,17 +266,16 @@ flowchart LR
     Develop -->|"Sprint Release PR"| Main
 ```
 
-### Collaboration Rules:
-1. **Default Branch:** `develop` is the default integration branch. All feature branches must branch off `develop` and open Pull Requests against `develop`.
-2. **Single Unified Branch Naming Rule (GitHub Native):**
-   - Feature branches: `feat/<issue_number>-<short-description>` (e.g., `feat/49-jwt-architecture`)
-   - Bugfix branches: `fix/<issue_number>-<short-description>` (e.g., `fix/44-place-card-null-image-fallback`)
-   - *Never include words like `close` or `closes` in branch names.*
-3. **Conventional Commits Standard:**
-   - `feat(places): implement place search endpoint with pagination`
-   - `fix(auth): prevent token race condition during refresh rotation`
-   - `docs(readme): standardize documentation into technical english`
-4. **Pull Request Quality Gates & Safe Exemption:** All application code, migrations, and configs strictly mandate feature PRs with green CI. Pure markdown documentation (`.md`) or typo edits may be pushed directly to `develop` after running `git pull origin develop`. Complete operational SOP is detailed in [docs/DEVELOPER_WORKFLOW_PLAYBOOK.md](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md).
+### Collaboration Standards & Git Rules
+
+| Discipline | Specification & Policy | Standard Pattern / Example |
+| :--- | :--- | :--- |
+| **Integration Baseline** | Trunk-Based flow; all feature and bugfix branches merge into `develop` | `develop` (Default) & `main` (Production) |
+| **Branch Naming** | GitHub-native format linked to Issue ID (no `close` or `closes`) | `feat/<id>-<desc>` & `fix/<id>-<desc>` |
+| **Commit Discipline** | Conventional Commits standard with explicit component scope | `<type>(<scope>): [SLP-X] <imperative>` |
+| **PR Quality Gate** | Mandatory Lead review, dual-stack CI (Backend + Mobile) green | Code/DB mandate PRs; pure `.md` exempt |
+
+> Detailed branch lifecycle, Red/Yellow safety lines, and emergency runbooks are documented in **[Developer Workflow Playbook](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)**.
 
 ---
 

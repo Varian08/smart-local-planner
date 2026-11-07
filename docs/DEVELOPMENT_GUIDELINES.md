@@ -22,23 +22,24 @@ Smart Local Planner is in **Greenfield, Pre-Production** stage.
 The dependency arrow is strictly **unidirectional**:
 
 ```mermaid
+%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart TD
-    Req(["Client HTTP Request"]) --> Ctrl
+    Req["Client HTTP Request"] --> Ctrl
 
     subgraph Backend3Layer ["Strict 3-Layer Decoupling"]
-        Ctrl["<b>Controller Layer</b><br/>• Receives DTO, triggers Jakarta Validation (@Valid)<br/>• Enforces HTTP Status & RFC 7807"]
-        Svc["<b>Service Layer</b><br/>• Core business logic & ownership checks<br/>• Manages @Transactional boundaries"]
-        Repo["<b>Repository Layer</b><br/>• Spring Data JPA parameterized queries<br/>• Returns Entities to Service (never leaks to Controller)"]
+        Ctrl["Controller Layer<br/>- Receives DTO, triggers Jakarta Validation (@Valid)<br/>- Enforces HTTP Status & RFC 7807"]
+        Svc["Service Layer<br/>- Core business logic & ownership checks<br/>- Manages @Transactional boundaries"]
+        Repo["Repository Layer<br/>- Spring Data JPA parameterized queries<br/>- Returns Entities to Service (never leaks to Controller)"]
 
-        Ctrl -->|Passes Validated DTO| Svc
-        Svc -->|Calls Repository Operations| Repo
+        Ctrl -->|"Passes Validated DTO"| Svc
+        Svc -->|"Calls Repository Operations"| Repo
     end
 
     subgraph Persistence ["Persistence Infrastructure"]
-        DB[("<b>Database Layer (PostgreSQL 16)</b><br/>• Managed strictly via Flyway SQL migrations")]
+        DB[("Database Layer (PostgreSQL 16)<br/>- Managed strictly via Flyway SQL migrations")]
     end
 
-    Repo -->|Executes Parameterized SQL| DB
+    Repo -->|"Executes Parameterized SQL"| DB
 ```
 
 * **Golden Rule 1 (DTO Isolation):** Never expose JPA Entities directly via Controller endpoints. Always map between Entity and Request/Response DTOs.

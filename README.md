@@ -65,20 +65,21 @@ Following enterprise decoupling standards, both subsystems operate strictly with
 ### Backend 3-Tier Layer Boundaries
 
 ```mermaid
+%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart TD
-    Client(["Mobile Client / Web Consumer"]) -->|"HTTP Request / JSON"| Controller
+    Client["Mobile & Web Client"] -->|"HTTP Request / JSON"| Controller
 
     subgraph BackendApp ["Spring Boot 3.3.4 (Backend Application Tier)"]
-        Controller["<b>Controller Layer</b><br/>• Ingests Request DTOs<br/>• Jakarta Validation (@Valid)<br/>• Enforces HTTP Status & RFC 7807"]
-        Service["<b>Service Layer</b><br/>• Core Business Logic & Rules<br/>• DTO ↔ Entity Transformation<br/>• @Transactional Boundaries"]
-        Repository["<b>Repository Layer</b><br/>• Spring Data JPA Parameterized Queries<br/>• Entity Isolation (Never leaks to Controller)"]
+        Controller["Controller Layer<br/>- Ingests Request DTOs<br/>- Jakarta Validation (@Valid)<br/>- Enforces HTTP Status & RFC 7807"]
+        Service["Service Layer<br/>- Core Business Logic & Rules<br/>- DTO to Entity Transformation<br/>- @Transactional Boundaries"]
+        Repository["Repository Layer<br/>- Spring Data JPA Queries<br/>- Entity Isolation"]
         
         Controller -->|"Passes Validated DTO"| Service
         Service -->|"Calls Repository Operations"| Repository
     end
 
     subgraph PersistenceTier ["Persistence Infrastructure"]
-        Postgres[("<b>PostgreSQL 16 Alpine</b><br/>• Flyway Versioned Migrations<br/>• Relational Integrity & Cascades")]
+        Postgres[("PostgreSQL 16 Alpine<br/>- Flyway Versioned Migrations<br/>- Relational Integrity & Cascades")]
     end
 
     Repository -->|"SQL Execution via JDBC"| Postgres
@@ -87,18 +88,19 @@ flowchart TD
 ### Mobile Feature-First BLoC Architecture
 
 ```mermaid
+%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart LR
     subgraph UI_Layer ["Presentation Layer"]
-        UI["<b>UI Components</b><br/>• Stateless Widgets<br/>• BlocBuilder & BlocListener"]
+        UI["UI Components<br/>- Stateless Widgets<br/>- BlocBuilder & BlocListener"]
     end
 
     subgraph BLoC_Layer ["Business Logic Tier"]
-        Bloc["<b>BLoC State Machine</b><br/>• Event Handler<br/>• Concurrency Transformers<br/>• State Emitter"]
+        Bloc["BLoC State Machine<br/>- Event Handler<br/>- Concurrency Guard<br/>- State Emitter"]
     end
 
     subgraph Data_Layer ["Data Tier"]
-        Repo["<b>Feature Repository</b><br/>• Domain Model Mapping<br/>• In-Memory / Local Cache"]
-        Network["<b>Dio HTTP Client</b><br/>• JWT Interceptor & Rotation<br/>• Structured Error Handling"]
+        Repo["Feature Repository<br/>- Domain Model Mapping<br/>- In-Memory / Local Cache"]
+        Network["Dio HTTP Client<br/>- JWT Interceptor & Rotation<br/>- Structured Error Handling"]
     end
 
     UI -->|"1. Dispatches Event"| Bloc
@@ -236,19 +238,20 @@ flutter run -d chrome    # Or Microsoft Edge: flutter run -d edge
 This project adheres strictly to **Trunk-Based / GitFlow Integration Branching**:
 
 ```mermaid
+%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart LR
     subgraph ProtectedBases ["Protected Baseline Branches"]
-        Main["<b>main</b><br/>Stable Production Releases<br/>(Protected)"]
-        Develop["<b>develop</b><br/>Integration Baseline<br/>(DEFAULT BRANCH)"]
+        Main["main<br/>Stable Production Releases<br/>(Protected)"]
+        Develop["develop<br/>Integration Baseline<br/>(DEFAULT BRANCH)"]
     end
 
     subgraph FeatureBranches ["Short-lived Topic Branches"]
-        FeatBranch["<b>feat/&lt;issue_id&gt;-...</b><br/>(Backend Features)"]
-        FixBranch["<b>fix/&lt;issue_id&gt;-...</b><br/>(Mobile Bugfixes)"]
+        FeatBranch["feat/issue-id-desc<br/>(Backend / Mobile Features)"]
+        FixBranch["fix/issue-id-desc<br/>(Backend / Mobile Bugfixes)"]
     end
 
-    FeatBranch -->|"Squash & Merge PR<br/>+ CI Green + CodeOwner Approval"| Develop
-    FixBranch -->|"Squash & Merge PR<br/>+ CI Green + CodeOwner Approval"| Develop
+    FeatBranch -->|"Squash & Merge PR + CI Green"| Develop
+    FixBranch -->|"Squash & Merge PR + CI Green"| Develop
     Develop -->|"Sprint Release Review PR"| Main
 ```
 

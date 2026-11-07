@@ -12,9 +12,10 @@
 This playbook provides a deterministic, step-by-step Standard Operating Procedure (SOP) for executing tasks in **Smart Local Planner**. Every ticket follows an audited 7-step lifecycle connecting the GitHub Sprint Board, Git branch management, local dual-stack quality gates, and automated CI pipelines.
 
 ```mermaid
+%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart TD
     Step1["1. Create Issue on GitHub<br/>(Set Assignee, Label, Project)"] --> Step2["2. Move Card to IN PROGRESS<br/>(Only manual drag! Signals active work)"]
-    Step2 --> Step3["3. Branch off develop<br/>(feat/&lt;issue-id&gt;-&lt;short-desc&gt;)"]
+    Step2 --> Step3["3. Branch off develop<br/>(feat/issue-id-short-desc)"]
     Step3 --> Step4["4. Implement & Verify Locally<br/>(mvn test & flutter test)"]
     Step4 --> Step5["5. Conventional Commit & Push<br/>(type(scope): [SLP-X] subject)"]
     Step5 --> Step6["6. Open PR on GitHub<br/>(3-section PR template)"]
@@ -197,6 +198,7 @@ git push -u origin feat/49-jwt-architecture
 To eliminate fear and build confidence, understand the distinction between **fatal errors** (which impact the team) and **safe mistakes** (which are easily fixed on your branch).
 
 ```mermaid
+%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart TD
     subgraph RedLines ["Red Lines: Fatal - Stop and Recover"]
         R1["Modifying Historical Migrations (V1, V2, V3)"]

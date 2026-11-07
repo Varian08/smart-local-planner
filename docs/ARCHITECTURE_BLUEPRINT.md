@@ -63,15 +63,15 @@ The system strictly adheres to **Independent Layered Architecture** across both 
 
 ```mermaid
 flowchart TD
-    Client["1. Presentation Tier<br/>(Flutter Android & iOS Client)"]
+    Client["1. Presentation Tier<br/>(Flutter Mobile App)    "]
 
     subgraph AppTier ["2. Application Tier (PaaS Container)"]
-        Backend["Spring Boot 3 RESTful API Service<br/>(Security, Places, Favorites, Itineraries, Reviews)"]
+        Backend["Spring Boot 3 RESTful API Service<br/>(Security, Places, Favorites)    "]
     end
 
     subgraph InfraTier ["3. Persistence & Asset Infrastructure"]
-        DB[("3A. PostgreSQL 16 Database<br/>(Neon.tech & Local Docker)")]
-        CDN["3B. Cloudinary Media CDN<br/>(Image Resizing & Edge Delivery)"]
+        DB[("3A. PostgreSQL 16 Database<br/>(Neon.tech & Local Docker)    ")]
+        CDN["3B. Cloudinary Media CDN<br/>(Asset Optimization & Delivery)    "]
     end
 
     Client -->|"HTTPS / Bearer JWT"| Backend
@@ -87,19 +87,19 @@ The dependency flow between layers is strictly **unidirectional**. Skip-calling 
 
 ```mermaid
 flowchart TD
-    Req["Client HTTP Request"] --> Ctrl
+    Req["Client HTTP Request    "] --> Ctrl
 
     subgraph BackendLayers ["Spring Boot N-Layer Architecture"]
-        Ctrl["Controller Layer<br/>(Request DTOs & Validation)"]
-        Svc["Service Layer<br/>(Business Logic & Transactions)"]
-        Repo["Repository Layer<br/>(Spring Data JPA Queries)"]
+        Ctrl["Controller Layer<br/>(Request DTOs & Validation)    "]
+        Svc["Service Layer<br/>(Business Logic & Transactions)    "]
+        Repo["Repository Layer<br/>(Spring Data JPA Queries)    "]
 
         Ctrl -->|"Validated DTO"| Svc
         Svc -->|"Invoke Query"| Repo
     end
 
     subgraph DatabaseLayer ["Persistence Infrastructure"]
-        DB[("Database Layer (PostgreSQL 16)<br/>(Flyway Versioned Migrations)")]
+        DB[("Database Layer (PostgreSQL 16)<br/>(Flyway Versioned Migrations)    ")]
     end
 
     Repo -->|"Parameterized SQL"| DB
@@ -127,15 +127,15 @@ The mobile subsystem combines **Feature-First modularity** with **3-Layer presen
 ```mermaid
 flowchart TD
     subgraph PresentationLayer ["1. Presentation Layer (Pure UI)"]
-        UI["Screens & Widgets<br/>(4 Mandatory UI States)"]
+        UI["Screens & Widgets<br/>(4 Mandatory UI States)    "]
     end
 
     subgraph DomainLayer ["2. Domain & State Management"]
-        Bloc["BLoC State Machine<br/>(Events to States)"]
+        Bloc["BLoC State Machine<br/>(Events to States)    "]
     end
 
     subgraph DataLayer ["3. Data Infrastructure Layer"]
-        DataSources["Data Sources & Repositories<br/>(Dio Client & SecureStorage)"]
+        DataSources["Data Sources & Repositories<br/>(Dio Client & SecureStorage)    "]
     end
 
     UI -->|"Dispatch Events"| Bloc
@@ -260,12 +260,12 @@ Security is designed in depth across 6 protective barriers:
 
 ```mermaid
 flowchart TD
-    Layer1["1. Mobile Client Shield<br/>(Keystore Hardware Encryption)"]
-    Layer2["2. Network & Gateway Barrier<br/>(CORS Whitelist & Rate Limiting)"]
-    Layer3["3. Authentication Pipeline<br/>(Stateless JWT & Token Rotation)"]
-    Layer4["4. Application & Domain Guard<br/>(Ownership & Jakarta Validation)"]
-    Layer5["5. Data Persistence Barrier<br/>(Parameterized SQL & Flyway)"]
-    Layer6["6. Secrets Management<br/>(GitHub Secrets & Cloud Env)"]
+    Layer1["1. Mobile Client Shield<br/>(Hardware Keystore)    "]
+    Layer2["2. Network & Gateway Barrier<br/>(CORS & Rate Limiting)    "]
+    Layer3["3. Authentication Pipeline<br/>(Stateless JWT & Rotation)    "]
+    Layer4["4. Application & Domain Guard<br/>(Ownership & Validation)    "]
+    Layer5["5. Data Persistence Barrier<br/>(Parameterized SQL)    "]
+    Layer6["6. Secrets Management<br/>(GitHub Secrets & Cloud Env)    "]
 
     Layer1 -->|"HTTPS Only"| Layer2
     Layer2 --> Layer3

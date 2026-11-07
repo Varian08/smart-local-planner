@@ -66,19 +66,19 @@ Following enterprise decoupling standards, both subsystems operate strictly with
 
 ```mermaid
 flowchart TD
-    Client["Mobile & Web Clients"] -->|"HTTP / JSON"| Controller
+    Client["Mobile & Web<br/>Client Apps    "] -->|"HTTP / JSON"| Controller
 
     subgraph BackendApp ["Spring Boot 3.3.4 (Backend Application Tier)"]
-        Controller["Controller Layer<br/>(REST APIs & Validation)"]
-        Service["Service Layer<br/>(Business Logic & Transactions)"]
-        Repository["Repository Layer<br/>(Spring Data JPA Parameterized)"]
+        Controller["Controller Layer<br/>(REST APIs & DTOs)    "]
+        Service["Service Layer<br/>(Business Logic & TX)    "]
+        Repository["Repository Layer<br/>(Spring Data JPA)    "]
         
         Controller -->|"Validated DTO"| Service
         Service -->|"Invoke Operations"| Repository
     end
 
     subgraph PersistenceTier ["Persistence Infrastructure"]
-        Postgres[("PostgreSQL 16 Alpine<br/>(Flyway Migrations & Schema)")]
+        Postgres[("PostgreSQL 16 Alpine<br/>(Flyway Database)    ")]
     end
 
     Repository -->|"JDBC / SQL"| Postgres
@@ -96,16 +96,16 @@ flowchart TD
 ```mermaid
 flowchart LR
     subgraph UI_Layer ["Presentation Layer"]
-        UI["UI Components<br/>(Screens & Widgets)"]
+        UI["UI Components<br/>(Screens & Widgets)    "]
     end
 
     subgraph BLoC_Layer ["State Management Layer"]
-        Bloc["BLoC State Machine<br/>(Event to State)"]
+        Bloc["BLoC State Machine<br/>(Event to State)    "]
     end
 
     subgraph Data_Layer ["Data Infrastructure Layer"]
-        Repo["Feature Repository<br/>(Domain & Cache)"]
-        Network["Dio HTTP Client<br/>(JWT & Interceptors)"]
+        Repo["Feature Repository<br/>(Domain & Cache)    "]
+        Network["Dio HTTP Client<br/>(JWT & Interceptor)    "]
     end
 
     UI -->|"1. Dispatch Event"| Bloc
@@ -252,13 +252,13 @@ This project adheres strictly to **Trunk-Based / GitFlow Integration Branching**
 ```mermaid
 flowchart LR
     subgraph ProtectedBases ["Protected Baseline Branches"]
-        Main["main<br/>(Production Releases)"]
-        Develop["develop<br/>(Integration Baseline)"]
+        Main["main branch<br/>(Production)    "]
+        Develop["develop branch<br/>(Integration)    "]
     end
 
     subgraph FeatureBranches ["Short-lived Topic Branches"]
-        FeatBranch["feat/issue-id<br/>(Features)"]
-        FixBranch["fix/issue-id<br/>(Bugfixes)"]
+        FeatBranch["feat/issue-id<br/>(Features)    "]
+        FixBranch["fix/issue-id<br/>(Bugfixes)    "]
     end
 
     FeatBranch -->|"Squash & Merge PR"| Develop

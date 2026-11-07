@@ -12,14 +12,13 @@
 This playbook provides a deterministic, step-by-step Standard Operating Procedure (SOP) for executing tasks in **Smart Local Planner**. Every ticket follows an audited 7-step lifecycle connecting the GitHub Sprint Board, Git branch management, local dual-stack quality gates, and automated CI pipelines.
 
 ```mermaid
-%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart TD
-    Step1["1. Create Issue on GitHub<br/>(Set Assignee, Label, Project)"] --> Step2["2. Move Card to IN PROGRESS<br/>(Only manual drag! Signals active work)"]
-    Step2 --> Step3["3. Branch off develop<br/>(feat/issue-id-short-desc)"]
-    Step3 --> Step4["4. Implement & Verify Locally<br/>(mvn test & flutter test)"]
-    Step4 --> Step5["5. Conventional Commit & Push<br/>(type(scope): [SLP-X] subject)"]
-    Step5 --> Step6["6. Open PR on GitHub<br/>(3-section PR template)"]
-    Step6 --> Step7["7. Review, CI Green & Squash Merge<br/>(Auto-closes Issue directly to DONE!)"]
+    Step1["1. Create Issue on GitHub"] --> Step2["2. Move to IN PROGRESS"]
+    Step2 --> Step3["3. Branch off develop"]
+    Step3 --> Step4["4. Code & Verify Locally"]
+    Step4 --> Step5["5. Conventional Commit & Push"]
+    Step5 --> Step6["6. Open PR on GitHub"]
+    Step6 --> Step7["7. CI Green & Squash Merge"]
 ```
 
 ---
@@ -198,17 +197,16 @@ git push -u origin feat/49-jwt-architecture
 To eliminate fear and build confidence, understand the distinction between **fatal errors** (which impact the team) and **safe mistakes** (which are easily fixed on your branch).
 
 ```mermaid
-%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart TD
-    subgraph RedLines ["Red Lines: Fatal - Stop and Recover"]
-        R1["Modifying Historical Migrations (V1, V2, V3)"]
-        R2["Direct Push / Force Push to develop or main"]
-        R3["Committing Secrets / Passwords / .env"]
+    subgraph RedLines ["Red Lines: Fatal (Stop and Recover)"]
+        R1["Modifying Historical Migrations"]
+        R2["Direct or Force Push to develop/main"]
+        R3["Committing Secrets or .env Files"]
     end
 
-    subgraph YellowLines ["Yellow Lines: Safe - Fix on Feature Branch"]
+    subgraph YellowLines ["Yellow Lines: Safe (Fix on Branch)"]
         Y1["Test Failures & Linter Warnings"]
-        Y2["Logic Flaws / Missing Validation"]
+        Y2["Logic Flaws or Missing Validation"]
         Y3["Malformed Commit Messages"]
         Y4["Merge Conflicts with develop"]
     end

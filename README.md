@@ -65,51 +65,63 @@ Following enterprise decoupling standards, both subsystems operate strictly with
 ### Backend 3-Tier Layer Boundaries
 
 ```mermaid
-%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart TD
-    Client["Mobile & Web Client"] -->|"HTTP Request / JSON"| Controller
+    Client["Mobile & Web Clients"] -->|"HTTP / JSON"| Controller
 
     subgraph BackendApp ["Spring Boot 3.3.4 (Backend Application Tier)"]
-        Controller["Controller Layer<br/>- Ingests Request DTOs<br/>- Jakarta Validation (@Valid)<br/>- Enforces HTTP Status & RFC 7807"]
-        Service["Service Layer<br/>- Core Business Logic & Rules<br/>- DTO to Entity Transformation<br/>- @Transactional Boundaries"]
-        Repository["Repository Layer<br/>- Spring Data JPA Queries<br/>- Entity Isolation"]
+        Controller["Controller Layer<br/>(REST APIs & Validation)"]
+        Service["Service Layer<br/>(Business Logic & Transactions)"]
+        Repository["Repository Layer<br/>(Spring Data JPA Parameterized)"]
         
-        Controller -->|"Passes Validated DTO"| Service
-        Service -->|"Calls Repository Operations"| Repository
+        Controller -->|"Validated DTO"| Service
+        Service -->|"Invoke Operations"| Repository
     end
 
     subgraph PersistenceTier ["Persistence Infrastructure"]
-        Postgres[("PostgreSQL 16 Alpine<br/>- Flyway Versioned Migrations<br/>- Relational Integrity & Cascades")]
+        Postgres[("PostgreSQL 16 Alpine<br/>(Flyway Migrations & Schema)")]
     end
 
-    Repository -->|"SQL Execution via JDBC"| Postgres
+    Repository -->|"JDBC / SQL"| Postgres
 ```
+
+| Layer | Core Responsibilities | Key Technologies & Patterns |
+| :--- | :--- | :--- |
+| **Controller** | Ingests request DTOs, triggers Jakarta validation (`@Valid`), enforces HTTP status codes & RFC 7807 error envelopes | `@RestController`, `@Valid`, RFC 7807 |
+| **Service** | Executes core business workflows, domain authorization, DTO ↔ Entity conversion, manages transaction boundaries | `@Service`, `@Transactional` |
+| **Repository** | Database communication, parameterized queries, entity isolation (never leaks entities to controllers) | Spring Data JPA, Parameterized SQL |
+| **Persistence** | Relational data persistence, schema versioning, foreign keys, cascades & automated database migrations | PostgreSQL 16 Alpine, Flyway Core |
 
 ### Mobile Feature-First BLoC Architecture
 
 ```mermaid
-%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart LR
     subgraph UI_Layer ["Presentation Layer"]
-        UI["UI Components<br/>- Stateless Widgets<br/>- BlocBuilder & BlocListener"]
+        UI["UI Components<br/>(Screens & Widgets)"]
     end
 
-    subgraph BLoC_Layer ["Business Logic Tier"]
-        Bloc["BLoC State Machine<br/>- Event Handler<br/>- Concurrency Guard<br/>- State Emitter"]
+    subgraph BLoC_Layer ["State Management Layer"]
+        Bloc["BLoC State Machine<br/>(Event to State)"]
     end
 
-    subgraph Data_Layer ["Data Tier"]
-        Repo["Feature Repository<br/>- Domain Model Mapping<br/>- In-Memory / Local Cache"]
-        Network["Dio HTTP Client<br/>- JWT Interceptor & Rotation<br/>- Structured Error Handling"]
+    subgraph Data_Layer ["Data Infrastructure Layer"]
+        Repo["Feature Repository<br/>(Domain & Cache)"]
+        Network["Dio HTTP Client<br/>(JWT & Interceptors)"]
     end
 
-    UI -->|"1. Dispatches Event"| Bloc
-    Bloc -->|"2. Requests Domain Operations"| Repo
-    Repo -->|"3. Performs HTTP Calls"| Network
-    Network -->|"4. Returns DTO / Error"| Repo
-    Repo -->|"5. Returns Domain Model"| Bloc
-    Bloc -->|"6. Emits Immutable State (4-State Contract)"| UI
+    UI -->|"1. Dispatch Event"| Bloc
+    Bloc -->|"2. Domain Request"| Repo
+    Repo -->|"3. HTTP Call"| Network
+    Network -->|"4. Response DTO"| Repo
+    Repo -->|"5. Domain Model"| Bloc
+    Bloc -->|"6. Emit State"| UI
 ```
+
+| Layer | Core Responsibilities | Key Technologies & Patterns |
+| :--- | :--- | :--- |
+| **Presentation** | Pure declarative UI, reactive rebuilds, strictly renders the 4 mandatory states (Loading, Success, Empty, Error) | Material 3, `BlocBuilder`, `BlocListener` |
+| **BLoC** | Unidirectional state machine, event handling, concurrency guard, optimistic UI updates & rollback | `flutter_bloc`, `Bloc<Event, State>` |
+| **Repository** | Aggregates local cache & remote endpoints, deserializes JSON into immutable domain models | Feature Repositories, In-Memory Cache |
+| **Network & Storage** | Resilient HTTP network client, automated JWT refresh token rotation on 401, hardware keystore encryption | `Dio`, `QueuedInterceptor`, `FlutterSecureStorage` |
 
 ---
 
@@ -238,21 +250,20 @@ flutter run -d chrome    # Or Microsoft Edge: flutter run -d edge
 This project adheres strictly to **Trunk-Based / GitFlow Integration Branching**:
 
 ```mermaid
-%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart LR
     subgraph ProtectedBases ["Protected Baseline Branches"]
-        Main["main<br/>Stable Production Releases<br/>(Protected)"]
-        Develop["develop<br/>Integration Baseline<br/>(DEFAULT BRANCH)"]
+        Main["main<br/>(Production Releases)"]
+        Develop["develop<br/>(Integration Baseline)"]
     end
 
     subgraph FeatureBranches ["Short-lived Topic Branches"]
-        FeatBranch["feat/issue-id-desc<br/>(Backend / Mobile Features)"]
-        FixBranch["fix/issue-id-desc<br/>(Backend / Mobile Bugfixes)"]
+        FeatBranch["feat/issue-id<br/>(Features)"]
+        FixBranch["fix/issue-id<br/>(Bugfixes)"]
     end
 
-    FeatBranch -->|"Squash & Merge PR + CI Green"| Develop
-    FixBranch -->|"Squash & Merge PR + CI Green"| Develop
-    Develop -->|"Sprint Release Review PR"| Main
+    FeatBranch -->|"Squash & Merge PR"| Develop
+    FixBranch -->|"Squash & Merge PR"| Develop
+    Develop -->|"Sprint Release PR"| Main
 ```
 
 ### Collaboration Rules:

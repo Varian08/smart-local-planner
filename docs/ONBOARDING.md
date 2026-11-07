@@ -48,12 +48,11 @@ Smoke checks: `http://localhost:8080/actuator/health` returns `{"status":"UP"}`,
 ## 3. Daily Rhythm
 
 ```mermaid
-%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart LR
-    Step1["1. Sync develop<br/>git pull origin develop"] --> Step2["2. Pick Ticket<br/>Drag Todo to In Progress"]
-    Step2 --> Step3["3. Create Branch<br/>feat/issue-desc"]
-    Step3 --> Step4["4. Code & Verify<br/>mvn test & flutter test"]
-    Step4 --> Step5["5. Submit PR<br/>Await CI Green & Review"]
+    Step1["1. Sync develop<br/>(git pull develop)"] --> Step2["2. Pick Ticket<br/>(Move to In Progress)"]
+    Step2 --> Step3["3. Create Branch<br/>(feat/issue-desc)"]
+    Step3 --> Step4["4. Code & Test<br/>(mvn & flutter test)"]
+    Step4 --> Step5["5. Submit PR<br/>(CI Green & Review)"]
 ```
 
 1. `git checkout develop && git pull origin develop`

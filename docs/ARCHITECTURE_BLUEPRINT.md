@@ -62,22 +62,21 @@ The system strictly adheres to **Independent Layered Architecture** across both 
 ### 3.1. Physical 3-Tier Architecture
 
 ```mermaid
-%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart TD
-    Client["1. CLIENT / PRESENTATION TIER<br/>User Mobile Device (Android / iOS) - Flutter Client (Material 3)<br/>Hardware Keystore / SecureStorage for JWT Tokens"]
+    Client["1. Presentation Tier<br/>(Flutter Android & iOS Client)"]
 
-    subgraph AppTier ["2. APPLICATION / LOGIC TIER (PaaS Container)"]
-        Backend["Spring Boot 3 RESTful API Service<br/>- Security Shield: Spring Security 6, JWT Filter, Rate Limiter, CORS Whitelist<br/>- Business Engines: Places Discovery, Favorites, Itineraries CRUD, Reviews Engine"]
+    subgraph AppTier ["2. Application Tier (PaaS Container)"]
+        Backend["Spring Boot 3 RESTful API Service<br/>(Security, Places, Favorites, Itineraries, Reviews)"]
     end
 
-    subgraph InfraTier ["3. PERSISTENCE & ASSET INFRASTRUCTURE"]
-        DB[("3A. DATA TIER (Relational Database)<br/>- PostgreSQL 16 on Neon.tech (Local: Docker)<br/>- Stores: Users, Places, Favorites, Itineraries, Reviews<br/>- Managed strictly via Flyway Versioned Migrations")]
-        CDN["3B. ASSET TIER (Object Storage & CDN)<br/>- Cloudinary Media CDN<br/>- Automated Image Resizing, WebP Delivery & Edge Caching"]
+    subgraph InfraTier ["3. Persistence & Asset Infrastructure"]
+        DB[("3A. PostgreSQL 16 Database<br/>(Neon.tech & Local Docker)")]
+        CDN["3B. Cloudinary Media CDN<br/>(Image Resizing & Edge Delivery)"]
     end
 
-    Client -->|"HTTPS / JSON + Bearer JWT"| Backend
-    Backend -->|"HikariCP Connection Pool (JDBC)"| DB
-    Backend -->|"HTTPS REST API / SDK"| CDN
+    Client -->|"HTTPS / Bearer JWT"| Backend
+    Backend -->|"HikariCP Pool"| DB
+    Backend -->|"Asset Delivery"| CDN
 ```
 
 ---
@@ -87,26 +86,23 @@ flowchart TD
 The dependency flow between layers is strictly **unidirectional**. Skip-calling or reverse dependency is strictly forbidden:
 
 ```mermaid
-%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart TD
     Req["Client HTTP Request"] --> Ctrl
 
     subgraph BackendLayers ["Spring Boot N-Layer Architecture"]
-        Ctrl["Controller Layer<br/>- Receives HTTP request, deserializes JSON to Request DTO<br/>- Triggers Jakarta Validation annotations (@Valid, @NotBlank)<br/>- Returns standard RFC 7807 responses & HTTP status codes"]
-        
-        Svc["Service Layer<br/>- Heart of application: executes all business workflows<br/>- Enforces ownership checks & domain authorization<br/>- Manages transactional boundaries (@Transactional)"]
-        
-        Repo["Repository Layer<br/>- Encapsulates database communication via Spring Data JPA<br/>- 100% Parameterized queries to eliminate SQL injection risks<br/>- Communicates strictly with Entities (never leaks DTOs)"]
+        Ctrl["Controller Layer<br/>(Request DTOs & Validation)"]
+        Svc["Service Layer<br/>(Business Logic & Transactions)"]
+        Repo["Repository Layer<br/>(Spring Data JPA Queries)"]
 
-        Ctrl -->|"Passes Validated DTO"| Svc
-        Svc -->|"Invokes Query Methods"| Repo
+        Ctrl -->|"Validated DTO"| Svc
+        Svc -->|"Invoke Query"| Repo
     end
 
     subgraph DatabaseLayer ["Persistence Infrastructure"]
-        DB[("Database Layer (PostgreSQL 16)<br/>- Relational database tables, constraints & cascades<br/>- Schema evolution strictly governed by Flyway SQL migrations")]
+        DB[("Database Layer (PostgreSQL 16)<br/>(Flyway Versioned Migrations)")]
     end
 
-    Repo -->|"Executes Parameterized SQL"| DB
+    Repo -->|"Parameterized SQL"| DB
 ```
 
 #### Backend Package Structure:
@@ -129,22 +125,21 @@ src/main/java/com/smartplanner/
 The mobile subsystem combines **Feature-First modularity** with **3-Layer presentation isolation**:
 
 ```mermaid
-%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart TD
     subgraph PresentationLayer ["1. Presentation Layer (Pure UI)"]
-        UI["Screens & Widgets (StatelessWidget only)<br/>- Pure UI declaration via Material 3<br/>- Renders 4 explicit states: Initial, Loading, Success, Error"]
+        UI["Screens & Widgets<br/>(4 Mandatory UI States)"]
     end
 
-    subgraph DomainLayer ["2. Domain / State Management Layer (flutter_bloc)"]
-        Bloc["Bloc / Cubit State Machine<br/>- Receives UI events -> Invokes Repositories -> Emits States<br/>- Decouples visual widgets from network clients and storage drivers"]
+    subgraph DomainLayer ["2. Domain & State Management"]
+        Bloc["BLoC State Machine<br/>(Events to States)"]
     end
 
-    subgraph DataLayer ["3. Data / Infrastructure Layer"]
-        DataSources["Data Sources & Mappers<br/>- Dio Client (HTTP REST API with Token Rotation)<br/>- SecureStorageService (Keystore / Keychain Token Keystore)<br/>- Deserializes JSON payloads into immutable Dart Model classes"]
+    subgraph DataLayer ["3. Data Infrastructure Layer"]
+        DataSources["Data Sources & Repositories<br/>(Dio Client & SecureStorage)"]
     end
 
-    UI -->|"Dispatches Events & Listens to States"| Bloc
-    Bloc -->|"Invokes Asynchronous Data Methods (Future)"| DataSources
+    UI -->|"Dispatch Events"| Bloc
+    Bloc -->|"Async Operations"| DataSources
 ```
 
 #### Mobile Directory Structure:
@@ -264,14 +259,13 @@ Before handing off a screen, Engineer B must test:
 Security is designed in depth across 6 protective barriers:
 
 ```mermaid
-%%{init: {'flowchart': {'htmlLabels': false}}}%%
 flowchart TD
-    Layer1["1. Mobile Client Shield<br/>Cleartext HTTP blocked by OS policy - Keystore / Keychain hardware encryption"]
-    Layer2["2. Network & Gateway Barrier<br/>CORS property-driven origin whitelist - Login rate limiting (5 req/min per IP)"]
-    Layer3["3. Authentication Pipeline<br/>Spring Security 6 stateless filter chain - Access Token (30m) + Refresh Token Rotation (7d)"]
-    Layer4["4. Application & Domain Guard<br/>Strict resource ownership authorization - Jakarta DTO validation (@Valid, @NotBlank)"]
-    Layer5["5. Data Persistence Barrier<br/>100% Parameterized JPA queries (SQL injection immune) - Flyway schema versioning"]
-    Layer6["6. Secrets Management<br/>GitHub Actions Repository Secrets - Cloud Environment Variables (Zero hardcoded credentials)"]
+    Layer1["1. Mobile Client Shield<br/>(Keystore Hardware Encryption)"]
+    Layer2["2. Network & Gateway Barrier<br/>(CORS Whitelist & Rate Limiting)"]
+    Layer3["3. Authentication Pipeline<br/>(Stateless JWT & Token Rotation)"]
+    Layer4["4. Application & Domain Guard<br/>(Ownership & Jakarta Validation)"]
+    Layer5["5. Data Persistence Barrier<br/>(Parameterized SQL & Flyway)"]
+    Layer6["6. Secrets Management<br/>(GitHub Secrets & Cloud Env)"]
 
     Layer1 -->|"HTTPS Only"| Layer2
     Layer2 --> Layer3

@@ -109,12 +109,14 @@ git pull origin develop
 
 ### Step 2: Create a feature branch
 Follow the `<type>/<issue_number>-<short-description>` formula:
-```bash
-# Example for a new feature (GitHub Issue #49):
-git switch -c feat/49-jwt-architecture
 
-# Example for a bug fix (GitHub Issue #44):
-git switch -c fix/44-place-card-null-image
+```bash
+# General Command Template:
+git switch -c <type>/<issue_number>-<short-description>
+
+# Real-world Examples:
+git switch -c feat/49-jwt-architecture          # Feature linked to Issue #49
+git switch -c fix/44-place-card-null-image       # Bugfix linked to Issue #44
 ```
 
 ### Step 3: Write code & test locally
@@ -138,25 +140,49 @@ Format: `<type>(<scope>): [SLP-X] <subject>`
 *(Note: Do not put `closes #...` in branch names or commit messages. The `Closes #<issue_number>` keyword belongs cleanly in the PR Description!)*
 
 ```bash
+# General Command Template:
+git add .
+git commit -m "<type>(<scope>): [SLP-X] <imperative subject>"
+git push -u origin <type>/<issue_number>-<short-description>
+
+# Real-world Example:
 git add .
 git commit -m "feat(auth): [SLP-22] add jwt token validation service"
 git push -u origin feat/49-jwt-architecture
 ```
 
 ### Step 5: Open Pull Request
-* Base branch: `develop` ⬅️ Compare branch: `feat/49-jwt-architecture`.
-* Use the standardized 3-section enterprise PR template:
+* Base branch: `develop` ⬅️ Compare branch: `<type>/<issue_number>-<short-description>`.
+* Use the standardized 3-section enterprise PR template (copy and fill for your ticket):
   ```markdown
   ## Summary of Changes
-  - **Auth (`JwtService.java`)**:
-    - Implemented HMAC-SHA256 token verification with cached signing key.
-    - Added unit test suite covering expiration and signature tampering.
+  - **<Component> (`<path/to/files>`):**
+    - <High-level summary of what was added, refactored, or fixed>
+    - <Additional detail on architectural alignment or error handling>
 
   ## Verification
-  - `./mvnw test` passed with 100% assertions green.
+  - Backend verification: `<X>` tests passed (`./mvnw test`).
+  - Mobile verification: `<Y>` tests passed, `flutter analyze` 0 issues.
+  - CI quality gates: Dual CI green on GitHub Actions.
 
-  Closes #49
+  Closes #<issue_number>
   ```
+
+> [!TIP]
+> **Example PR Description for Issue #49:**
+> ```markdown
+> ## Summary of Changes
+> - **Auth (`backend/src/main/java/.../JwtService.java`)**:
+>   - Implemented HMAC-SHA256 token verification with cached signing key.
+>   - Added unit test suite covering expiration and signature tampering.
+>
+> ## Verification
+> - Backend verification: 14 tests passed (`./mvnw test`).
+> - CI quality gates: Dual CI green on GitHub Actions.
+>
+> Closes #49
+> ```
+
 * Wait for dual CI quality gate (`Spring Boot 3 Compile & Verification` and `Flutter Mobile Quality Gate`) to turn green.
 * Perform **Squash & Merge** into `develop`, delete feature branch, and sync local `develop`.
 

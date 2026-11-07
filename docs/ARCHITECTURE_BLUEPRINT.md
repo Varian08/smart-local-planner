@@ -74,9 +74,9 @@ flowchart TD
         CDN["<b>3B. ASSET TIER (Object Storage & CDN)</b><br/>• Cloudinary Media CDN<br/>• Automated Image Resizing, WebP Delivery & Edge Caching"]
     end
 
-    Client -->|HTTPS / JSON + Bearer JWT| Backend
-    Backend -->|HikariCP Connection Pool (JDBC)| DB
-    Backend -->|HTTPS REST API / SDK| CDN
+    Client -->|"HTTPS / JSON + Bearer JWT"| Backend
+    Backend -->|"HikariCP Connection Pool (JDBC)"| DB
+    Backend -->|"HTTPS REST API / SDK"| CDN
 ```
 
 ---
@@ -140,8 +140,8 @@ flowchart TD
         DataSources["<b>Data Sources & Mappers</b><br/>• Dio Client (HTTP REST API with Token Rotation)<br/>• SecureStorageService (Keystore / Keychain Token Keystore)<br/>• Deserializes JSON payloads into immutable Dart Model classes"]
     end
 
-    UI -->|Dispatches Events & Listens to States| Bloc
-    Bloc -->|Invokes Asynchronous Data Methods (Future)| DataSources
+    UI -->|"Dispatches Events & Listens to States"| Bloc
+    Bloc -->|"Invokes Asynchronous Data Methods (Future)"| DataSources
 ```
 
 #### Mobile Directory Structure:

@@ -198,13 +198,13 @@ To eliminate fear and build confidence, understand the distinction between **fat
 
 ```mermaid
 flowchart TD
-    subgraph Red Lines: Fatal - Stop and Recover
+    subgraph RedLines ["Red Lines: Fatal - Stop and Recover"]
         R1["Modifying Historical Migrations (V1, V2, V3)"]
         R2["Direct Push / Force Push to develop or main"]
         R3["Committing Secrets / Passwords / .env"]
     end
 
-    subgraph Yellow Lines: Safe - Fix on Feature Branch
+    subgraph YellowLines ["Yellow Lines: Safe - Fix on Feature Branch"]
         Y1["Test Failures & Linter Warnings"]
         Y2["Logic Flaws / Missing Validation"]
         Y3["Malformed Commit Messages"]

@@ -66,22 +66,22 @@ Following enterprise decoupling standards, both subsystems operate strictly with
 
 ```mermaid
 flowchart TD
-    Client(["Mobile Client / Web Consumer"]) -->|HTTP Request / JSON| Controller
+    Client(["Mobile Client / Web Consumer"]) -->|"HTTP Request / JSON"| Controller
 
     subgraph BackendApp ["Spring Boot 3.3.4 (Backend Application Tier)"]
         Controller["<b>Controller Layer</b><br/>• Ingests Request DTOs<br/>• Jakarta Validation (@Valid)<br/>• Enforces HTTP Status & RFC 7807"]
         Service["<b>Service Layer</b><br/>• Core Business Logic & Rules<br/>• DTO ↔ Entity Transformation<br/>• @Transactional Boundaries"]
         Repository["<b>Repository Layer</b><br/>• Spring Data JPA Parameterized Queries<br/>• Entity Isolation (Never leaks to Controller)"]
         
-        Controller -->|Passes Validated DTO| Service
-        Service -->|Calls Repository Operations| Repository
+        Controller -->|"Passes Validated DTO"| Service
+        Service -->|"Calls Repository Operations"| Repository
     end
 
     subgraph PersistenceTier ["Persistence Infrastructure"]
         Postgres[("<b>PostgreSQL 16 Alpine</b><br/>• Flyway Versioned Migrations<br/>• Relational Integrity & Cascades")]
     end
 
-    Repository -->|SQL Execution via JDBC| Postgres
+    Repository -->|"SQL Execution via JDBC"| Postgres
 ```
 
 ### Mobile Feature-First BLoC Architecture
@@ -101,12 +101,12 @@ flowchart LR
         Network["<b>Dio HTTP Client</b><br/>• JWT Interceptor & Rotation<br/>• Structured Error Handling"]
     end
 
-    UI -->|1. Dispatches Event| Bloc
-    Bloc -->|2. Requests Domain Operations| Repo
-    Repo -->|3. Performs HTTP Calls| Network
-    Network -->|4. Returns DTO / Error| Repo
-    Repo -->|5. Returns Domain Model| Bloc
-    Bloc -->|6. Emits Immutable State (4-State Contract)| UI
+    UI -->|"1. Dispatches Event"| Bloc
+    Bloc -->|"2. Requests Domain Operations"| Repo
+    Repo -->|"3. Performs HTTP Calls"| Network
+    Network -->|"4. Returns DTO / Error"| Repo
+    Repo -->|"5. Returns Domain Model"| Bloc
+    Bloc -->|"6. Emits Immutable State (4-State Contract)"| UI
 ```
 
 ---
@@ -247,9 +247,9 @@ flowchart LR
         FixBranch["<b>fix/&lt;issue_id&gt;-...</b><br/>(Mobile Bugfixes)"]
     end
 
-    FeatBranch -->|Squash & Merge PR<br/>+ CI Green + CodeOwner Approval| Develop
-    FixBranch -->|Squash & Merge PR<br/>+ CI Green + CodeOwner Approval| Develop
-    Develop -->|Sprint Release Review PR| Main
+    FeatBranch -->|"Squash & Merge PR<br/>+ CI Green + CodeOwner Approval"| Develop
+    FixBranch -->|"Squash & Merge PR<br/>+ CI Green + CodeOwner Approval"| Develop
+    Develop -->|"Sprint Release Review PR"| Main
 ```
 
 ### Collaboration Rules:

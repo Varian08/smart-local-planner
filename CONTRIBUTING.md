@@ -1,7 +1,7 @@
 # Developer Playbook & Contribution Guide
 
 > **Project:** Smart Local Planner  
-> **Status:** Sprint 1 Hardening Complete ➔ Entering Sprint 2 (Authentication & Favorites)  
+> **Status:** Active Engineering — Sprint 2 Complete (Auth & Favorites) ➔ Preparing Sprint 3 (Itineraries & Reviews)  
 > **Target Audience:** All Contributing Engineers, Peer Reviewers, and AI Assistants  
 > **Standard:** Enterprise Greenfield Guidelines & Zero-Tolerance Pitfall Prevention  
 > **Operational Runbook:** See the comprehensive [Developer Workflow Playbook](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md) for step-by-step issue, board, and PR execution.
@@ -75,13 +75,16 @@ Modifying an already executed migration (e.g. editing `V1__init_schema.sql` to a
 
 ```mermaid
 gitGraph
-   commit id: "develop (stable)"
+   commit id: "main (release)"
+   branch develop
+   checkout develop
+   commit id: "develop (baseline)"
    branch feat/49-jwt-architecture
    checkout feat/49-jwt-architecture
-   commit id: "feat(auth): [SLP-22] add entity & repo"
-   commit id: "feat(auth): [SLP-22] add jwt service & tests"
+   commit id: "feat(auth): [SLP-22] entity"
+   commit id: "feat(auth): [SLP-22] jwt service"
    checkout develop
-   merge feat/49-jwt-architecture id: "Squash & Merge (PR #50)"
+   merge feat/49-jwt-architecture id: "Squash & Merge (PR #58)"
 ```
 
 ### Step 1: Synchronize with integration baseline
@@ -154,8 +157,9 @@ git push -u origin feat/22-api-contract-alignment
 ## 6. Associated Documentation Links
 
 * Step-by-Step Sprint Playbook: [docs/DEVELOPER_WORKFLOW_PLAYBOOK.md](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)
-* System Architecture: [docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md)
-* Coding Guidelines: [docs/DEVELOPMENT_GUIDELINES.md](docs/DEVELOPMENT_GUIDELINES.md)
-* API JSON Specification: [docs/API_SPECIFICATION.md](docs/API_SPECIFICATION.md)
+* Developer Onboarding Guide: [docs/ONBOARDING.md](docs/ONBOARDING.md)
+* System Architecture Blueprint: [docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md)
+* Clean Code & Architecture Rules: [docs/DEVELOPMENT_GUIDELINES.md](docs/DEVELOPMENT_GUIDELINES.md)
+* REST API JSON Specification: [docs/API_SPECIFICATION.md](docs/API_SPECIFICATION.md)
 * CI Roadmap & Evolution: [.github/CI_ROADMAP.md](.github/CI_ROADMAP.md)
-* GitHub Workflow Audit: [personal/GitHub_Workflow_Checklist_and_Audit_Smart_Local_Planner.md](personal/GitHub_Workflow_Checklist_and_Audit_Smart_Local_Planner.md)
+* Security Policy & Vulnerability Reporting: [SECURITY.md](SECURITY.md)

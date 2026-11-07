@@ -27,9 +27,9 @@ mobile/
 │       │   ├── data/               # PlaceRepository, PlaceModel, PageResponse
 │       │   ├── bloc/               # PlaceBloc, PlaceEvent, PlaceState (Concurrency Hardened)
 │       │   └── presentation/       # PlaceListScreen, PlaceCard, Search & Category Filters
-│       ├── auth/                   # Registration, Login, Session Management (Sprint 2 Active)
-│       ├── favorites/              # Personal Bookmarks (Sprint 2)
-│       └── itineraries/            # Multi-day Travel Itinerary Management (Sprint 3)
+│       ├── auth/                   # Registration, Login, Session Management (Sprint 2 Complete)
+│       ├── favorites/              # Personal Bookmarks & FavoriteListScreen (Sprint 2 Complete)
+│       └── itineraries/            # Multi-day Travel Itinerary Management (Sprint 3 Planned)
 └── README.md
 ```
 

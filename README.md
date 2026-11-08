@@ -66,19 +66,19 @@ Following enterprise decoupling standards, both subsystems operate strictly with
 
 ```mermaid
 flowchart TD
-    Client["Mobile & Web<br/>Client Apps    "] -->|"HTTP / JSON"| Controller
+    Client["Mobile & Web<br/>Client Apps"] -->|"HTTP / REST"| Controller
 
-    subgraph BackendApp ["Spring Boot 3.3.4 (Backend Application Tier)"]
-        Controller["Controller Layer<br/>(REST APIs & DTOs)    "]
-        Service["Service Layer<br/>(Business Logic & TX)    "]
-        Repository["Repository Layer<br/>(Spring Data JPA)    "]
+    subgraph BackendApp ["Spring Boot 3 (Application Tier)"]
+        Controller["Controller Layer<br/>REST Endpoints"]
+        Service["Service Layer<br/>Business Logic"]
+        Repository["Repository Layer<br/>Spring Data JPA"]
         
         Controller -->|"Validated DTO"| Service
         Service -->|"Invoke Operations"| Repository
     end
 
     subgraph PersistenceTier ["Persistence Infrastructure"]
-        Postgres[("PostgreSQL 16 Alpine<br/>(Flyway Database)    ")]
+        Postgres[("PostgreSQL 16<br/>Flyway Database")]
     end
 
     Repository -->|"JDBC / SQL"| Postgres
@@ -94,26 +94,26 @@ flowchart TD
 ### Mobile Feature-First BLoC Architecture
 
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph UI_Layer ["Presentation Layer"]
-        UI["UI Components<br/>(Screens & Widgets)    "]
+        UI["UI Components<br/>Screens & Widgets"]
     end
 
     subgraph BLoC_Layer ["State Management Layer"]
-        Bloc["BLoC State Machine<br/>(Event to State)    "]
+        Bloc["BLoC Machine<br/>Event to State"]
     end
 
     subgraph Data_Layer ["Data Infrastructure Layer"]
-        Repo["Feature Repository<br/>(Domain & Cache)    "]
-        Network["Dio HTTP Client<br/>(JWT & Interceptor)    "]
+        Repo["Feature Repository<br/>Domain & Cache"]
+        Network["Dio HTTP Client<br/>Auth & Network"]
     end
 
     UI -->|"1. Dispatch Event"| Bloc
     Bloc -->|"2. Domain Request"| Repo
     Repo -->|"3. HTTP Call"| Network
-    Network -->|"4. Response DTO"| Repo
-    Repo -->|"5. Domain Model"| Bloc
-    Bloc -->|"6. Emit State"| UI
+    Network -.->|"4. Response DTO"| Repo
+    Repo -.->|"5. Domain Model"| Bloc
+    Bloc -.->|"6. Emit State"| UI
 ```
 
 | Layer | Core Responsibilities | Key Technologies & Patterns |
@@ -251,19 +251,19 @@ This project adheres strictly to **Trunk-Based / GitFlow Integration Branching**
 
 ```mermaid
 flowchart LR
-    subgraph ProtectedBases ["Protected Baseline Branches"]
-        Main["main branch<br/>(Production)    "]
-        Develop["develop branch<br/>(Integration)    "]
+    subgraph FeatureBranches ["Topic Branches"]
+        FeatBranch["feat Branches<br/>Feature Work"]
+        FixBranch["fix Branches<br/>Bug Hardening"]
     end
 
-    subgraph FeatureBranches ["Short-lived Topic Branches"]
-        FeatBranch["feat/issue-id<br/>(Features)    "]
-        FixBranch["fix/issue-id<br/>(Bugfixes)    "]
+    subgraph ProtectedBases ["Protected Branches"]
+        Develop["develop Branch<br/>Integration"]
+        Main["main Branch<br/>Production"]
     end
 
-    FeatBranch -->|"Squash & Merge PR"| Develop
-    FixBranch -->|"Squash & Merge PR"| Develop
-    Develop -->|"Sprint Release PR"| Main
+    FeatBranch -->|"Squash & Merge"| Develop
+    FixBranch -->|"Squash & Merge"| Develop
+    Develop -->|"Release PR"| Main
 ```
 
 ### Collaboration Standards & Git Rules

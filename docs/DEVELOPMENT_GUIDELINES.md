@@ -23,19 +23,19 @@ The dependency arrow is strictly **unidirectional**:
 
 ```mermaid
 flowchart TD
-    Req["Client HTTP Request    "] --> Ctrl
+    Req["Client Request<br/>HTTP / JSON"] --> Ctrl
 
     subgraph Backend3Layer ["Strict 3-Layer Decoupling"]
-        Ctrl["Controller Layer<br/>(DTOs & Validation)    "]
-        Svc["Service Layer<br/>(Business Logic & TX)    "]
-        Repo["Repository Layer<br/>(Spring Data JPA)    "]
+        Ctrl["Controller Layer<br/>REST Endpoints"]
+        Svc["Service Layer<br/>Business Logic"]
+        Repo["Repository Layer<br/>Spring Data JPA"]
 
         Ctrl -->|"Validated DTO"| Svc
         Svc -->|"Invoke Query"| Repo
     end
 
     subgraph Persistence ["Persistence Infrastructure"]
-        DB[("PostgreSQL 16 Database<br/>(Flyway Migrations)    ")]
+        DB[("PostgreSQL 16<br/>Flyway Database")]
     end
 
     Repo -->|"Parameterized SQL"| DB

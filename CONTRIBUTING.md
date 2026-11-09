@@ -10,11 +10,13 @@
 
 ## 1. Engineering Philosophy
 
-Welcome to **Smart Local Planner**! This repository is engineered following strict enterprise architectural patterns. To maintain velocity, code health, and zero merge headaches across the team, all contributors **must strictly comply** with this guide.
+Welcome to **Smart Local Planner**! This repository is engineered following strict enterprise architectural patterns. To maintain velocity, code health, and zero merge headaches across the team, all contributors **must strictly comply** with this guide:
 
-* **Project Governance & Red Lines:** Defined in this document (`CONTRIBUTING.md`).
-* **Daily Sprint Execution & Board SOP:** Detailed step-by-step in [`docs/DEVELOPER_WORKFLOW_PLAYBOOK.md`](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md).
-* **AI Coding Protocols & Prompt Templates:** Included in [`docs/DEVELOPER_WORKFLOW_PLAYBOOK.md §5`](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md#5-ai-pair-programming-protocol-prompting-guide).
+| Governance Scope | Primary Specification | Core Objective |
+| :--- | :--- | :--- |
+| **Project Red Lines** | **[`CONTRIBUTING.md`](CONTRIBUTING.md)** | Zero-tolerance engineering constraints & Git branching SOP |
+| **Daily Sprint SOP** | **[`docs/DEVELOPER_WORKFLOW_PLAYBOOK.md`](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)** | 7-step sprint lifecycle, GitHub Board rules & PR templates |
+| **AI Pair-Programming** | **[`docs/DEVELOPER_WORKFLOW_PLAYBOOK.md §5`](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md#5-ai-pair-programming-protocol-prompting-guide)** | Standardized prompt templates to prevent AI architectural drift |
 
 ---
 
@@ -172,12 +174,16 @@ git push -u origin <type>/<issue_number>-<short-description>
 
 ---
 
-## 6. Associated Documentation Links
+## 6. Associated Documentation Directory
 
-* Step-by-Step Sprint Playbook: [docs/DEVELOPER_WORKFLOW_PLAYBOOK.md](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)
-* Developer Onboarding Guide: [docs/ONBOARDING.md](docs/ONBOARDING.md)
-* System Architecture Blueprint: [docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md)
-* Clean Code & Architecture Rules: [docs/DEVELOPMENT_GUIDELINES.md](docs/DEVELOPMENT_GUIDELINES.md)
-* REST API JSON Specification: [docs/API_SPECIFICATION.md](docs/API_SPECIFICATION.md)
-* CI Roadmap & Evolution: [.github/CI_ROADMAP.md](.github/CI_ROADMAP.md)
-* Security Policy & Vulnerability Reporting: [SECURITY.md](SECURITY.md)
+To navigate the repository's architecture, workflows, and specifications, consult the canonical references below:
+
+| Specification Domain | Reference Document | Target Scope & Key Topics |
+| :--- | :--- | :--- |
+| **Sprint Execution** | **[`docs/DEVELOPER_WORKFLOW_PLAYBOOK.md`](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)** | 7-step sprint lifecycle, board transitions, PR template & AI system prompt |
+| **Local Onboarding** | **[`docs/ONBOARDING.md`](docs/ONBOARDING.md)** | Day-1 environment bootstrap (JDK 21, Flutter, Docker) & quickstart checklist |
+| **System Architecture** | **[`docs/ARCHITECTURE_BLUEPRINT.md`](docs/ARCHITECTURE_BLUEPRINT.md)** | C4 container model, 3-tier layer boundaries & end-to-end data flows |
+| **Clean Code Rules** | **[`docs/DEVELOPMENT_GUIDELINES.md`](docs/DEVELOPMENT_GUIDELINES.md)** | Clean Architecture rules, DTO isolation, 4-state UI contract & testing policy |
+| **API Contracts** | **[`docs/API_SPECIFICATION.md`](docs/API_SPECIFICATION.md)** | Single Source of Truth for all REST endpoints, schemas & error payloads |
+| **CI Automation** | **[`.github/CI_ROADMAP.md`](.github/CI_ROADMAP.md)** | Multi-sprint quality gate evolution, automated Maven & Flutter pipelines |
+| **Security Governance** | **[`SECURITY.md`](SECURITY.md)** | Vulnerability disclosure policy, credential isolation & security response SOP |

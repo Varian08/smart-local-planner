@@ -17,14 +17,16 @@
 
 To ensure architectural integrity and frictionless developer onboarding, all system specifications are maintained as living contracts:
 
-| Domain | Document | Target Audience & Purpose |
+| Domain | Document | Target Scope & Key Topics |
 | :--- | :--- | :--- |
-| **System Design** | **[Architecture Blueprint](docs/ARCHITECTURE_BLUEPRINT.md)** | Full system architecture, layer decoupling & concurrency model |
-| **API Contract** | **[API Specification](docs/API_SPECIFICATION.md)** | Single Source of Truth for all REST JSON request/response contracts |
+| **System Design** | **[Architecture Blueprint](docs/ARCHITECTURE_BLUEPRINT.md)** | Full system architecture, C4 container model & data flow diagrams |
+| **API Contracts** | **[API Specification](docs/API_SPECIFICATION.md)** | Single Source of Truth for all REST JSON request/response contracts |
 | **Decisions** | **[Architecture Decision Records](docs/adr/README.md)** | Formal ADR history (ADR-0001 through ADR-0005) |
-| **Onboarding** | **[Onboarding Runbook](docs/ONBOARDING.md)** | 5-minute local environment setup & battle-tested troubleshooting |
-| **Process** | **[Workflow Playbook](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)** | 7-step sprint lifecycle, branch naming, PR conventions & checklist |
-| **Governance** | **[Contributing Guidelines](CONTRIBUTING.md)** | Zero-tolerance engineering red lines, code rules & [Security Policy](SECURITY.md) |
+| **Local Onboarding** | **[Onboarding Runbook](docs/ONBOARDING.md)** | 5-minute local environment setup (JDK 21, Flutter, Docker) & troubleshooting |
+| **Sprint Workflow** | **[Developer Workflow Playbook](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)** | 7-step sprint lifecycle, branch naming, PR conventions & AI prompting |
+| **Code Quality** | **[Development Guidelines](docs/DEVELOPMENT_GUIDELINES.md)** | Clean Architecture rules, DTO isolation, 4-state UI contract & testing policy |
+| **Governance** | **[Contributing Guidelines](CONTRIBUTING.md)** | Zero-tolerance engineering red lines, Flyway immutability & standard Git branching |
+| **Security** | **[Security Policy](SECURITY.md)** | Vulnerability disclosure, credential protection & threat response protocol |
 
 ---
 

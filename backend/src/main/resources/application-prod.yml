@@ -18,3 +18,7 @@ logging:
     root: INFO
     com.smartplanner: INFO
     org.springframework.web: WARN
+
+# Production Security Fail-Fast: Enforce non-empty JWT secret
+jwt:
+  secret: ${JWT_SECRET}

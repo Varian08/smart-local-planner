@@ -2,6 +2,8 @@ package com.smartplanner.controller;
 
 import com.smartplanner.dto.response.PlaceResponse;
 import com.smartplanner.entity.User;
+import com.smartplanner.exception.DuplicateResourceException;
+import com.smartplanner.exception.ResourceNotFoundException;
 import com.smartplanner.repository.UserRepository;
 import com.smartplanner.service.FavoriteService;
 import com.smartplanner.service.JwtService;
@@ -126,7 +128,7 @@ class FavoriteControllerTest {
     @Test
     @DisplayName("POST /api/v1/favorites/{placeId} when already favorited returns 409 Conflict")
     void addFavorite_whenAlreadyFavorited_returns409Conflict() throws Exception {
-        doThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Place is already in favorites."))
+        doThrow(new DuplicateResourceException("Place is already in favorites."))
                 .when(favoriteService).addFavorite(userId, placeId);
 
         mockMvc.perform(post("/api/v1/favorites/{placeId}", placeId)
@@ -140,7 +142,7 @@ class FavoriteControllerTest {
     @Test
     @DisplayName("POST /api/v1/favorites/{placeId} when place not found returns 404 Not Found")
     void addFavorite_whenPlaceNotFound_returns404NotFound() throws Exception {
-        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Place not found with id: " + placeId))
+        doThrow(new ResourceNotFoundException("Place not found with id: " + placeId))
                 .when(favoriteService).addFavorite(userId, placeId);
 
         mockMvc.perform(post("/api/v1/favorites/{placeId}", placeId)
@@ -166,7 +168,7 @@ class FavoriteControllerTest {
     @Test
     @DisplayName("DELETE /api/v1/favorites/{placeId} when favorite not found returns 404 Not Found")
     void removeFavorite_whenNotFound_returns404NotFound() throws Exception {
-        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Favorite not found for place id: " + placeId))
+        doThrow(new ResourceNotFoundException("Favorite not found for place id: " + placeId))
                 .when(favoriteService).removeFavorite(userId, placeId);
 
         mockMvc.perform(delete("/api/v1/favorites/{placeId}", placeId)

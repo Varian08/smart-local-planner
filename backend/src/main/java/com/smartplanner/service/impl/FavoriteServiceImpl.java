@@ -4,16 +4,16 @@ import com.smartplanner.dto.response.PlaceResponse;
 import com.smartplanner.entity.Favorite;
 import com.smartplanner.entity.Place;
 import com.smartplanner.entity.User;
+import com.smartplanner.exception.DuplicateResourceException;
+import com.smartplanner.exception.ResourceNotFoundException;
 import com.smartplanner.repository.FavoriteRepository;
 import com.smartplanner.repository.PlaceRepository;
 import com.smartplanner.repository.UserRepository;
 import com.smartplanner.service.FavoriteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -36,7 +36,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     public List<PlaceResponse> getUserFavorites(UUID userId) {
         if (!userRepository.existsById(userId)) {
             log.warn("Favorites retrieval rejected: User not found with id: {}", userId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + userId);
+            throw new ResourceNotFoundException("User not found with id: " + userId);
         }
 
         List<Favorite> favorites = favoriteRepository.findByUserIdWithPlaceOrderByCreatedAtDesc(userId);
@@ -53,18 +53,18 @@ public class FavoriteServiceImpl implements FavoriteService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> {
                     log.warn("Add favorite rejected: User not found with id: {}", userId);
-                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + userId);
+                    return new ResourceNotFoundException("User not found with id: " + userId);
                 });
 
         Place place = placeRepository.findById(placeId)
                 .orElseThrow(() -> {
                     log.warn("Add favorite rejected: Place not found with id: {}", placeId);
-                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Place not found with id: " + placeId);
+                    return new ResourceNotFoundException("Place not found with id: " + placeId);
                 });
 
         if (favoriteRepository.existsByUserIdAndPlaceId(userId, placeId)) {
             log.warn("Add favorite rejected: Place {} is already favorited by user {}", placeId, userId);
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Place is already in favorites.");
+            throw new DuplicateResourceException("Place is already in favorites.");
         }
 
         Favorite favorite = Favorite.builder()
@@ -81,12 +81,12 @@ public class FavoriteServiceImpl implements FavoriteService {
     public void removeFavorite(UUID userId, UUID placeId) {
         if (!userRepository.existsById(userId)) {
             log.warn("Remove favorite rejected: User not found with id: {}", userId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + userId);
+            throw new ResourceNotFoundException("User not found with id: " + userId);
         }
 
         if (!favoriteRepository.existsByUserIdAndPlaceId(userId, placeId)) {
             log.warn("Remove favorite rejected: Favorite not found for user {} and place {}", userId, placeId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Favorite not found for place id: " + placeId);
+            throw new ResourceNotFoundException("Favorite not found for place id: " + placeId);
         }
 
         favoriteRepository.deleteByUserIdAndPlaceId(userId, placeId);

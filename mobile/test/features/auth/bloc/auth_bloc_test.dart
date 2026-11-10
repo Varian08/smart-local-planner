@@ -209,7 +209,7 @@ void main() {
     });
   });
 
-  group('AuthBloc - LogoutRequested', () {
+  group('AuthBloc - LogoutRequested & SessionExpired', () {
     test('emits [AuthLoading, AuthUnauthenticated] on logout', () async {
       final expectedStates = [
         const AuthLoading(),
@@ -221,6 +221,16 @@ void main() {
       authBloc.add(const AuthLogoutRequested());
       await Future.delayed(Duration.zero);
       expect(mockRepository.logoutCalled, isTrue);
+    });
+
+    test('emits AuthUnauthenticated immediately on AuthSessionExpired', () async {
+      final expectedStates = [
+        const AuthUnauthenticated(),
+      ];
+
+      expectLater(authBloc.stream, emitsInOrder(expectedStates));
+
+      authBloc.add(const AuthSessionExpired());
     });
   });
 }

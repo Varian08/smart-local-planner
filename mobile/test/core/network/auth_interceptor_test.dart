@@ -161,7 +161,15 @@ void main() {
       expect(await storageService.getAccessToken(), equals('access_123'));
     });
 
-    test('onError on 401 when refreshToken is null clears storage and passes error', () async {
+    test('onError on 401 when refreshToken is null clears storage, invokes onSessionExpired, and passes error', () async {
+      var sessionExpiredCalled = false;
+      final sessionAwareInterceptor = AuthInterceptor(
+        storageService: storageService,
+        dio: dio,
+        onSessionExpired: () {
+          sessionExpiredCalled = true;
+        },
+      );
       await storageService.saveAccessToken('access_without_refresh');
 
       final error = DioException(
@@ -173,10 +181,11 @@ void main() {
       );
       final handler = TestErrorHandler();
 
-      await interceptor.onError(error, handler);
+      await sessionAwareInterceptor.onError(error, handler);
 
       expect(handler.nextError, equals(error));
       expect(await storageService.getAccessToken(), isNull);
+      expect(sessionExpiredCalled, isTrue);
     });
 
     test('onError on 401 for /auth/refresh-token itself does not retry to prevent infinite loop', () async {

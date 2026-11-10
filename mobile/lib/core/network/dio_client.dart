@@ -16,6 +16,7 @@ class DioClient {
   DioClient({
     Dio? dio,
     SecureStorageService? storageService,
+    void Function()? onSessionExpired,
   }) {
     _dio =
         dio ??
@@ -38,6 +39,7 @@ class DioClient {
       AuthInterceptor(
         storageService: storage,
         dio: _dio,
+        onSessionExpired: onSessionExpired,
       ),
     );
 

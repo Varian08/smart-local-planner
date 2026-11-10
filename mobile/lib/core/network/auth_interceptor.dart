@@ -9,10 +9,12 @@ import '../storage/secure_storage_service.dart';
 class AuthInterceptor extends QueuedInterceptor {
   final SecureStorageService storageService;
   final Dio dio;
+  final void Function()? onSessionExpired;
 
   AuthInterceptor({
     required this.storageService,
     required this.dio,
+    this.onSessionExpired,
   });
 
   @override
@@ -54,6 +56,7 @@ class AuthInterceptor extends QueuedInterceptor {
       final refreshToken = await storageService.getRefreshToken();
       if (refreshToken == null || refreshToken.isEmpty) {
         await storageService.clearAll();
+        onSessionExpired?.call();
         return handler.next(err);
       }
 
@@ -100,10 +103,12 @@ class AuthInterceptor extends QueuedInterceptor {
 
         // If payload is invalid or missing tokens
         await storageService.clearAll();
+        onSessionExpired?.call();
         return handler.next(err);
       } catch (_) {
         // Refresh failed (e.g. refresh token expired or revoked)
         await storageService.clearAll();
+        onSessionExpired?.call();
         return handler.next(err);
       }
     }

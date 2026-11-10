@@ -48,3 +48,9 @@ class AuthLogoutRequested extends AuthEvent {
   const AuthLogoutRequested();
 }
 
+/// Dispatched when the HTTP interceptor detects an unrecoverable 401 session expiration.
+class AuthSessionExpired extends AuthEvent {
+  const AuthSessionExpired();
+}
+
+

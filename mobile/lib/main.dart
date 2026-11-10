@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'core/network/dio_client.dart';
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/auth/bloc/auth_event.dart';
 import 'features/auth/data/repositories/auth_repository.dart';
@@ -40,12 +41,24 @@ class SmartLocalPlannerApp extends StatelessWidget {
         ),
         BlocProvider<PlaceBloc>(
           create: (context) => PlaceBloc(
-            placeRepository: placeRepository ?? PlaceRepositoryImpl(),
+            placeRepository: placeRepository ??
+                PlaceRepositoryImpl(
+                  dioClient: DioClient(
+                    onSessionExpired: () =>
+                        context.read<AuthBloc>().add(const AuthSessionExpired()),
+                  ),
+                ),
           )..add(const PlaceFetchStarted()),
         ),
         BlocProvider<FavoriteBloc>(
           create: (context) => FavoriteBloc(
-            favoriteRepository: favoriteRepository ?? FavoriteRepositoryImpl(),
+            favoriteRepository: favoriteRepository ??
+                FavoriteRepositoryImpl(
+                  dioClient: DioClient(
+                    onSessionExpired: () =>
+                        context.read<AuthBloc>().add(const AuthSessionExpired()),
+                  ),
+                ),
           ),
         ),
       ],

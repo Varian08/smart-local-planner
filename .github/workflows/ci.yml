@@ -36,7 +36,7 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
-      # Sprint 1 Quality Gate: Compiles backend and executes all unit tests cleanly
+      # Dual CI Quality Gate: Compiles backend and executes all unit and slice tests cleanly
       - name: Run Backend Unit Tests & Verify Quality Gate
         run: mvn -B clean test
 
@@ -62,6 +62,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          flutter-version: '3.47.8'
           cache: true
 
       - name: Install Dependencies

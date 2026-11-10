@@ -21,7 +21,7 @@
 git clone git@github.com:Varian08/smart-local-planner.git
 cd smart-local-planner
 git checkout develop
-cp .env.example .env        # keep real values out of Git
+cp .env.example .env        # optional local overrides (application.yml defaults match Docker)
 
 docker compose up -d        # PostgreSQL 16 on localhost:5432
 ```

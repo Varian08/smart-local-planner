@@ -8,6 +8,7 @@ import 'favorite_state.dart';
 /// Implements Optimistic UI state updates with automatic network failure rollback.
 class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
   final FavoriteRepository favoriteRepository;
+  final Set<String> _inFlightPlaceIds = {};
 
   FavoriteBloc({required this.favoriteRepository})
       : super(const FavoriteInitial()) {
@@ -39,12 +40,18 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
   }
 
   // ---------------------------------------------------------------------------
-  // 2. Optimistic Favorite Toggle with Rollback on Error
+  // 2. Optimistic Favorite Toggle with Rollback on Error & Concurrency Guard
   // ---------------------------------------------------------------------------
   Future<void> _onToggleRequested(
     FavoriteToggleRequested event,
     Emitter<FavoriteState> emit,
   ) async {
+    final placeId = event.place.id;
+    if (_inFlightPlaceIds.contains(placeId)) {
+      return;
+    }
+    _inFlightPlaceIds.add(placeId);
+
     final currentState = state;
     final currentLoaded = currentState is FavoriteLoaded
         ? currentState
@@ -52,17 +59,17 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
 
     final previousIds = Set<String>.from(currentLoaded.favoritePlaceIds);
     final previousFavorites = List.from(currentLoaded.favorites);
-    final isCurrentlyFavorite = previousIds.contains(event.place.id);
+    final isCurrentlyFavorite = previousIds.contains(placeId);
 
     // 1. Optimistic Update: Immediately toggle locally before network roundtrip
     final newIds = Set<String>.from(previousIds);
     final newFavorites = List.from(previousFavorites);
 
     if (isCurrentlyFavorite) {
-      newIds.remove(event.place.id);
-      newFavorites.removeWhere((p) => p.id == event.place.id);
+      newIds.remove(placeId);
+      newFavorites.removeWhere((p) => p.id == placeId);
     } else {
-      newIds.add(event.place.id);
+      newIds.add(placeId);
       newFavorites.add(event.place);
     }
 
@@ -75,19 +82,38 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
     // 2. Asynchronous Network Call
     try {
       if (isCurrentlyFavorite) {
-        await favoriteRepository.removeFavorite(event.place.id);
+        await favoriteRepository.removeFavorite(placeId);
       } else {
-        await favoriteRepository.addFavorite(event.place.id);
+        await favoriteRepository.addFavorite(placeId);
       }
     } catch (_) {
-      // 3. Rollback on Failure: Revert to previous state with user-facing error
+      // 3. Rollback on Failure: Revert this place's mutation on the latest state
+      final latestState = state;
+      final latestLoaded = latestState is FavoriteLoaded
+          ? latestState
+          : currentLoaded;
+      final rollbackIds = Set<String>.from(latestLoaded.favoritePlaceIds);
+      final rollbackFavorites = List.from(latestLoaded.favorites);
+
+      if (isCurrentlyFavorite) {
+        if (!rollbackIds.contains(placeId)) {
+          rollbackIds.add(placeId);
+          rollbackFavorites.add(event.place);
+        }
+      } else {
+        rollbackIds.remove(placeId);
+        rollbackFavorites.removeWhere((p) => p.id == placeId);
+      }
+
       emit(FavoriteLoaded(
-        favoritePlaceIds: previousIds,
-        favorites: previousFavorites.cast(),
+        favoritePlaceIds: rollbackIds,
+        favorites: rollbackFavorites.cast(),
         errorMessage: isCurrentlyFavorite
             ? 'Failed to remove from favorites. Reverted.'
             : 'Failed to bookmark place. Reverted.',
       ));
+    } finally {
+      _inFlightPlaceIds.remove(placeId);
     }
   }
 
@@ -98,6 +124,7 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
     FavoriteResetRequested event,
     Emitter<FavoriteState> emit,
   ) {
+    _inFlightPlaceIds.clear();
     emit(const FavoriteLoaded(favoritePlaceIds: {}, favorites: []));
   }
 }

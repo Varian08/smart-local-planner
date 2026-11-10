@@ -16,6 +16,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLoginSubmitted>(_onLoginSubmitted);
     on<AuthRegisterSubmitted>(_onRegisterSubmitted);
     on<AuthLogoutRequested>(_onLogoutRequested);
+    on<AuthSessionExpired>(_onSessionExpired);
   }
 
   // ---------------------------------------------------------------------------
@@ -101,6 +102,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } finally {
       emit(const AuthUnauthenticated());
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 5. Session Expiration Handler (Triggered by AuthInterceptor)
+  // ---------------------------------------------------------------------------
+  void _onSessionExpired(
+    AuthSessionExpired event,
+    Emitter<AuthState> emit,
+  ) {
+    emit(const AuthUnauthenticated());
   }
 
   // ---------------------------------------------------------------------------

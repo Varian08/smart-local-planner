@@ -140,4 +140,27 @@ void main() {
     // Verify Category badge is displayed
     expect(find.text('CULTURE'), findsWidgets);
   });
+
+  testWidgets('Tapping Saved Places while unauthenticated shows sign-in SnackBar', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const SmartLocalPlannerApp(
+        placeRepository: FakePlaceRepository(),
+        authRepository: FakeAuthRepository(),
+        favoriteRepository: FakeFavoriteRepository(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Tap the Saved Places bookmark button in the AppBar
+    await tester.tap(find.byTooltip('Saved Places'));
+    await tester.pumpAndSettle();
+
+    // Verify prompt SnackBar is displayed instead of opening an infinite loading skeleton
+    expect(
+      find.text('Please sign in to view your saved places.'),
+      findsOneWidget,
+    );
+  });
 }

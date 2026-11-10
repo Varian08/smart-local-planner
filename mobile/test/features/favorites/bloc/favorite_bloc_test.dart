@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_local_planner/features/favorites/bloc/favorite_bloc.dart';
@@ -11,6 +13,9 @@ class MockFavoriteRepository implements FavoriteRepository {
   Object? shouldThrow;
   String? lastAddedPlaceId;
   String? lastRemovedPlaceId;
+  int addCallCount = 0;
+  int removeCallCount = 0;
+  Completer<void>? inFlightCompleter;
 
   @override
   Future<List<PlaceModel>> getFavorites() async {
@@ -20,12 +25,20 @@ class MockFavoriteRepository implements FavoriteRepository {
 
   @override
   Future<void> addFavorite(String placeId) async {
+    addCallCount++;
+    if (inFlightCompleter != null) {
+      await inFlightCompleter!.future;
+    }
     if (shouldThrow != null) throw shouldThrow!;
     lastAddedPlaceId = placeId;
   }
 
   @override
   Future<void> removeFavorite(String placeId) async {
+    removeCallCount++;
+    if (inFlightCompleter != null) {
+      await inFlightCompleter!.future;
+    }
     if (shouldThrow != null) throw shouldThrow!;
     lastRemovedPlaceId = placeId;
   }
@@ -204,6 +217,27 @@ void main() {
       expectLater(favoriteBloc.stream, emitsInOrder(expectedStates));
 
       favoriteBloc.add(FavoriteToggleRequested(p1));
+    });
+
+    test('ignores duplicate rapid FavoriteToggleRequested for the same placeId while in flight', () async {
+      final p1 = _createDummyPlace('p-1', 'Bà Nà');
+      mockRepository.favoritesToReturn = [];
+      favoriteBloc.add(const FavoriteFetchStarted());
+      await Future.delayed(Duration.zero);
+
+      final completer = Completer<void>();
+      mockRepository.inFlightCompleter = completer;
+
+      // Rapid double-tap on the same place before network completes
+      favoriteBloc.add(FavoriteToggleRequested(p1));
+      favoriteBloc.add(FavoriteToggleRequested(p1));
+      await Future.delayed(Duration.zero);
+
+      expect(mockRepository.addCallCount, 1);
+      expect(mockRepository.removeCallCount, 0);
+
+      completer.complete();
+      await Future.delayed(Duration.zero);
     });
   });
 

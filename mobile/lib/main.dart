@@ -18,47 +18,69 @@ void main() {
   runApp(const SmartLocalPlannerApp());
 }
 
-class SmartLocalPlannerApp extends StatelessWidget {
+class SmartLocalPlannerApp extends StatefulWidget {
   final PlaceRepository? placeRepository;
   final AuthRepository? authRepository;
   final FavoriteRepository? favoriteRepository;
+  final DioClient? dioClient;
 
   const SmartLocalPlannerApp({
     super.key,
     this.placeRepository,
     this.authRepository,
     this.favoriteRepository,
+    this.dioClient,
   });
+
+  @override
+  State<SmartLocalPlannerApp> createState() => _SmartLocalPlannerAppState();
+}
+
+class _SmartLocalPlannerAppState extends State<SmartLocalPlannerApp> {
+  late final DioClient _dioClient;
+  late final AuthRepository _authRepository;
+  late final PlaceRepository _placeRepository;
+  late final FavoriteRepository _favoriteRepository;
+  late final AuthBloc _authBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _dioClient = widget.dioClient ??
+        DioClient(
+          onSessionExpired: () {
+            _authBloc.add(const AuthSessionExpired());
+          },
+        );
+    _authRepository =
+        widget.authRepository ?? AuthRepositoryImpl(dioClient: _dioClient);
+    _placeRepository =
+        widget.placeRepository ?? PlaceRepositoryImpl(dioClient: _dioClient);
+    _favoriteRepository = widget.favoriteRepository ??
+        FavoriteRepositoryImpl(dioClient: _dioClient);
+    _authBloc = AuthBloc(authRepository: _authRepository)
+      ..add(const AuthCheckRequested());
+  }
+
+  @override
+  void dispose() {
+    _authBloc.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<AuthBloc>(
-          create: (context) => AuthBloc(
-            authRepository: authRepository ?? AuthRepositoryImpl(),
-          )..add(const AuthCheckRequested()),
-        ),
+        BlocProvider<AuthBloc>.value(value: _authBloc),
         BlocProvider<PlaceBloc>(
           create: (context) => PlaceBloc(
-            placeRepository: placeRepository ??
-                PlaceRepositoryImpl(
-                  dioClient: DioClient(
-                    onSessionExpired: () =>
-                        context.read<AuthBloc>().add(const AuthSessionExpired()),
-                  ),
-                ),
+            placeRepository: _placeRepository,
           )..add(const PlaceFetchStarted()),
         ),
         BlocProvider<FavoriteBloc>(
           create: (context) => FavoriteBloc(
-            favoriteRepository: favoriteRepository ??
-                FavoriteRepositoryImpl(
-                  dioClient: DioClient(
-                    onSessionExpired: () =>
-                        context.read<AuthBloc>().add(const AuthSessionExpired()),
-                  ),
-                ),
+            favoriteRepository: _favoriteRepository,
           ),
         ),
       ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/utils/auth_guard.dart';
 import '../../../auth/bloc/auth_bloc.dart';
 import '../../../auth/bloc/auth_event.dart';
 import '../../../auth/bloc/auth_state.dart';
@@ -97,36 +98,19 @@ class _PlaceListScreenState extends State<PlaceListScreen> {
                 ),
                 tooltip: 'Saved Places',
                 onPressed: () {
-                  final authState = context.read<AuthBloc>().state;
-                  if (authState is! AuthAuthenticated) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text(
-                          'Please sign in to view your saved places.',
+                  requireAuth(
+                    context,
+                    message: 'Please sign in to view your saved places.',
+                    onAuthenticated: () {
+                      if (context.read<FavoriteBloc>().state is FavoriteInitial) {
+                        context.read<FavoriteBloc>().add(const FavoriteFetchStarted());
+                      }
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const FavoriteListScreen(),
                         ),
-                        behavior: SnackBarBehavior.floating,
-                        action: SnackBarAction(
-                          label: 'Sign In',
-                          textColor: Colors.amber,
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const LoginScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    );
-                    return;
-                  }
-                  if (context.read<FavoriteBloc>().state is FavoriteInitial) {
-                    context.read<FavoriteBloc>().add(const FavoriteFetchStarted());
-                  }
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const FavoriteListScreen(),
-                    ),
+                      );
+                    },
                   );
                 },
               );

@@ -2,9 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../auth/bloc/auth_bloc.dart';
-import '../../../auth/bloc/auth_state.dart';
-import '../../../auth/presentation/screens/login_screen.dart';
+import '../../../../core/utils/auth_guard.dart';
 import '../../../favorites/bloc/favorite_bloc.dart';
 import '../../../favorites/bloc/favorite_event.dart';
 import '../../../favorites/bloc/favorite_state.dart';
@@ -103,32 +101,15 @@ class PlaceCard extends StatelessWidget {
                       child: InkWell(
                         customBorder: const CircleBorder(),
                         onTap: () {
-                          final authState = context.read<AuthBloc>().state;
-                          if (authState is! AuthAuthenticated) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text(
-                                  'Please sign in to save favorite places.',
-                                ),
-                                behavior: SnackBarBehavior.floating,
-                                action: SnackBarAction(
-                                  label: 'Sign In',
-                                  textColor: Colors.amber,
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => const LoginScreen(),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            );
-                            return;
-                          }
-                          context.read<FavoriteBloc>().add(
-                                FavoriteToggleRequested(place),
-                              );
+                          requireAuth(
+                            context,
+                            message: 'Please sign in to save favorite places.',
+                            onAuthenticated: () {
+                              context.read<FavoriteBloc>().add(
+                                    FavoriteToggleRequested(place),
+                                  );
+                            },
+                          );
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),

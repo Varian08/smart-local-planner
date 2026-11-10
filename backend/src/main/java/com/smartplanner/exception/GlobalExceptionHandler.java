@@ -3,6 +3,7 @@ package com.smartplanner.exception;
 import com.smartplanner.dto.response.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -87,6 +88,126 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(ex.getStatusCode()).body(errorResponse);
+    }
+
+    /**
+     * Handle domain ResourceNotFoundException.
+     * Returns 404 NOT_FOUND with ApiErrorResponse per API specification.
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleResourceNotFoundException(
+            ResourceNotFoundException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        log.info("ResourceNotFoundException [traceId={}] on path {}: {}", traceId, request.getRequestURI(), ex.getMessage());
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .code("NOT_FOUND")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    /**
+     * Handle domain ForbiddenException for ownership or authorization violations.
+     * Returns 403 FORBIDDEN with code 'FORBIDDEN_ACCESS' per API specification §6.3.
+     */
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiErrorResponse> handleForbiddenException(
+            ForbiddenException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        log.warn("ForbiddenException [traceId={}] on path {}: {}", traceId, request.getRequestURI(), ex.getMessage());
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.FORBIDDEN.value())
+                .code("FORBIDDEN_ACCESS")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
+    /**
+     * Handle domain DuplicateResourceException for duplicate items/bookmarks.
+     * Returns 409 CONFLICT with code 'DATA_CONFLICT' per API specification.
+     */
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiErrorResponse> handleDuplicateResourceException(
+            DuplicateResourceException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        log.warn("DuplicateResourceException [traceId={}] on path {}: {}", traceId, request.getRequestURI(), ex.getMessage());
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .code("DATA_CONFLICT")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    /**
+     * Handle domain UnauthorizedException when authenticated principal is missing or invalid.
+     * Returns 401 UNAUTHORIZED with code 'UNAUTHORIZED' per API specification §6.2.
+     */
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiErrorResponse> handleUnauthorizedException(
+            UnauthorizedException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        log.warn("UnauthorizedException [traceId={}] on path {}: {}", traceId, request.getRequestURI(), ex.getMessage());
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .code("UNAUTHORIZED")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    /**
+     * Handle database unique constraint or foreign key race condition collisions.
+     * Returns 409 CONFLICT with code 'DATA_CONFLICT' per API specification.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiErrorResponse> handleDataIntegrityViolationException(
+            DataIntegrityViolationException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        log.warn("Data integrity violation [traceId={}] on path {}: {}", traceId, request.getRequestURI(), ex.getMessage());
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .code("DATA_CONFLICT")
+                .message("A data conflict or unique constraint violation occurred.")
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
     /**

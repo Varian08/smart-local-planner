@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -225,5 +226,100 @@ class GlobalExceptionHandlerTest {
         assertThat(body.getCode()).isEqualTo("INTERNAL_SERVER_ERROR");
         assertThat(body.getMessage()).doesNotContain("Sensitive database stacktrace");
         assertThat(body.getMessage()).contains("traceId");
+    }
+
+    @Test
+    @DisplayName("handleResourceNotFoundException maps to 404 NOT_FOUND")
+    void handleResourceNotFoundException_returns404() {
+        // Given
+        ResourceNotFoundException ex = new ResourceNotFoundException("Itinerary not found with id: 123");
+
+        // When
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleResourceNotFoundException(ex, request);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        ApiErrorResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(404);
+        assertThat(body.getCode()).isEqualTo("NOT_FOUND");
+        assertThat(body.getMessage()).isEqualTo("Itinerary not found with id: 123");
+        assertThat(body.getTraceId()).startsWith("req-");
+    }
+
+    @Test
+    @DisplayName("handleForbiddenException maps to 403 FORBIDDEN with FORBIDDEN_ACCESS")
+    void handleForbiddenException_returns403WithForbiddenAccess() {
+        // Given
+        ForbiddenException ex = new ForbiddenException("You do not possess permission to access or modify this itinerary.");
+
+        // When
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleForbiddenException(ex, request);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        ApiErrorResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(403);
+        assertThat(body.getCode()).isEqualTo("FORBIDDEN_ACCESS");
+        assertThat(body.getMessage()).contains("You do not possess permission");
+        assertThat(body.getTraceId()).startsWith("req-");
+    }
+
+    @Test
+    @DisplayName("handleDuplicateResourceException maps to 409 CONFLICT with DATA_CONFLICT")
+    void handleDuplicateResourceException_returns409WithDataConflict() {
+        // Given
+        DuplicateResourceException ex = new DuplicateResourceException("Place is already in favorites.");
+
+        // When
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleDuplicateResourceException(ex, request);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        ApiErrorResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(409);
+        assertThat(body.getCode()).isEqualTo("DATA_CONFLICT");
+        assertThat(body.getMessage()).isEqualTo("Place is already in favorites.");
+        assertThat(body.getTraceId()).startsWith("req-");
+    }
+
+    @Test
+    @DisplayName("handleUnauthorizedException maps to 401 UNAUTHORIZED with UNAUTHORIZED")
+    void handleUnauthorizedException_returns401WithUnauthorized() {
+        // Given
+        UnauthorizedException ex = new UnauthorizedException("User authentication required.");
+
+        // When
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleUnauthorizedException(ex, request);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        ApiErrorResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(401);
+        assertThat(body.getCode()).isEqualTo("UNAUTHORIZED");
+        assertThat(body.getMessage()).isEqualTo("User authentication required.");
+        assertThat(body.getTraceId()).startsWith("req-");
+    }
+
+    @Test
+    @DisplayName("handleDataIntegrityViolationException maps to 409 CONFLICT with DATA_CONFLICT")
+    void handleDataIntegrityViolationException_returns409WithDataConflict() {
+        // Given
+        DataIntegrityViolationException ex = new DataIntegrityViolationException("duplicate key value violates unique constraint");
+
+        // When
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleDataIntegrityViolationException(ex, request);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        ApiErrorResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(409);
+        assertThat(body.getCode()).isEqualTo("DATA_CONFLICT");
+        assertThat(body.getMessage()).isEqualTo("A data conflict or unique constraint violation occurred.");
+        assertThat(body.getTraceId()).startsWith("req-");
     }
 }

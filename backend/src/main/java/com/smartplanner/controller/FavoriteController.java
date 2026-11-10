@@ -3,6 +3,7 @@ package com.smartplanner.controller;
 import com.smartplanner.dto.response.MessageResponse;
 import com.smartplanner.dto.response.PlaceResponse;
 import com.smartplanner.entity.User;
+import com.smartplanner.exception.UnauthorizedException;
 import com.smartplanner.service.FavoriteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -96,8 +97,6 @@ public class FavoriteController {
         if (auth != null && auth.getPrincipal() instanceof User user && user.getId() != null) {
             return user.getId();
         }
-        throw new org.springframework.web.server.ResponseStatusException(
-                HttpStatus.UNAUTHORIZED, "User authentication required."
-        );
+        throw new UnauthorizedException("User authentication required.");
     }
 }

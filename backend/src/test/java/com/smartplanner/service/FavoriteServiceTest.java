@@ -4,6 +4,8 @@ import com.smartplanner.dto.response.PlaceResponse;
 import com.smartplanner.entity.Favorite;
 import com.smartplanner.entity.Place;
 import com.smartplanner.entity.User;
+import com.smartplanner.exception.DuplicateResourceException;
+import com.smartplanner.exception.ResourceNotFoundException;
 import com.smartplanner.repository.FavoriteRepository;
 import com.smartplanner.repository.PlaceRepository;
 import com.smartplanner.repository.UserRepository;
@@ -16,8 +18,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -110,17 +110,13 @@ class FavoriteServiceTest {
     }
 
     @Test
-    @DisplayName("getUserFavorites when user does not exist throws 404 NOT_FOUND")
+    @DisplayName("getUserFavorites when user does not exist throws ResourceNotFoundException")
     void getUserFavorites_whenUserNotFound_throwsNotFound() {
         when(userRepository.existsById(userId)).thenReturn(false);
 
         assertThatThrownBy(() -> favoriteService.getUserFavorites(userId))
-                .isInstanceOf(ResponseStatusException.class)
-                .satisfies(ex -> {
-                    ResponseStatusException rse = (ResponseStatusException) ex;
-                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-                    assertThat(rse.getReason()).contains("User not found with id: " + userId);
-                });
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("User not found with id: " + userId);
 
         verify(favoriteRepository, never()).findByUserIdWithPlaceOrderByCreatedAtDesc(any());
     }
@@ -142,52 +138,40 @@ class FavoriteServiceTest {
     }
 
     @Test
-    @DisplayName("addFavorite when user not found throws 404 NOT_FOUND")
+    @DisplayName("addFavorite when user not found throws ResourceNotFoundException")
     void addFavorite_whenUserNotFound_throwsNotFound() {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> favoriteService.addFavorite(userId, placeId))
-                .isInstanceOf(ResponseStatusException.class)
-                .satisfies(ex -> {
-                    ResponseStatusException rse = (ResponseStatusException) ex;
-                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-                    assertThat(rse.getReason()).contains("User not found with id: " + userId);
-                });
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("User not found with id: " + userId);
 
         verify(favoriteRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("addFavorite when place not found throws 404 NOT_FOUND")
+    @DisplayName("addFavorite when place not found throws ResourceNotFoundException")
     void addFavorite_whenPlaceNotFound_throwsNotFound() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         when(placeRepository.findById(placeId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> favoriteService.addFavorite(userId, placeId))
-                .isInstanceOf(ResponseStatusException.class)
-                .satisfies(ex -> {
-                    ResponseStatusException rse = (ResponseStatusException) ex;
-                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-                    assertThat(rse.getReason()).contains("Place not found with id: " + placeId);
-                });
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Place not found with id: " + placeId);
 
         verify(favoriteRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("addFavorite when already favorited throws 409 CONFLICT")
+    @DisplayName("addFavorite when already favorited throws DuplicateResourceException")
     void addFavorite_whenAlreadyFavorited_throwsConflict() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         when(placeRepository.findById(placeId)).thenReturn(Optional.of(mockPlace));
         when(favoriteRepository.existsByUserIdAndPlaceId(userId, placeId)).thenReturn(true);
 
         assertThatThrownBy(() -> favoriteService.addFavorite(userId, placeId))
-                .isInstanceOf(ResponseStatusException.class)
-                .satisfies(ex -> {
-                    ResponseStatusException rse = (ResponseStatusException) ex;
-                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(rse.getReason()).contains("Place is already in favorites.");
-                });
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessage("Place is already in favorites.");
 
         verify(favoriteRepository, never()).save(any());
     }
@@ -204,34 +188,26 @@ class FavoriteServiceTest {
     }
 
     @Test
-    @DisplayName("removeFavorite when user not found throws 404 NOT_FOUND")
+    @DisplayName("removeFavorite when user not found throws ResourceNotFoundException")
     void removeFavorite_whenUserNotFound_throwsNotFound() {
         when(userRepository.existsById(userId)).thenReturn(false);
 
         assertThatThrownBy(() -> favoriteService.removeFavorite(userId, placeId))
-                .isInstanceOf(ResponseStatusException.class)
-                .satisfies(ex -> {
-                    ResponseStatusException rse = (ResponseStatusException) ex;
-                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-                    assertThat(rse.getReason()).contains("User not found with id: " + userId);
-                });
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("User not found with id: " + userId);
 
         verify(favoriteRepository, never()).deleteByUserIdAndPlaceId(any(), any());
     }
 
     @Test
-    @DisplayName("removeFavorite when favorite entry not found throws 404 NOT_FOUND")
+    @DisplayName("removeFavorite when favorite entry not found throws ResourceNotFoundException")
     void removeFavorite_whenFavoriteNotFound_throwsNotFound() {
         when(userRepository.existsById(userId)).thenReturn(true);
         when(favoriteRepository.existsByUserIdAndPlaceId(userId, placeId)).thenReturn(false);
 
         assertThatThrownBy(() -> favoriteService.removeFavorite(userId, placeId))
-                .isInstanceOf(ResponseStatusException.class)
-                .satisfies(ex -> {
-                    ResponseStatusException rse = (ResponseStatusException) ex;
-                    assertThat(rse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-                    assertThat(rse.getReason()).contains("Favorite not found for place id: " + placeId);
-                });
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Favorite not found for place id: " + placeId);
 
         verify(favoriteRepository, never()).deleteByUserIdAndPlaceId(any(), any());
     }

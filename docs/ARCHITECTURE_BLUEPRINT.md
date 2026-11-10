@@ -283,19 +283,21 @@ flowchart TD
 
 ## 7. Action Plan & Milestone Roadmaps
 
-* **Sprint 0: Setup Foundation (Current)**
-  - Engineer A: Spring Boot 3 initialization, `docker-compose.yml` for local PostgreSQL, initial Flyway migration script `V1__init_schema.sql`, global exception handler, Actuator healthcheck.
-  - Engineer B: Flutter skeleton initialization, Material 3 theme, BLoC configuration, Dio `AuthInterceptor`, secure storage wrapper.
-  - Both: GitHub Actions CI workflow setup, repository hygiene enforcement.
-* **Sprint 1: The First Vertical Slice**
+* **Sprint 0: Setup Foundation (Completed)**
+  - Backend: Spring Boot 3 initialization, `docker-compose.yml` for local PostgreSQL, initial Flyway migration script `V1__init_schema.sql`, global exception handler, Actuator healthcheck.
+  - Mobile: Flutter skeleton initialization, Material 3 theme, BLoC configuration, Dio `AuthInterceptor`, secure storage wrapper.
+  - Quality Gates: GitHub Actions CI workflow setup, repository hygiene enforcement.
+* **Sprint 1: The First Vertical Slice (Completed)**
   - Implement full end-to-end Place Discovery flow:
     $$\text{Flutter PlaceScreen} \longleftrightarrow \text{Spring Boot GET /api/v1/places} \longleftrightarrow \text{PostgreSQL places table}$$
   - Install debug APK on physical Android device and verify pagination and image caching.
-* **Sprint 2: Authentication & Favorites**
-  - Implement User Registration, Login, Token Rotation, and Favorite places management.
-* **Sprint 3: Personal Itineraries Management**
-  - Implement multi-day itinerary CRUD with strict ownership verification.
-* **Sprint 4: Cloud Deployment & Release**
+* **Sprint 2: Authentication & Favorites (Completed)**
+  - Implement User Registration, Login, Token Rotation, Rate Limiting, and Favorite places management with Optimistic UI rollback.
+  - Quality hardening: Single-pass JWT claim verification, JPA delete synchronization, and centralized session expiry handling.
+* **Sprint 3: Personal Itineraries & Reviews (Active / Next)**
+  - Implement multi-day itinerary CRUD with strict resource ownership verification (`403 FORBIDDEN_ACCESS`).
+  - Scheduled timeline management (`itinerary_items`) and place reviews with rating aggregations.
+* **Sprint 4: Cloud Deployment & Release (Planned)**
   - Provision Neon.tech managed PostgreSQL database.
   - Deploy Spring Boot backend container to Render.com.
   - Trigger automated release build pipeline to produce downloadable `.apk` artifacts in GitHub Releases.

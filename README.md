@@ -54,7 +54,7 @@ The platform follows an iterative **Agile / Scrum delivery lifecycle** partition
 | :--- | :--- | :---: | :--- |
 | **Sprint 0** | **Foundation & Scaffolding** | ![Done](https://img.shields.io/badge/Status-Done-brightgreen) | • Docker Compose with PostgreSQL 16 Alpine<br/>• Spring Boot 3 Skeleton & Actuator Health<br/>• Flyway Baseline Schema Migration (V1)<br/>• Flutter SDK, Material 3 Theme & BLoC Setup<br/>• Bruno Collection & GitHub Actions CI Gate |
 | **Sprint 1** | **Place Discovery & Search**<br/>*(First Vertical Slice)* | ![Done](https://img.shields.io/badge/Status-Done-brightgreen) | • `places` JPA Entity, Repository & Spatial Queries<br/>• Search, Category & Price Level Filter APIs<br/>• Infinite Scroll Pagination UI (`PlaceListScreen`)<br/>• Cloudinary Cached Image Component with Fallback |
-| **Sprint 2** | **Authentication & Favorites** | ![Active](https://img.shields.io/badge/Status-Active-blue) | • Stateless JWT Auth Service & Refresh Token Rotation<br/>• Spring Security Filter Chain & Rate Limiting (5 req/min)<br/>• User Favorites Collection CRUD APIs<br/>• Secure Hardware Keystore Integration (`FlutterSecureStorage`)<br/>• Bookmark Toggle with Optimistic UI Sync & `FavoriteListScreen` |
+| **Sprint 2** | **Authentication & Favorites** | ![Done](https://img.shields.io/badge/Status-Done-brightgreen) | • Stateless JWT Auth Service & Refresh Token Rotation<br/>• Spring Security Filter Chain & Rate Limiting (5 req/min)<br/>• User Favorites Collection CRUD APIs<br/>• Secure Hardware Keystore Integration (`FlutterSecureStorage`)<br/>• Bookmark Toggle with Optimistic UI Sync & `FavoriteListScreen` |
 | **Sprint 3** | **Multi-Day Itineraries & Reviews** | ![Planned](https://img.shields.io/badge/Status-Planned-lightgrey) | • Multi-Day Travel Itinerary CRUD Engine<br/>• Strict Resource Ownership Guards & Access Control<br/>• Itinerary Schedule Timeline & Place Ordering<br/>• Community Reviews & Star Ratings Service |
 | **Sprint 4** | **Production Release & Cloud Deploy** | ![Planned](https://img.shields.io/badge/Status-Planned-lightgrey) | • Provision Managed Neon.tech Cloud PostgreSQL<br/>• Containerized Backend Deploy on Render.com<br/>• Automated Release APK Packaging via CI/CD<br/>• End-to-End Latency & Offline UX Audit |
 
@@ -131,45 +131,54 @@ flowchart TD
 
 ```text
 smart-local-planner/
-├── .github/                           # GitHub Enterprise Standards
+├── .github/                           # GitHub Enterprise Standards & CI Workflows
 │   ├── ISSUE_TEMPLATE/                # Automated Enterprise Issue Templates (Feature & Bug)
 │   ├── pull_request_template.md       # Standard 3-Section PR Submission Template
+│   ├── CODEOWNERS                     # Mandatory Tech Lead Review Boundaries
+│   ├── dependabot.yml                 # Automated Weekly Dependency Vulnerability Updates
 │   ├── CI_ROADMAP.md                  # Evolution Guide & Multi-Sprint Quality Gates
 │   └── workflows/
-│       └── ci.yml                     # Automated Maven Compile & Verification Pipeline
+│       └── ci.yml                     # Dual CI Quality Gate (Spring Boot 3 + Flutter Mobile)
 ├── docs/                              # Architecture Blueprints, API Contracts & ADRs
 │   ├── ARCHITECTURE_BLUEPRINT.md      # Full system technical specification
 │   ├── DEVELOPMENT_GUIDELINES.md      # Clean Code standards & Git rules
 │   ├── API_SPECIFICATION.md           # REST API JSON contracts (single source of truth)
 │   ├── ONBOARDING.md                  # Local setup, run & troubleshooting guide
 │   └── adr/                           # Architecture Decision Records 0001 - 0005
-├── backend/                           # Spring Boot 3 REST API Service
+├── backend/                           # Spring Boot 3 REST API Service (Java 21 LTS)
 │   ├── src/main/java/com/smartplanner/
-│   │   ├── config/                    # SecurityConfig, CorsConfig, SwaggerOpenApiConfig
-│   │   ├── common/                    # GlobalExceptionHandler, Standard ErrorResponse DTOs
-│   │   ├── modules/                   # auth, places, favorites, itineraries
-│   │   │   ├── controller/            # REST API Endpoints receiving Request DTOs
-│   │   │   ├── service/               # Domain Business Logic & @Transactional boundaries
-│   │   │   ├── repository/            # Spring Data JPA Interfaces
-│   │   │   ├── entity/                # JPA Database Entities (Isolated from presentation)
-│   │   │   └── dto/                   # Immutable Request/Response Record DTOs
+│   │   ├── config/                    # SecurityConfig, PasswordEncoderConfig
+│   │   ├── controller/                # REST API Controllers (Auth, Places, Favorites)
+│   │   ├── dto/                       # Immutable Request/Response Record DTOs
+│   │   ├── entity/                    # JPA Database Entities (User, Place, Favorite, RefreshToken)
+│   │   ├── exception/                 # RFC 7807 GlobalExceptionHandler & Domain Exceptions
+│   │   ├── repository/                # Spring Data JPA Interfaces
+│   │   ├── security/                  # JwtAuthFilter, LoginRateLimitingFilter, JwtEntryPoint
+│   │   ├── service/                   # Domain Business Logic & @Transactional implementations
+│   │   ├── specification/             # JPA Criteria Specifications for Dynamic Filtering
 │   │   └── BackendApplication.java    # Application Entrypoint
 │   ├── src/main/resources/
-│   │   ├── application.yml            # Dynamic 12-Factor Configuration
-│   │   └── db/migration/              # Flyway Versioned Migrations (V1, V2...)
+│   │   ├── application.yml            # Dynamic 12-Factor Configuration (OSIV false)
+│   │   ├── application-dev.yml        # Development Profile (Verbose SQL Logging)
+│   │   ├── application-prod.yml       # Production Profile (Fail-Fast Mandatory Secrets)
+│   │   └── db/migration/              # Flyway Versioned Migrations (V1, V2, V3, V4)
+│   ├── src/test/java/com/smartplanner/# Comprehensive Unit & Integration Test Suites
 │   └── pom.xml                        # Maven dependencies & build plugins
 ├── mobile/                            # Flutter Mobile Client (Clean Architecture)
 │   ├── README.md                      # Dedicated Developer Onboarding Guide for Mobile
-│   └── lib/
-│       ├── app/                       # Router (go_router), Theme (Material 3), main.dart
-│       ├── core/                      # Network (Dio + Interceptor), SecureStorage, Widgets
-│       └── features/                  # Vertical modules: auth, places, favorites, itineraries
-│           ├── presentation/          # Stateless Widgets & Screens (4-State Contract)
-│           ├── bloc/                  # flutter_bloc Event, State & Bloc logic
-│           └── data/                  # Feature Repositories, DataSources & JSON Mappers
+│   ├── lib/
+│   │   ├── core/                      # Network (DioClient + Interceptor), SecureStorage, Utils
+│   │   ├── features/                  # Vertical Feature Modules: auth, places, favorites
+│   │   │   ├── bloc/                  # flutter_bloc Event, State & BLoC state machines
+│   │   │   ├── data/                  # Feature Repositories, Models & JSON Mappers
+│   │   │   └── presentation/          # Stateless Widgets & Screens (4-State Contract)
+│   │   └── main.dart                  # App Entrypoint & MultiBlocProvider Configuration
+│   ├── test/                          # Unit, BLoC, and Widget Test Suites
+│   └── pubspec.yaml                   # Flutter Dependencies & Asset Declarations
 ├── bruno/                             # Git-native Bruno API Testing Collection
 │   ├── README.md                      # Quickstart guide for executing Bruno requests
-│   └── bruno.json                     # Collection configuration
+│   ├── bruno.json                     # Collection configuration
+│   └── *.bru                          # Plaintext request files for Auth, Places, Favorites
 ├── docker-compose.yml                 # Local PostgreSQL 16 container definition
 ├── .env.example                       # Environment Variable Template (Zero Secrets Policy)
 ├── .dockerignore                      # Build cache and sensitive file exclusion

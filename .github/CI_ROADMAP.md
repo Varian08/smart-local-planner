@@ -9,10 +9,10 @@
 ## Sprint-by-Sprint CI Evolution Map
 
 ```text
-[ Sprint 0: Foundation ] ──► [ Sprint 1: Dual Gate & Hardening ] ──► [ Sprint 2: Fullstack Auth ] ──► [ Sprint 3+: Release ]
-  - Java 21 LTS Setup          - Backend Unit Tests (20/20)         - Integration Auth Tests     - Docker Build Verification
-  - Maven Dependency Cache     - Flutter Analyze & Test (8/8)       - JWT Security Validation    - Sonatype / Trivy Security
-  - mvn test-compile           - CI Timeouts & Concurrency Cancel   - Token Rotation Tests       - Multi-platform Quality Gate
+[ Sprint 0: Foundation ] ──► [ Sprint 1 & 2: Dual Gate & Auth ] ──► [ Sprint 3: Itineraries & Reviews ] ──► [ Sprint 4: Cloud Deploy ]
+  - Java 21 LTS Setup          - Backend Unit & Slice Tests         - Ownership Authorization (403)        - Production Container Deploy
+  - Maven Dependency Cache     - Flutter Analyze & Widget Tests     - Data Conflict Validation (409)       - Trivy Security Scanning
+  - mvn test-compile           - Sliding-Window Rate Limit Tests    - Shared DioClient Queueing            - Automated Release APK Packaging
 ```
 
 ---
@@ -50,17 +50,17 @@ Enforce strict 100% test pass rate across both Spring Boot 3 backend and Flutter
 
 ---
 
-## Phase 3: Sprint 2 (Authentication & Token Security Quality Gates)
+## Phase 3: Sprint 2 (Authentication & Token Security Quality Gates - Completed)
 
 ### Objective
-As stateless JWT authentication, refresh token rotation, and hardware keystore bookmarking are introduced: expand quality gates to enforce integration test coverage, secure storage tests, and auth error-mapping specifications.
+Enforce stateless JWT authentication, refresh token rotation, hardware keystore bookmarking, sliding-window rate limiting, and unified `DioClient` session synchronization across all backend and mobile test suites (`[SLP-15]` through `[SLP-34]`).
 
 ---
 
-## Phase 4: Sprint 3 & Production Quality Gate
+## Phase 4: Sprint 3 & Sprint 4 Release Quality Gate
 
 ### Objective
-Achieve full parity with enterprise compliance standards across 5 architectural pillars: Backend, Mobile, DevSecOps Security, Infrastructure Containers, and Database Integrity.
+Achieve full parity with enterprise compliance standards across architectural pillars: Backend, Mobile, DevSecOps Security, Infrastructure Containers, and Database Integrity.
 
 ---
 

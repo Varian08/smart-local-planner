@@ -23,8 +23,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * In-memory sliding-window rate limiting filter restricting login attempts to 5 requests per minute per IP address.
- * Aligned with docs/API_SPECIFICATION.md §1.2 & §6.4.
+ * In-memory sliding-window rate limiting filter restricting authentication attempts
+ * (login and registration) to 5 requests per minute per IP address per endpoint.
+ * Aligned with docs/API_SPECIFICATION.md §1.1, §1.2 & §6.4.
  */
 @Slf4j
 @Component
@@ -46,12 +47,13 @@ public class LoginRateLimitingFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         String method = request.getMethod();
 
-        // Rate limit only POST /api/v1/auth/login
-        if ("POST".equalsIgnoreCase(method) && path.endsWith("/api/v1/auth/login")) {
+        // Rate limit public credential endpoints: POST /api/v1/auth/login and POST /api/v1/auth/register
+        if ("POST".equalsIgnoreCase(method) && isRateLimitedAuthPath(path)) {
             String clientIp = resolveClientIp(request);
+            String bucketKey = clientIp + ":" + path;
             long currentTime = System.currentTimeMillis();
 
-            Deque<Long> timestamps = requestLogMap.computeIfAbsent(clientIp, k -> new ArrayDeque<>());
+            Deque<Long> timestamps = requestLogMap.computeIfAbsent(bucketKey, k -> new ArrayDeque<>());
             boolean rateExceeded;
 
             synchronized (timestamps) {
@@ -90,6 +92,10 @@ public class LoginRateLimitingFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isRateLimitedAuthPath(String path) {
+        return path != null && (path.endsWith("/api/v1/auth/login") || path.endsWith("/api/v1/auth/register"));
     }
 
     private String resolveClientIp(HttpServletRequest request) {

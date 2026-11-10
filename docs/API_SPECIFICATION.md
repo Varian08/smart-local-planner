@@ -86,7 +86,13 @@
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new...",
   "refreshToken": "e912a43b-7f1c-4b68-821a-681b94c2.new...",
   "tokenType": "Bearer",
-  "expiresIn": 1800
+  "expiresIn": 1800,
+  "user": {
+    "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+    "email": "traveler@example.com",
+    "fullName": "Nguyen Van A",
+    "role": "ROLE_USER"
+  }
 }
 ```
 
@@ -94,7 +100,14 @@
 
 ### 1.4. Logout Session
 * **Endpoint:** `POST /api/v1/auth/logout`
-* **Access:** Required (`Authorization: Bearer <access_token>`)
+* **Access:** Public / Optional Bearer (`Authorization: Bearer <access_token>`)
+
+#### Request Body (Optional)
+```json
+{
+  "refreshToken": "d8f3b21a-4c2e-4b68-912a-590f23b8..."
+}
+```
 
 #### Response: `200 OK`
 ```json
@@ -206,7 +219,7 @@
 
 ### 3.1. List User Favorites
 * **Endpoint:** `GET /api/v1/favorites`
-* **Access:** Required
+* **Access:** Required (`Authorization: Bearer <access_token>`)
 
 #### Response: `200 OK`
 ```json
@@ -214,11 +227,18 @@
   {
     "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
     "name": "The Coffee House - Landmark 81",
+    "description": "Modern coffee shop located in Vietnam's tallest tower with stunning skyline views.",
     "category": "CAFE",
     "address": "Floor B1, Landmark 81, Binh Thanh District, HCMC",
+    "latitude": 10.7951,
+    "longitude": 106.7218,
+    "priceLevel": 2,
+    "openingHours": "07:00 - 22:30",
     "imageUrl": "https://res.cloudinary.com/smartplanner/image/upload/v1/landmark.webp",
     "averageRating": 4.6,
-    "savedAt": "2026-10-18T09:15:00Z"
+    "totalReviews": 38,
+    "createdAt": "2026-10-18T08:00:00Z",
+    "updatedAt": "2026-10-18T08:00:00Z"
   }
 ]
 ```

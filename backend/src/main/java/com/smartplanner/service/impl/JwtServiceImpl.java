@@ -30,7 +30,7 @@ import java.util.function.Function;
 @Service
 public class JwtServiceImpl implements JwtService {
 
-    private final String secret;
+    private final SecretKey signingKey;
     private final long accessTokenExpirationMs;
     private final long refreshTokenExpirationMs;
     private final SecureRandom secureRandom = new SecureRandom();
@@ -40,7 +40,7 @@ public class JwtServiceImpl implements JwtService {
             @Value("${jwt.access-token-expiration:1800000}") long accessTokenExpirationMs,
             @Value("${jwt.refresh-token-expiration:604800000}") long refreshTokenExpirationMs
     ) {
-        this.secret = secret;
+        this.signingKey = buildSigningKey(secret);
         this.accessTokenExpirationMs = accessTokenExpirationMs;
         this.refreshTokenExpirationMs = refreshTokenExpirationMs;
     }
@@ -103,8 +103,13 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
-            final String username = extractUsername(token);
-            return (username != null && username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+            final Claims claims = extractAllClaims(token);
+            final String username = claims.getSubject();
+            final Date expiration = claims.getExpiration();
+            return username != null
+                    && username.equals(userDetails.getUsername())
+                    && expiration != null
+                    && expiration.after(new Date());
         } catch (JwtException | IllegalArgumentException e) {
             log.warn("JWT validation failed: {}", e.getMessage());
             return false;
@@ -132,13 +137,17 @@ public class JwtServiceImpl implements JwtService {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .verifyWith(getSigningKey())
+                .verifyWith(signingKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
     }
 
     private SecretKey getSigningKey() {
+        return signingKey;
+    }
+
+    private static SecretKey buildSigningKey(String secret) {
         byte[] keyBytes;
         try {
             keyBytes = Decoders.BASE64.decode(secret);

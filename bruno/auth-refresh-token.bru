@@ -1,0 +1,18 @@
+meta {
+  name: Auth - Refresh Token Rotation
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8080/api/v1/auth/refresh-token
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "refreshToken": "{{refreshToken}}"
+  }
+}
+

@@ -13,4 +13,16 @@
    - Select the `smart-local-planner/bruno/` directory.
 3. **Execute Requests:**
    - Ensure the Spring Boot backend is active at `http://localhost:8080`.
-   - Select `Actuator Healthcheck` or `Swagger Docs` ➔ Click **Send** to verify immediate `200 OK` status.
+   - Select any request below and click **Send**:
+
+| Sequence | Request File | Endpoint & Method | Auth Requirement |
+| :---: | :--- | :--- | :--- |
+| 1 | `actuator-health.bru` | `GET /actuator/health` | Public |
+| 2 | `auth-register.bru` | `POST /api/v1/auth/register` | Public (Rate limited) |
+| 3 | `auth-login.bru` | `POST /api/v1/auth/login` | Public (Rate limited) |
+| 4 | `auth-refresh-token.bru` | `POST /api/v1/auth/refresh-token` | Public |
+| 5 | `auth-logout.bru` | `POST /api/v1/auth/logout` | Bearer `{{accessToken}}` |
+| 6 | `places-search.bru` | `GET /api/v1/places` | Public |
+| 7 | `favorites-list.bru` | `GET /api/v1/favorites` | Bearer `{{accessToken}}` |
+| 8 | `favorites-add.bru` | `POST /api/v1/favorites/{{placeId}}` | Bearer `{{accessToken}}` |
+| 9 | `favorites-remove.bru` | `DELETE /api/v1/favorites/{{placeId}}` | Bearer `{{accessToken}}` |

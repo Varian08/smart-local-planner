@@ -1,0 +1,16 @@
+meta {
+  name: Favorites - Remove Place from Favorites
+  type: http
+  seq: 9
+}
+
+delete {
+  url: http://localhost:8080/api/v1/favorites/{{placeId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+

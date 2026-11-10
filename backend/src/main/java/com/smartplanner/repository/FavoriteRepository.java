@@ -52,7 +52,7 @@ public interface FavoriteRepository extends JpaRepository<Favorite, UUID> {
      * @param userId ID of the user
      * @param placeId ID of the place
      */
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM Favorite f WHERE f.user.id = :userId AND f.place.id = :placeId")
     void deleteByUserIdAndPlaceId(@Param("userId") UUID userId, @Param("placeId") UUID placeId);
 }

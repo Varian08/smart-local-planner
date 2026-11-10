@@ -132,5 +132,29 @@ class SecurityAccessControlTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/login"))
                 .andExpect(jsonPath("$.traceId").exists());
     }
+
+    @Test
+    @DisplayName("Register rate limiting restricts requests to 5 per minute per IP and returns 429 on 6th request")
+    void registerRateLimiting_restrictsToFivePerMinute() throws Exception {
+        String testIp = "192.168.1.101";
+        String payload = "{\"email\":\"invalid\",\"password\":\"short\",\"fullName\":\"\"}";
+
+        for (int i = 0; i < 5; i++) {
+            mockMvc.perform(post("/api/v1/auth/register")
+                            .header("X-Forwarded-For", testIp)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(payload))
+                    .andExpect(status().isBadRequest());
+        }
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .header("X-Forwarded-For", testIp)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.status").value(429))
+                .andExpect(jsonPath("$.code").value("RATE_LIMIT_EXCEEDED"))
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/register"));
+    }
 }
 

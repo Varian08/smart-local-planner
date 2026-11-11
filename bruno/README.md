@@ -26,3 +26,10 @@
 | 7 | `favorites-list.bru` | `GET /api/v1/favorites` | Bearer `{{accessToken}}` |
 | 8 | `favorites-add.bru` | `POST /api/v1/favorites/{{placeId}}` | Bearer `{{accessToken}}` |
 | 9 | `favorites-remove.bru` | `DELETE /api/v1/favorites/{{placeId}}` | Bearer `{{accessToken}}` |
+| 10 | `itineraries-list.bru` | `GET /api/v1/itineraries` | Bearer `{{accessToken}}` |
+| 11 | `itineraries-create.bru` | `POST /api/v1/itineraries` | Bearer `{{accessToken}}` |
+| 12 | `itineraries-get-detail.bru` | `GET /api/v1/itineraries/{{itineraryId}}` | Bearer `{{accessToken}}` |
+| 13 | `itineraries-update.bru` | `PUT /api/v1/itineraries/{{itineraryId}}` | Bearer `{{accessToken}}` |
+| 14 | `itineraries-delete.bru` | `DELETE /api/v1/itineraries/{{itineraryId}}` | Bearer `{{accessToken}}` |
+| 15 | `reviews-list.bru` | `GET /api/v1/places/{{placeId}}/reviews` | Public |
+| 16 | `reviews-create.bru` | `POST /api/v1/places/{{placeId}}/reviews` | Bearer `{{accessToken}}` |

@@ -1,0 +1,22 @@
+meta {
+  name: Reviews - Submit Place Review
+  type: http
+  seq: 16
+}
+
+post {
+  url: http://localhost:8080/api/v1/places/{{placeId}}/reviews
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "rating": 5,
+    "comment": "Wonderful atmosphere and delicious signature coffee!"
+  }
+}

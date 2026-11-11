@@ -1,0 +1,34 @@
+meta {
+  name: Itineraries - Update Metadata and Replace Schedule
+  type: http
+  seq: 13
+}
+
+put {
+  url: http://localhost:8080/api/v1/itineraries/{{itineraryId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "title": "Updated Saigon 3-Day Trip",
+    "description": "Extended trip including culinary exploration.",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-26",
+    "isPublic": false,
+    "items": [
+      {
+        "placeId": "{{placeId}}",
+        "dayNumber": 1,
+        "orderIndex": 0,
+        "startTime": "09:30:00",
+        "notes": "Updated morning coffee schedule"
+      }
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+meta {
+  name: Itineraries - Create Itinerary with Schedule
+  type: http
+  seq: 11
+}
+
+post {
+  url: http://localhost:8080/api/v1/itineraries
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "title": "Weekend in Saigon Highlights",
+    "description": "2-day discovery of iconic landmarks and coffee culture.",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-25",
+    "isPublic": false,
+    "items": [
+      {
+        "placeId": "{{placeId}}",
+        "dayNumber": 1,
+        "orderIndex": 0,
+        "startTime": "09:00:00",
+        "notes": "Morning coffee meeting"
+      }
+    ]
+  }
+}

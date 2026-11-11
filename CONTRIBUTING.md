@@ -93,10 +93,10 @@ gitGraph
 | Element | Standard Formula Pattern | Concrete Real-World Example | Purpose & Notes |
 | :--- | :--- | :--- | :--- |
 | **Integration Baseline** | `develop` | `develop` | The single source of truth for ongoing sprint work. |
-| **Feature Branch** | `feat/<issue_number>-<short-description>` | `feat/49-jwt-architecture` | Branches off `develop`. Uses GitHub Issue ID (`#49`). |
-| **Bugfix / Hardening Branch** | `fix/<issue_number>-<short-description>` | `fix/44-place-card-null-image` | Quick fixes or hardening issues. |
-| **Commit Message** | `<type>(<scope>): [SLP-X] <subject>` | `feat(auth): [SLP-22] add jwt service` | Follows Conventional Commits with Jira backlog key (`[SLP-22]`). |
-| **PR Merge Strategy** | `Squash and merge` into `develop` | `PR #58` merged into `develop` | Collapses branch commits into 1 atomic history commit.<br>*(Note: GitHub PR numbers auto-increment globally and will differ from the Issue number)*. |
+| **Feature Branch** | `feat/<issue_number>-<short-description>` | `feat/93-mobile-itinerary-bloc` | Branches off `develop`. Uses active GitHub Issue ID (e.g. `#93`). |
+| **Bugfix / Hardening Branch** | `fix/<issue_number>-<short-description>` | `fix/98-image-null-fallback` | Quick bug fixes or hardening issues. |
+| **Commit Message** | `<type>(<scope>): [SLP-X] <subject>` | `feat(mobile): [SLP-40] implement itinerary bloc` | Follows Conventional Commits with sprint ticket key (`[SLP-X]`). |
+| **PR Merge Strategy** | `Squash and merge` into `develop` | `PR #...` merged into `develop` | Collapses branch commits into 1 atomic history commit.<br>*(Note: GitHub PR numbers auto-increment globally and will differ from the Issue number)*. |
 
 ---
 

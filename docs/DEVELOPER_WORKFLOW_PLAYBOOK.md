@@ -11,6 +11,11 @@
 
 This playbook provides a deterministic, step-by-step Standard Operating Procedure (SOP) for executing tasks in **Smart Local Planner**. Every ticket follows an audited 7-step lifecycle connecting the GitHub Sprint Board, Git branch management, local dual-stack quality gates, and automated CI pipelines.
 
+> [!NOTE]
+> **Operational Scope vs. Feature Specifications:**  
+> This Playbook defines the **Standard Operating Procedure (HOW to work: Git lifecycle, local testing commands, PR conventions, and governance)** across all sprints. It is intentionally generic and domain-agnostic.  
+> To know **WHAT specific features to code in the current sprint**, always consult the assigned **GitHub Issues (#)**, [`docs/API_SPECIFICATION.md`](API_SPECIFICATION.md), and the active Sprint Master Plan.
+
 ```mermaid
 flowchart TD
     Step1["1. Create Issue on GitHub"] --> Step2["2. Move to IN PROGRESS"]
@@ -31,7 +36,7 @@ flowchart TD
    ```text
    [SLP-X] <Imperative Summary of Feature or Bugfix>
    ```
-   *Example:* `[SLP-22] Implement JWT architecture, User entity and refresh token migration`
+   *Format:* `[SLP-<ID>] <Verb in imperative form> <Feature or Component>` (e.g. `[SLP-40] Implement Mobile Itinerary Data Layer and BLoC State Management`)
 3. **Standard Enterprise Issue Template (Gold Standard):**
    ```markdown
    ## Problem Statement
@@ -87,9 +92,11 @@ git checkout develop
 git pull origin develop
 
 # Create feature or fix branch mapped to the GitHub issue number
-git checkout -b feat/49-jwt-architecture
-# or for bug fixes:
-git checkout -b fix/44-place-card-null-image-fallback
+git checkout -b <type>/<issue_number>-<short-description>
+
+# Examples:
+# git checkout -b feat/93-mobile-itinerary-bloc
+# git checkout -b fix/98-image-null-fallback
 ```
 
 ---
@@ -135,10 +142,10 @@ git add .
 
 # Conventional Commit Format:
 # <type>(<scope>): [SLP-X] <imperative description>
-git commit -m "feat(auth): [SLP-22] add jwt token provider and user entity"
+git commit -m "<type>(<scope>): [SLP-X] <imperative description of changes>"
 
 # Push branch to remote origin
-git push -u origin feat/49-jwt-architecture
+git push -u origin <type>/<issue_number>-<short-description>
 ```
 
 ---
@@ -149,8 +156,9 @@ git push -u origin feat/49-jwt-architecture
    * **Base:** `develop` ⬅️ **Compare:** `feat/<issue_number>-<short-description>`
 3. **PR Title:** Matches the conventional commit subject without the closing keyword:
    ```text
-   feat(auth): [SLP-22] add jwt token provider and user entity
+   <type>(<scope>): [SLP-X] <imperative summary matching ticket>
    ```
+   *(Example: `feat(mobile): [SLP-40] implement itinerary repository and bloc`)*
 4. **PR Body (Standard 3-Section Format):**
    ```markdown
    ## Summary of Changes
@@ -186,7 +194,7 @@ git push -u origin feat/49-jwt-architecture
    # Sync local develop and delete merged feature branch
    git checkout develop
    git pull origin develop
-   git branch -d feat/46-jwt-architecture
+   git branch -d <type>/<issue_number>-<short-description>
    git remote prune origin
    ```
 
@@ -216,7 +224,7 @@ flowchart TD
 
 | Dangerous Action | Impact | Prevention & Emergency Recovery |
 | :--- | :--- | :--- |
-| **Modifying historical migrations (`V1`, `V2`, `V3`)** | Calculates a different SHA-256 checksum; crashes peer and server Flyway initialization. | **Rule:** Never edit existing SQL migrations. Always create an incremental `V4__...sql`.<br>**Recovery:** `git restore backend/src/main/resources/db/migration/V1...` |
+| **Modifying historical migrations (`V1`, `V2`, etc.)** | Calculates a different SHA-256 checksum; crashes peer and server Flyway initialization. | **Rule:** Never edit existing SQL migrations. Always create an incremental script (e.g. `V<next_version>__<description>.sql`).<br>**Recovery:** `git restore backend/src/main/resources/db/migration/...` |
 | **Direct push of application code/db to `develop`/`main`** | Bypasses automated CI quality gates and risks breaking shared codebase. | **Rule:** Always work on `feat/<issue_number>-<desc>` or `fix/...` for code, db migrations, and build configs.<br>**Exemption:** Pure markdown documentation (`.md`) or typo edits can be pushed directly to `develop` after running `git pull origin develop`. |
 | **Committing secrets (`.env`, passwords, JWT secrets, Cloudinary keys)** | Security breach; captured by public/private scanner bots. | **Rule:** `.gitignore` blocks `.env`. Only commit placeholder values in `.env.example`. |
 | **Breaking API Contract silently** | Modifying DTO field names without updating `API_SPECIFICATION.md` breaks mobile app parsing. | **Rule:** API contracts are sacred. Update spec and coordinate with frontend before altering schemas. |

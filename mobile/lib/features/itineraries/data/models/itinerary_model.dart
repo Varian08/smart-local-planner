@@ -132,3 +132,4 @@ class ItineraryModel extends Equatable {
         updatedAt,
       ];
 }
+

@@ -87,3 +87,4 @@ class ItineraryFailure extends ItineraryState {
   @override
   List<Object?> get props => [message, statusCode];
 }
+

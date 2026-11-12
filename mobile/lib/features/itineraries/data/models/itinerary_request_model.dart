@@ -93,3 +93,4 @@ class ItineraryRequestModel extends Equatable {
         items,
       ];
 }
+

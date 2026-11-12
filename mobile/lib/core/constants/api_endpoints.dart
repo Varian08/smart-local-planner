@@ -60,6 +60,10 @@ class ApiEndpoints {
   static const String favorites = '/favorites';
   static String favoritePlace(String placeId) => '/favorites/$placeId';
 
+  // Itineraries Domain
+  static const String itineraries = '/itineraries';
+  static String itineraryDetails(String id) => '/itineraries/$id';
+
   // ---------------------------------------------------------------------------
   // 4. Standardized Query Parameters Contract
   // ---------------------------------------------------------------------------

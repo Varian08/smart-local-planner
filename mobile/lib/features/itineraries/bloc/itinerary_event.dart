@@ -69,3 +69,4 @@ class DeleteItinerary extends ItineraryEvent {
   @override
   List<Object?> get props => [id];
 }
+

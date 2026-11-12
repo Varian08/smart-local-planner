@@ -94,3 +94,4 @@ class ItineraryItemModel extends Equatable {
         place,
       ];
 }
+

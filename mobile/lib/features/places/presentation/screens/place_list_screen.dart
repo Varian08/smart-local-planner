@@ -10,6 +10,9 @@ import '../../../favorites/bloc/favorite_bloc.dart';
 import '../../../favorites/bloc/favorite_event.dart';
 import '../../../favorites/bloc/favorite_state.dart';
 import '../../../favorites/presentation/screens/favorite_list_screen.dart';
+import '../../../itineraries/bloc/itinerary_bloc.dart';
+import '../../../itineraries/bloc/itinerary_event.dart';
+import '../../../itineraries/presentation/screens/itinerary_list_screen.dart';
 import '../../bloc/place_bloc.dart';
 import '../../bloc/place_event.dart';
 import '../../bloc/place_state.dart';
@@ -84,6 +87,27 @@ class _PlaceListScreenState extends State<PlaceListScreen> {
         centerTitle: false,
         backgroundColor: Colors.white,
         actions: [
+          IconButton(
+            key: const Key('appbar_my_itineraries_button'),
+            icon: const Icon(Icons.route_rounded, color: Colors.indigo),
+            tooltip: 'My Itineraries',
+            onPressed: () {
+              requireAuth(
+                context,
+                message: 'Please sign in to view your travel itineraries.',
+                onAuthenticated: () {
+                  context
+                      .read<ItineraryBloc>()
+                      .add(const LoadItineraries(isRefresh: true));
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ItineraryListScreen(),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
           BlocBuilder<FavoriteBloc, FavoriteState>(
             builder: (context, favoriteState) {
               final count = favoriteState is FavoriteLoaded

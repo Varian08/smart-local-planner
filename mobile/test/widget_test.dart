@@ -4,6 +4,9 @@ import 'package:smart_local_planner/features/auth/data/models/auth_request_model
 import 'package:smart_local_planner/features/auth/data/models/auth_response_model.dart';
 import 'package:smart_local_planner/features/auth/data/repositories/auth_repository.dart';
 import 'package:smart_local_planner/features/favorites/data/repositories/favorite_repository.dart';
+import 'package:smart_local_planner/features/itineraries/data/models/itinerary_model.dart';
+import 'package:smart_local_planner/features/itineraries/data/models/itinerary_request_model.dart';
+import 'package:smart_local_planner/features/itineraries/data/repositories/itinerary_repository.dart';
 import 'package:smart_local_planner/features/places/data/models/place_model.dart';
 import 'package:smart_local_planner/features/places/data/repositories/place_repository.dart';
 import 'package:smart_local_planner/main.dart';
@@ -90,6 +93,35 @@ class FakeFavoriteRepository implements FavoriteRepository {
   Future<void> removeFavorite(String placeId) async {}
 }
 
+/// Test double simulating ItineraryRepository for widget smoke tests.
+class FakeItineraryRepository implements ItineraryRepository {
+  const FakeItineraryRepository();
+
+  @override
+  Future<List<ItineraryModel>> getItineraries({
+    int page = 0,
+    int size = 10,
+    String sort = 'createdAt,desc',
+  }) async => const [];
+
+  @override
+  Future<ItineraryModel> getItineraryDetail(String id) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<ItineraryModel> createItinerary(ItineraryRequestModel request) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<ItineraryModel> updateItinerary(
+    String id,
+    ItineraryRequestModel request,
+  ) async => throw UnimplementedError();
+
+  @override
+  Future<void> deleteItinerary(String id) async {}
+}
+
 void main() {
   testWidgets('App smoke test initializes successfully', (
     WidgetTester tester,
@@ -99,6 +131,7 @@ void main() {
         placeRepository: FakePlaceRepository(),
         authRepository: FakeAuthRepository(),
         favoriteRepository: FakeFavoriteRepository(),
+        itineraryRepository: FakeItineraryRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -129,6 +162,7 @@ void main() {
         placeRepository: fakeRepoWithNullImage,
         authRepository: const FakeAuthRepository(),
         favoriteRepository: const FakeFavoriteRepository(),
+        itineraryRepository: const FakeItineraryRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -149,6 +183,7 @@ void main() {
         placeRepository: FakePlaceRepository(),
         authRepository: FakeAuthRepository(),
         favoriteRepository: FakeFavoriteRepository(),
+        itineraryRepository: FakeItineraryRepository(),
       ),
     );
     await tester.pumpAndSettle();

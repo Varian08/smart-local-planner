@@ -99,6 +99,23 @@ class DioClient {
     );
   }
 
+  /// Performs an HTTP PUT request
+  Future<Response<T>> put<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) {
+    return _dio.put<T>(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+      cancelToken: cancelToken,
+    );
+  }
+
   /// Performs an HTTP DELETE request
   Future<Response<T>> delete<T>(
     String path, {

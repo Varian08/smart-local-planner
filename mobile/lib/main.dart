@@ -7,6 +7,8 @@ import 'features/auth/bloc/auth_event.dart';
 import 'features/auth/data/repositories/auth_repository.dart';
 import 'features/favorites/bloc/favorite_bloc.dart';
 import 'features/favorites/data/repositories/favorite_repository.dart';
+import 'features/itineraries/bloc/itinerary_bloc.dart';
+import 'features/itineraries/data/repositories/itinerary_repository.dart';
 import 'features/places/bloc/place_bloc.dart';
 import 'features/places/bloc/place_event.dart';
 import 'features/places/data/repositories/place_repository.dart';
@@ -22,6 +24,7 @@ class SmartLocalPlannerApp extends StatefulWidget {
   final PlaceRepository? placeRepository;
   final AuthRepository? authRepository;
   final FavoriteRepository? favoriteRepository;
+  final ItineraryRepository? itineraryRepository;
   final DioClient? dioClient;
 
   const SmartLocalPlannerApp({
@@ -29,6 +32,7 @@ class SmartLocalPlannerApp extends StatefulWidget {
     this.placeRepository,
     this.authRepository,
     this.favoriteRepository,
+    this.itineraryRepository,
     this.dioClient,
   });
 
@@ -41,6 +45,7 @@ class _SmartLocalPlannerAppState extends State<SmartLocalPlannerApp> {
   late final AuthRepository _authRepository;
   late final PlaceRepository _placeRepository;
   late final FavoriteRepository _favoriteRepository;
+  late final ItineraryRepository _itineraryRepository;
   late final AuthBloc _authBloc;
 
   @override
@@ -58,6 +63,8 @@ class _SmartLocalPlannerAppState extends State<SmartLocalPlannerApp> {
         widget.placeRepository ?? PlaceRepositoryImpl(dioClient: _dioClient);
     _favoriteRepository = widget.favoriteRepository ??
         FavoriteRepositoryImpl(dioClient: _dioClient);
+    _itineraryRepository = widget.itineraryRepository ??
+        ItineraryRepositoryImpl(dioClient: _dioClient);
     _authBloc = AuthBloc(authRepository: _authRepository)
       ..add(const AuthCheckRequested());
   }
@@ -81,6 +88,11 @@ class _SmartLocalPlannerAppState extends State<SmartLocalPlannerApp> {
         BlocProvider<FavoriteBloc>(
           create: (context) => FavoriteBloc(
             favoriteRepository: _favoriteRepository,
+          ),
+        ),
+        BlocProvider<ItineraryBloc>(
+          create: (context) => ItineraryBloc(
+            itineraryRepository: _itineraryRepository,
           ),
         ),
       ],

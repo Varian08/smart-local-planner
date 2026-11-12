@@ -321,3 +321,18 @@ The reviewer verifies every item before clicking **Squash and merge**:
 | 8 | **PR hygiene** | 3-section PR body, `Closes #<issue_number>`, conventional title. |
 
 > If any item fails, request changes on the PR. The author fixes it on the same branch; nothing on `develop` is affected.
+
+---
+
+## 8. Code Review & Mentorship Standards
+
+To maintain high architectural standards while fostering team growth, code reviews follow these core tenets:
+- **Constructive Inline Feedback:** Prefix inline review comments with clear intent tags:
+  - `**[Suggestion - <Area>]:**` Actionable architectural or UX improvement recommendations.
+  - `**[Nit - <Area>]:**` Minor stylistic, typing, or defensive coding observations that do not block approval.
+  - `**[Commendation]:**` Recognition of exemplary architectural adherence or test coverage.
+- **Executive Review Summary:** When submitting review approvals, include a structured summary covering:
+  1. Architecture & contract alignment.
+  2. Test execution verification (`mvn test` / `flutter test` / `flutter analyze`).
+  3. Action items or follow-up iterations.
+- **Merge Consistency:** Default merge strategy is strictly **Squash and merge** using conventional commit subjects (`<type>(<scope>): [SLP-X] <description> (#<pr_number>)`) and `Closes #<issue_number>` to ensure clean linear history and automated board transitions.

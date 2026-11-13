@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -147,12 +148,21 @@ public class ItineraryController {
         throw new UnauthorizedException("User authentication required.");
     }
 
+    private static final Set<String> ALLOWED_SORT_PROPERTIES = Set.of(
+            "createdAt", "updatedAt", "title", "startDate", "endDate"
+    );
+
     private Sort parseSort(String sortParam) {
         if (sortParam == null || sortParam.isBlank()) {
             return Sort.by(Sort.Direction.DESC, "createdAt");
         }
         String[] parts = sortParam.split(",");
         String property = parts[0].trim();
+        if (!ALLOWED_SORT_PROPERTIES.contains(property)) {
+            throw new IllegalArgumentException(
+                    "Invalid sort property '" + property + "'. Allowed sort properties: " + ALLOWED_SORT_PROPERTIES
+            );
+        }
         Sort.Direction direction = (parts.length > 1 && parts[1].trim().equalsIgnoreCase("asc"))
                 ? Sort.Direction.ASC
                 : Sort.Direction.DESC;

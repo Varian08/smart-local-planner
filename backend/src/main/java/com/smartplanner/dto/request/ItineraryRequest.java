@@ -1,6 +1,7 @@
 package com.smartplanner.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -44,6 +45,7 @@ public class ItineraryRequest {
     @Schema(description = "End date of the itinerary", example = "2026-10-25")
     private LocalDate endDate;
 
+    @JsonProperty("isPublic")
     @Schema(description = "Whether the itinerary is publicly discoverable (private in Sprint 3)", example = "false")
     @Builder.Default
     private boolean isPublic = false;
@@ -52,4 +54,14 @@ public class ItineraryRequest {
     @Schema(description = "Ordered list of places to visit across itinerary days")
     @Builder.Default
     private List<ItineraryItemRequest> items = new ArrayList<>();
+
+    @JsonProperty("isPublic")
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    @JsonProperty("isPublic")
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+    }
 }

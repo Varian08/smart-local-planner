@@ -154,7 +154,18 @@ class ItineraryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(itineraryId.toString()))
                 .andExpect(jsonPath("$.content[0].title").value("Saigon Weekend Highlights"))
+                .andExpect(jsonPath("$.content[0].isPublic").value(false))
                 .andExpect(jsonPath("$.content[0].totalDays").value(3));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/itineraries returns 400 BAD REQUEST when sort parameter is invalid")
+    void getUserItineraries_Returns400WhenSortInvalid() throws Exception {
+        mockMvc.perform(get("/api/v1/itineraries")
+                        .with(user(testUser))
+                        .param("sort", "nonExistentField,asc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
     }
 
     @Test
@@ -169,6 +180,7 @@ class ItineraryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(itineraryId.toString()))
                 .andExpect(jsonPath("$.title").value("Saigon Weekend Highlights"))
+                .andExpect(jsonPath("$.isPublic").value(false))
                 .andExpect(jsonPath("$.items[0].place.name").value("The Coffee House - Landmark 81"));
     }
 
@@ -226,7 +238,8 @@ class ItineraryControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(itineraryId.toString()))
-                .andExpect(jsonPath("$.title").value("Saigon Weekend Highlights"));
+                .andExpect(jsonPath("$.title").value("Saigon Weekend Highlights"))
+                .andExpect(jsonPath("$.isPublic").value(false));
     }
 
     @Test

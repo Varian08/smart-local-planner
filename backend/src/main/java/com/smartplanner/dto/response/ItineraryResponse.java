@@ -1,6 +1,7 @@
 package com.smartplanner.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,6 +50,7 @@ public class ItineraryResponse {
     @Schema(description = "Total places in the schedule", example = "4")
     private int totalPlaces;
 
+    @JsonProperty("isPublic")
     @Schema(description = "Whether the itinerary is public", example = "false")
     private boolean isPublic;
 
@@ -61,4 +63,14 @@ public class ItineraryResponse {
 
     @Schema(description = "Last update timestamp")
     private OffsetDateTime updatedAt;
+
+    @JsonProperty("isPublic")
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    @JsonProperty("isPublic")
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+    }
 }

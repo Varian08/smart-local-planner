@@ -9,6 +9,9 @@ import 'package:smart_local_planner/features/itineraries/data/models/itinerary_r
 import 'package:smart_local_planner/features/itineraries/data/repositories/itinerary_repository.dart';
 import 'package:smart_local_planner/features/places/data/models/place_model.dart';
 import 'package:smart_local_planner/features/places/data/repositories/place_repository.dart';
+import 'package:smart_local_planner/features/reviews/data/models/review_model.dart';
+import 'package:smart_local_planner/features/reviews/data/models/review_request_model.dart';
+import 'package:smart_local_planner/features/reviews/data/repositories/review_repository.dart';
 import 'package:smart_local_planner/main.dart';
 
 /// Test double simulating PlaceRepository without triggering network calls or pending timers.
@@ -122,6 +125,27 @@ class FakeItineraryRepository implements ItineraryRepository {
   Future<void> deleteItinerary(String id) async {}
 }
 
+/// Test double simulating ReviewRepository for widget smoke tests.
+class FakeReviewRepository implements ReviewRepository {
+  const FakeReviewRepository();
+
+  @override
+  Future<List<ReviewModel>> getPlaceReviews(
+    String placeId, {
+    int page = 0,
+    int size = 10,
+    String sort = 'createdAt,desc',
+  }) async =>
+      const [];
+
+  @override
+  Future<ReviewModel> submitReview(
+    String placeId,
+    ReviewRequestModel request,
+  ) async =>
+      throw UnimplementedError();
+}
+
 void main() {
   testWidgets('App smoke test initializes successfully', (
     WidgetTester tester,
@@ -132,6 +156,7 @@ void main() {
         authRepository: FakeAuthRepository(),
         favoriteRepository: FakeFavoriteRepository(),
         itineraryRepository: FakeItineraryRepository(),
+        reviewRepository: FakeReviewRepository(),
       ),
     );
     await tester.pumpAndSettle();

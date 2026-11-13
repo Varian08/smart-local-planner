@@ -7,6 +7,7 @@ import '../../../favorites/bloc/favorite_bloc.dart';
 import '../../../favorites/bloc/favorite_event.dart';
 import '../../../favorites/bloc/favorite_state.dart';
 import '../../data/models/place_model.dart';
+import '../screens/place_detail_screen.dart';
 
 /// Reusable Place Card component adhering to Material 3 design and Airbnb aesthetic.
 /// Encapsulates bookmark toggle, rating badge, price tier, and cached imagery.
@@ -35,9 +36,17 @@ class PlaceCard extends StatelessWidget {
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => PlaceDetailScreen(place: place),
+            ),
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Place Artwork with AspectRatio & Category Overlay
           Stack(
             children: [
@@ -246,8 +255,9 @@ class PlaceCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildPlaceholderBanner() {
     return Container(

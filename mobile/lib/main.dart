@@ -13,6 +13,7 @@ import 'features/places/bloc/place_bloc.dart';
 import 'features/places/bloc/place_event.dart';
 import 'features/places/data/repositories/place_repository.dart';
 import 'features/places/presentation/screens/place_list_screen.dart';
+import 'features/reviews/data/repositories/review_repository.dart';
 
 /// Application Entrypoint.
 /// Configures Root MultiBlocProvider (AuthBloc + PlaceBloc + FavoriteBloc), Material 3 Design Tokens, and initial Fetching.
@@ -25,6 +26,7 @@ class SmartLocalPlannerApp extends StatefulWidget {
   final AuthRepository? authRepository;
   final FavoriteRepository? favoriteRepository;
   final ItineraryRepository? itineraryRepository;
+  final ReviewRepository? reviewRepository;
   final DioClient? dioClient;
 
   const SmartLocalPlannerApp({
@@ -33,6 +35,7 @@ class SmartLocalPlannerApp extends StatefulWidget {
     this.authRepository,
     this.favoriteRepository,
     this.itineraryRepository,
+    this.reviewRepository,
     this.dioClient,
   });
 
@@ -46,6 +49,7 @@ class _SmartLocalPlannerAppState extends State<SmartLocalPlannerApp> {
   late final PlaceRepository _placeRepository;
   late final FavoriteRepository _favoriteRepository;
   late final ItineraryRepository _itineraryRepository;
+  late final ReviewRepository _reviewRepository;
   late final AuthBloc _authBloc;
 
   @override
@@ -65,6 +69,8 @@ class _SmartLocalPlannerAppState extends State<SmartLocalPlannerApp> {
         FavoriteRepositoryImpl(dioClient: _dioClient);
     _itineraryRepository = widget.itineraryRepository ??
         ItineraryRepositoryImpl(dioClient: _dioClient);
+    _reviewRepository = widget.reviewRepository ??
+        ReviewRepositoryImpl(dioClient: _dioClient);
     _authBloc = AuthBloc(authRepository: _authRepository)
       ..add(const AuthCheckRequested());
   }
@@ -77,34 +83,43 @@ class _SmartLocalPlannerAppState extends State<SmartLocalPlannerApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
+    return MultiRepositoryProvider(
       providers: [
-        BlocProvider<AuthBloc>.value(value: _authBloc),
-        BlocProvider<PlaceBloc>(
-          create: (context) => PlaceBloc(
-            placeRepository: _placeRepository,
-          )..add(const PlaceFetchStarted()),
-        ),
-        BlocProvider<FavoriteBloc>(
-          create: (context) => FavoriteBloc(
-            favoriteRepository: _favoriteRepository,
-          ),
-        ),
-        BlocProvider<ItineraryBloc>(
-          create: (context) => ItineraryBloc(
-            itineraryRepository: _itineraryRepository,
-          ),
-        ),
+        RepositoryProvider<ReviewRepository>.value(value: _reviewRepository),
+        RepositoryProvider<ItineraryRepository>.value(value: _itineraryRepository),
+        RepositoryProvider<PlaceRepository>.value(value: _placeRepository),
+        RepositoryProvider<FavoriteRepository>.value(value: _favoriteRepository),
+        RepositoryProvider<AuthRepository>.value(value: _authRepository),
       ],
-      child: MaterialApp(
-        title: 'Smart Local Planner',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: Colors.indigo,
-          scaffoldBackgroundColor: Colors.grey.shade50,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>.value(value: _authBloc),
+          BlocProvider<PlaceBloc>(
+            create: (context) => PlaceBloc(
+              placeRepository: _placeRepository,
+            )..add(const PlaceFetchStarted()),
+          ),
+          BlocProvider<FavoriteBloc>(
+            create: (context) => FavoriteBloc(
+              favoriteRepository: _favoriteRepository,
+            ),
+          ),
+          BlocProvider<ItineraryBloc>(
+            create: (context) => ItineraryBloc(
+              itineraryRepository: _itineraryRepository,
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          title: 'Smart Local Planner',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            useMaterial3: true,
+            colorSchemeSeed: Colors.indigo,
+            scaffoldBackgroundColor: Colors.grey.shade50,
+          ),
+          home: const PlaceListScreen(),
         ),
-        home: const PlaceListScreen(),
       ),
     );
   }

@@ -64,6 +64,9 @@ class ApiEndpoints {
   static const String itineraries = '/itineraries';
   static String itineraryDetails(String id) => '/itineraries/$id';
 
+  // Reviews Domain
+  static String placeReviews(String placeId) => '/places/$placeId/reviews';
+
   // ---------------------------------------------------------------------------
   // 4. Standardized Query Parameters Contract
   // ---------------------------------------------------------------------------

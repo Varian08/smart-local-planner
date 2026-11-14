@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../data/models/itinerary_model.dart';
 import '../data/repositories/itinerary_repository.dart';
 import 'itinerary_event.dart';
 import 'itinerary_state.dart';
@@ -54,10 +55,11 @@ class ItineraryBloc extends Bloc<ItineraryEvent, ItineraryState> {
         ));
       }
     } on DioException catch (e) {
-      emit(_mapDioErrorToFailure(e));
+      emit(_mapDioErrorToFailure(e, _extractCurrentItineraries()));
     } catch (e) {
       emit(ItineraryFailure(
         message: 'Failed to load itineraries: ${e.toString()}',
+        itineraries: _extractCurrentItineraries(),
       ));
     }
   }
@@ -89,6 +91,7 @@ class ItineraryBloc extends Bloc<ItineraryEvent, ItineraryState> {
     CreateItinerary event,
     Emitter<ItineraryState> emit,
   ) async {
+    final currentList = _extractCurrentItineraries();
     emit(const ItineraryLoading());
     try {
       final created = await itineraryRepository.createItinerary(event.request);
@@ -97,10 +100,11 @@ class ItineraryBloc extends Bloc<ItineraryEvent, ItineraryState> {
         itinerary: created,
       ));
     } on DioException catch (e) {
-      emit(_mapDioErrorToFailure(e));
+      emit(_mapDioErrorToFailure(e, currentList));
     } catch (e) {
       emit(ItineraryFailure(
         message: 'Failed to create itinerary: ${e.toString()}',
+        itineraries: currentList,
       ));
     }
   }
@@ -112,6 +116,7 @@ class ItineraryBloc extends Bloc<ItineraryEvent, ItineraryState> {
     UpdateItinerary event,
     Emitter<ItineraryState> emit,
   ) async {
+    final currentList = _extractCurrentItineraries();
     emit(const ItineraryLoading());
     try {
       final updated = await itineraryRepository.updateItinerary(
@@ -123,10 +128,11 @@ class ItineraryBloc extends Bloc<ItineraryEvent, ItineraryState> {
         itinerary: updated,
       ));
     } on DioException catch (e) {
-      emit(_mapDioErrorToFailure(e));
+      emit(_mapDioErrorToFailure(e, currentList));
     } catch (e) {
       emit(ItineraryFailure(
         message: 'Failed to update itinerary: ${e.toString()}',
+        itineraries: currentList,
       ));
     }
   }
@@ -138,6 +144,7 @@ class ItineraryBloc extends Bloc<ItineraryEvent, ItineraryState> {
     DeleteItinerary event,
     Emitter<ItineraryState> emit,
   ) async {
+    final currentList = _extractCurrentItineraries();
     emit(const ItineraryLoading());
     try {
       await itineraryRepository.deleteItinerary(event.id);
@@ -146,18 +153,32 @@ class ItineraryBloc extends Bloc<ItineraryEvent, ItineraryState> {
         deletedId: event.id,
       ));
     } on DioException catch (e) {
-      emit(_mapDioErrorToFailure(e));
+      emit(_mapDioErrorToFailure(e, currentList));
     } catch (e) {
       emit(ItineraryFailure(
         message: 'Failed to delete itinerary: ${e.toString()}',
+        itineraries: currentList,
       ));
     }
   }
 
   // ---------------------------------------------------------------------------
+  // Helper: Extract Current Itineraries List Defensively
+  // ---------------------------------------------------------------------------
+  List<ItineraryModel> _extractCurrentItineraries() {
+    final currentState = state;
+    if (currentState is ItineraryLoaded) return currentState.itineraries;
+    if (currentState is ItineraryFailure) return currentState.itineraries;
+    return const [];
+  }
+
+  // ---------------------------------------------------------------------------
   // Helper: Defensive DioException Translation
   // ---------------------------------------------------------------------------
-  ItineraryFailure _mapDioErrorToFailure(DioException e) {
+  ItineraryFailure _mapDioErrorToFailure(
+    DioException e, [
+    List<ItineraryModel> fallbackItineraries = const [],
+  ]) {
     final statusCode = e.response?.statusCode;
     final responseData = e.response?.data;
 
@@ -172,22 +193,26 @@ class ItineraryBloc extends Bloc<ItineraryEvent, ItineraryState> {
         return ItineraryFailure(
           message: serverMessage ?? 'Session expired. Please sign in again.',
           statusCode: 401,
+          itineraries: fallbackItineraries,
         );
       case 403:
         return ItineraryFailure(
           message: serverMessage ??
               'You do not have permission to access or modify this itinerary.',
           statusCode: 403,
+          itineraries: fallbackItineraries,
         );
       case 404:
         return ItineraryFailure(
           message: serverMessage ?? 'Itinerary not found.',
           statusCode: 404,
+          itineraries: fallbackItineraries,
         );
       case 400:
         return ItineraryFailure(
           message: serverMessage ?? 'Invalid itinerary data provided.',
           statusCode: 400,
+          itineraries: fallbackItineraries,
         );
       default:
         return ItineraryFailure(
@@ -195,6 +220,7 @@ class ItineraryBloc extends Bloc<ItineraryEvent, ItineraryState> {
               e.message ??
               'An unexpected network error occurred.',
           statusCode: statusCode,
+          itineraries: fallbackItineraries,
         );
     }
   }

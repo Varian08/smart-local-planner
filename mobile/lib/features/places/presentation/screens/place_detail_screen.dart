@@ -44,13 +44,96 @@ class PlaceDetailScreen extends StatelessWidget {
   }
 }
 
-class _PlaceDetailContent extends StatelessWidget {
+class _PlaceDetailContent extends StatefulWidget {
   final PlaceModel place;
 
   const _PlaceDetailContent({required this.place});
 
   @override
+  State<_PlaceDetailContent> createState() => _PlaceDetailContentState();
+}
+
+class _PlaceDetailContentState extends State<_PlaceDetailContent> {
+  final List<ReviewModel> _submittedReviews = [];
+
+  PlaceModel get place => widget.place;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialState = context.read<ReviewBloc>().state;
+    if (initialState is ReviewSubmitSuccess) {
+      _recordSubmittedReview(initialState.newReview);
+    }
+  }
+
+  void _recordSubmittedReview(ReviewModel review) {
+    if (_submittedReviews.any((r) => r.id == review.id)) return;
+    _submittedReviews.add(review);
+  }
+
+  List<ReviewModel> _extractReviews(ReviewState state) {
+    if (state is ReviewLoaded) return state.reviews;
+    if (state is ReviewSubmitSuccess) return state.reviews;
+    if (state is ReviewFailure) return state.reviews;
+    if (state is ReviewSubmitting) return state.currentReviews;
+    return const [];
+  }
+
+  ({double rating, int totalReviews}) _resolveRatingSummary(
+    ReviewState state,
+    List<ReviewModel> reviews,
+  ) {
+    final submitted = [
+      ..._submittedReviews,
+      if (state is ReviewSubmitSuccess &&
+          _submittedReviews.every((r) => r.id != state.newReview.id))
+        state.newReview,
+    ];
+    final baseTotal = place.totalReviews;
+    final baseAvg = place.averageRating;
+
+    double avgOf(List<ReviewModel> list) =>
+        list.map((r) => r.rating).reduce((a, b) => a + b) / list.length;
+
+    if (submitted.isNotEmpty) {
+      final newTotal = baseTotal + submitted.length;
+      if (reviews.length > newTotal && reviews.isNotEmpty) {
+        return (rating: avgOf(reviews), totalReviews: reviews.length);
+      }
+      final addedSum = submitted.fold<int>(0, (sum, r) => sum + r.rating);
+      return (
+        rating:
+            newTotal > 0 ? (baseAvg * baseTotal + addedSum) / newTotal : 0.0,
+        totalReviews: newTotal,
+      );
+    }
+
+    if (reviews.length > baseTotal && reviews.isNotEmpty) {
+      final allLoaded = state is ReviewLoaded && !state.hasMore;
+      final effectiveAvg =
+          (!allLoaded && baseTotal > 0 && baseAvg > 0) ? baseAvg : avgOf(reviews);
+      return (rating: effectiveAvg, totalReviews: reviews.length);
+    }
+
+    final effectiveAvg =
+        baseAvg > 0 || reviews.isEmpty ? baseAvg : avgOf(reviews);
+    return (rating: effectiveAvg, totalReviews: baseTotal);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    return BlocListener<ReviewBloc, ReviewState>(
+      listener: (context, state) {
+        if (state is ReviewSubmitSuccess) {
+          setState(() => _recordSubmittedReview(state.newReview));
+        }
+      },
+      child: _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     final effectivePriceLevel = place.priceLevel ?? 1;
     final priceIcons = List.generate(
       effectivePriceLevel,
@@ -143,55 +226,64 @@ class _PlaceDetailContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Category Tag & Rating Badge
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.teal.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.teal.shade200),
-                        ),
-                        child: Text(
-                          place.category.toUpperCase(),
-                          style: TextStyle(
-                            color: Colors.teal.shade800,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                      Row(
+                  BlocBuilder<ReviewBloc, ReviewState>(
+                    builder: (context, state) {
+                      final reviews = _extractReviews(state);
+                      final summary = _resolveRatingSummary(state, reviews);
+                      final effectiveRating = summary.rating;
+                      final effectiveTotalReviews = summary.totalReviews;
+
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Icon(
-                            Icons.star_rounded,
-                            color: Colors.amber,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            place.averageRating.toStringAsFixed(1),
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.teal.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.teal.shade200),
+                            ),
+                            child: Text(
+                              place.category.toUpperCase(),
+                              style: TextStyle(
+                                color: Colors.teal.shade800,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '(${place.totalReviews})',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey.shade600,
-                            ),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.star_rounded,
+                                color: Colors.amber,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                effectiveRating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '($effectiveTotalReviews)',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
-                      ),
-                    ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 12),
 
@@ -390,20 +482,13 @@ class _PlaceDetailContent extends StatelessWidget {
                         );
                       }
 
-                      final reviews = state is ReviewLoaded
-                          ? state.reviews
-                          : (state is ReviewSubmitSuccess
-                              ? state.reviews
-                              : (state is ReviewFailure
-                                  ? state.reviews
-                                  : (state is ReviewSubmitting
-                                      ? state.currentReviews
-                                      : <ReviewModel>[])));
+                      final reviews = _extractReviews(state);
+                      final summary = _resolveRatingSummary(state, reviews);
 
                       return ReviewListWidget(
                         reviews: reviews,
-                        averageRating: place.averageRating,
-                        totalReviews: place.totalReviews,
+                        averageRating: summary.rating,
+                        totalReviews: summary.totalReviews,
                       );
                     },
                   ),

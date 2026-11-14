@@ -11,6 +11,7 @@ import 'package:smart_local_planner/features/favorites/data/repositories/favorit
 import 'package:smart_local_planner/features/places/data/models/place_model.dart';
 import 'package:smart_local_planner/features/places/presentation/screens/place_detail_screen.dart';
 import 'package:smart_local_planner/features/reviews/bloc/review_bloc.dart';
+import 'package:smart_local_planner/features/reviews/bloc/review_event.dart';
 import 'package:smart_local_planner/features/reviews/data/models/review_model.dart';
 import 'package:smart_local_planner/features/reviews/data/models/review_request_model.dart';
 import 'package:smart_local_planner/features/reviews/data/repositories/review_repository.dart';
@@ -247,4 +248,93 @@ void main() {
     expect(find.byType(ReviewFormBottomSheet), findsOneWidget);
     expect(find.text('Review Marble Mountains'), findsOneWidget);
   });
+
+  testWidgets(
+    'preserves server aggregate rating/count when loaded reviews are a partial page',
+    (WidgetTester tester) async {
+      final reviewRepo = FakeReviewRepo(
+        reviews: const [
+          ReviewModel(
+            id: 'rev-1',
+            userId: 'u-1',
+            authorName: 'An Nguyen',
+            rating: 5,
+            comment: 'Amazing view!',
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        _buildTestApp(
+          place: testPlace, // averageRating: 4.7, totalReviews: 24
+          authRepo: FakeAuthRepo(),
+          favRepo: FakeFavRepo(),
+          reviewRepo: reviewRepo,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Top rating badge and bottom ReviewListWidget must keep 4.7 and 24 (not 5.0 / 1)
+      expect(find.text('4.7'), findsNWidgets(2));
+      expect(find.text('(24)'), findsOneWidget);
+      expect(find.text('24 reviews'), findsOneWidget);
+      expect(find.text('(1)'), findsNothing);
+      expect(find.text('1 review'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'incrementally updates aggregate rating/count on SubmitReview without clobbering total',
+    (WidgetTester tester) async {
+      const placeWithOneReview = PlaceModel(
+        id: 'place-submit-1',
+        name: 'Dragon Bridge',
+        category: 'LANDMARK',
+        address: 'Hai Chau, Da Nang',
+        averageRating: 4.0,
+        totalReviews: 1,
+      );
+      const existingReview = ReviewModel(
+        id: 'rev-existing-1',
+        userId: 'u-existing',
+        authorName: 'Minh Le',
+        rating: 4,
+        comment: 'Nice lights!',
+      );
+      final reviewRepo = FakeReviewRepo(reviews: const [existingReview]);
+      final reviewBloc = ReviewBloc(reviewRepository: reviewRepo)
+        ..add(const LoadReviews(placeId: 'place-submit-1'));
+      addTearDown(reviewBloc.close);
+
+      await tester.pumpWidget(
+        _buildTestApp(
+          place: placeWithOneReview,
+          authRepo: FakeAuthRepo(),
+          favRepo: FakeFavRepo(),
+          reviewRepo: reviewRepo,
+          reviewBloc: reviewBloc,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('4.0'), findsNWidgets(2));
+      expect(find.text('(1)'), findsOneWidget);
+
+      reviewBloc.add(
+        const SubmitReview(
+          placeId: 'place-submit-1',
+          request: ReviewRequestModel(
+            rating: 5,
+            comment: 'Loved the fire show!',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // (4.0 * 1 + 5) / 2 = 4.5, total = 2
+      expect(find.text('4.5'), findsNWidgets(2));
+      expect(find.text('(2)'), findsOneWidget);
+      expect(find.text('2 reviews'), findsOneWidget);
+    },
+  );
 }

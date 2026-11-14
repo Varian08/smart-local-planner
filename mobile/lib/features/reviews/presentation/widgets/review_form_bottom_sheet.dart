@@ -50,6 +50,7 @@ class ReviewFormBottomSheet extends StatefulWidget {
 class _ReviewFormBottomSheetState extends State<ReviewFormBottomSheet> {
   final _commentController = TextEditingController();
   int _selectedRating = 5;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -90,13 +91,9 @@ class _ReviewFormBottomSheetState extends State<ReviewFormBottomSheet> {
             ),
           );
         } else if (state is ReviewFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red.shade700,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          setState(() {
+            _errorMessage = state.message;
+          });
         }
       },
       builder: (context, state) {
@@ -149,6 +146,43 @@ class _ReviewFormBottomSheetState extends State<ReviewFormBottomSheet> {
               ),
               const SizedBox(height: 12),
 
+              // Inline Error Banner
+              if (_errorMessage != null) ...[
+                Container(
+                  key: const Key('review_form_error_banner'),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.error_outline_rounded,
+                        color: Colors.red.shade700,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.red.shade800,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+
               // Star Rating Picker
               Center(
                 child: Column(
@@ -161,6 +195,7 @@ class _ReviewFormBottomSheetState extends State<ReviewFormBottomSheet> {
                           : (val) {
                               setState(() {
                                 _selectedRating = val;
+                                _errorMessage = null;
                               });
                             },
                     ),
@@ -184,6 +219,13 @@ class _ReviewFormBottomSheetState extends State<ReviewFormBottomSheet> {
                 enabled: !isSubmitting,
                 maxLines: 4,
                 maxLength: 1000,
+                onChanged: (_) {
+                  if (_errorMessage != null) {
+                    setState(() {
+                      _errorMessage = null;
+                    });
+                  }
+                },
                 decoration: InputDecoration(
                   hintText:
                       'Share your experience, recommendations, or tips for fellow travelers...',

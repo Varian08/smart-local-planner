@@ -78,13 +78,15 @@ class ItineraryOperationSuccess extends ItineraryState {
 class ItineraryFailure extends ItineraryState {
   final String message;
   final int? statusCode;
+  final List<ItineraryModel> itineraries;
 
   const ItineraryFailure({
     required this.message,
     this.statusCode,
+    this.itineraries = const [],
   });
 
   @override
-  List<Object?> get props => [message, statusCode];
+  List<Object?> get props => [message, statusCode, itineraries];
 }
 

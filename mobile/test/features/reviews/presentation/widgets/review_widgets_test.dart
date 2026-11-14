@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_local_planner/features/reviews/bloc/review_bloc.dart';
+import 'package:smart_local_planner/features/reviews/bloc/review_state.dart';
 import 'package:smart_local_planner/features/reviews/data/models/review_model.dart';
 import 'package:smart_local_planner/features/reviews/data/models/review_request_model.dart';
 import 'package:smart_local_planner/features/reviews/data/repositories/review_repository.dart';
@@ -179,6 +180,48 @@ void main() {
 
       // ReviewSubmitting or Success processed
       expect(find.byType(ReviewFormBottomSheet), findsOneWidget);
+    });
+
+    testWidgets('displays inline error banner on ReviewFailure and clears on user input', (tester) async {
+      final repo = FakeReviewRepository();
+      final bloc = ReviewBloc(reviewRepository: repo);
+      addTearDown(bloc.close);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: BlocProvider<ReviewBloc>.value(
+              value: bloc,
+              child: const ReviewFormBottomSheet(
+                placeId: 'p-conflict-1',
+                placeName: 'Han River',
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Verify no error banner initially
+      expect(find.byKey(const Key('review_form_error_banner')), findsNothing);
+
+      // Simulate conflict error
+      bloc.emit(
+        const ReviewFailure(
+          message: 'You have already reviewed this place.',
+          statusCode: 409,
+        ),
+      );
+      await tester.pump();
+
+      // Error banner must be rendered inline
+      expect(find.byKey(const Key('review_form_error_banner')), findsOneWidget);
+      expect(find.text('You have already reviewed this place.'), findsOneWidget);
+
+      // Typing into comment field clears error banner
+      await tester.enterText(find.byType(TextField), 'Updating my thoughts...');
+      await tester.pump();
+
+      expect(find.byKey(const Key('review_form_error_banner')), findsNothing);
     });
   });
 }

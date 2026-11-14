@@ -143,55 +143,79 @@ class _PlaceDetailContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Category Tag & Rating Badge
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.teal.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.teal.shade200),
-                        ),
-                        child: Text(
-                          place.category.toUpperCase(),
-                          style: TextStyle(
-                            color: Colors.teal.shade800,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                      Row(
+                  BlocBuilder<ReviewBloc, ReviewState>(
+                    builder: (context, state) {
+                      final reviews = state is ReviewLoaded
+                          ? state.reviews
+                          : (state is ReviewSubmitSuccess
+                              ? state.reviews
+                              : (state is ReviewFailure
+                                  ? state.reviews
+                                  : (state is ReviewSubmitting
+                                      ? state.currentReviews
+                                      : <ReviewModel>[])));
+
+                      final effectiveRating = reviews.isNotEmpty
+                          ? reviews
+                                  .map((r) => r.rating)
+                                  .reduce((a, b) => a + b) /
+                              reviews.length
+                          : place.averageRating;
+                      final effectiveTotalReviews = reviews.isNotEmpty
+                          ? reviews.length
+                          : place.totalReviews;
+
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Icon(
-                            Icons.star_rounded,
-                            color: Colors.amber,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            place.averageRating.toStringAsFixed(1),
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.teal.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.teal.shade200),
+                            ),
+                            child: Text(
+                              place.category.toUpperCase(),
+                              style: TextStyle(
+                                color: Colors.teal.shade800,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '(${place.totalReviews})',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey.shade600,
-                            ),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.star_rounded,
+                                color: Colors.amber,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                effectiveRating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '($effectiveTotalReviews)',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
-                      ),
-                    ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 12),
 
@@ -400,10 +424,20 @@ class _PlaceDetailContent extends StatelessWidget {
                                       ? state.currentReviews
                                       : <ReviewModel>[])));
 
+                      final effectiveRating = reviews.isNotEmpty
+                          ? reviews
+                                  .map((r) => r.rating)
+                                  .reduce((a, b) => a + b) /
+                              reviews.length
+                          : place.averageRating;
+                      final effectiveTotalReviews = reviews.isNotEmpty
+                          ? reviews.length
+                          : place.totalReviews;
+
                       return ReviewListWidget(
                         reviews: reviews,
-                        averageRating: place.averageRating,
-                        totalReviews: place.totalReviews,
+                        averageRating: effectiveRating,
+                        totalReviews: effectiveTotalReviews,
                       );
                     },
                   ),

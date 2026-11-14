@@ -7,22 +7,51 @@ import '../../bloc/itinerary_event.dart';
 import '../../bloc/itinerary_state.dart';
 import '../../data/models/itinerary_item_model.dart';
 import '../../data/models/itinerary_model.dart';
+import '../../data/repositories/itinerary_repository.dart';
 
 /// Screen displaying full multi-day itinerary timeline with tabbed day-by-day navigation.
 /// Conforms to the enterprise Mandatory 4-State UI Contract.
-class ItineraryDetailScreen extends StatefulWidget {
+class ItineraryDetailScreen extends StatelessWidget {
   final String itineraryId;
+  final ItineraryBloc? itineraryBloc;
 
   const ItineraryDetailScreen({
     super.key,
     required this.itineraryId,
+    this.itineraryBloc,
   });
 
   @override
-  State<ItineraryDetailScreen> createState() => _ItineraryDetailScreenState();
+  Widget build(BuildContext context) {
+    if (itineraryBloc != null) {
+      return BlocProvider<ItineraryBloc>.value(
+        value: itineraryBloc!,
+        child: _ItineraryDetailContent(itineraryId: itineraryId),
+      );
+    }
+
+    try {
+      final repository = context.read<ItineraryRepository>();
+      return BlocProvider<ItineraryBloc>(
+        create: (context) => ItineraryBloc(itineraryRepository: repository),
+        child: _ItineraryDetailContent(itineraryId: itineraryId),
+      );
+    } catch (_) {
+      return _ItineraryDetailContent(itineraryId: itineraryId);
+    }
+  }
 }
 
-class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
+class _ItineraryDetailContent extends StatefulWidget {
+  final String itineraryId;
+
+  const _ItineraryDetailContent({required this.itineraryId});
+
+  @override
+  State<_ItineraryDetailContent> createState() => _ItineraryDetailContentState();
+}
+
+class _ItineraryDetailContentState extends State<_ItineraryDetailContent> {
   int _selectedDay = 1;
 
   @override

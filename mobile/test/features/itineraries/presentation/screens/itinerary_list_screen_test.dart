@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_local_planner/features/itineraries/bloc/itinerary_bloc.dart';
 import 'package:smart_local_planner/features/itineraries/bloc/itinerary_event.dart';
+import 'package:smart_local_planner/features/itineraries/bloc/itinerary_state.dart';
 import 'package:smart_local_planner/features/itineraries/data/models/itinerary_model.dart';
 import 'package:smart_local_planner/features/itineraries/data/models/itinerary_request_model.dart';
 import 'package:smart_local_planner/features/itineraries/data/repositories/itinerary_repository.dart';
@@ -245,6 +246,77 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repo.lastDeletedId, 'itin-delete-test');
+    });
+
+    testWidgets('navigating to ItineraryDetailScreen and back preserves list view without blank screen', (
+      WidgetTester tester,
+    ) async {
+      final repo = FakeItineraryRepository()
+        ..itinerariesToReturn = [
+          const ItineraryModel(
+            id: 'itin-nav-1',
+            title: 'Trip to Da Nang',
+            totalDays: 3,
+          ),
+        ];
+      final bloc = ItineraryBloc(itineraryRepository: repo);
+      addTearDown(bloc.close);
+
+      bloc.add(const LoadItineraries());
+      await tester.pumpWidget(_wrapWithProviders(itineraryBloc: bloc));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Trip to Da Nang'), findsOneWidget);
+
+      // Tap on the card to navigate to detail screen
+      await tester.tap(find.text('Trip to Da Nang'));
+      await tester.pumpAndSettle();
+
+      // Verify we are on ItineraryDetailScreen
+      expect(find.text('Itinerary Details'), findsOneWidget);
+
+      // Pop back to list screen
+      final backButton = find.byType(BackButton);
+      if (backButton.evaluate().isNotEmpty) {
+        await tester.tap(backButton);
+      } else {
+        final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+        navigator.pop();
+      }
+      await tester.pumpAndSettle();
+
+      // List screen must cleanly preserve the items and NOT render blank (SizedBox.shrink)
+      expect(find.text('Trip to Da Nang'), findsOneWidget);
+      expect(find.text('My Itineraries'), findsOneWidget);
+    });
+
+    testWidgets('displays list view when ItineraryFailure has non-empty itineraries', (
+      WidgetTester tester,
+    ) async {
+      final repo = FakeItineraryRepository();
+      final bloc = ItineraryBloc(itineraryRepository: repo);
+      addTearDown(bloc.close);
+
+      await tester.pumpWidget(_wrapWithProviders(itineraryBloc: bloc));
+
+      // Emit failure state carrying non-empty items
+      const mockList = [
+        ItineraryModel(id: 'itin-fail-preserved', title: 'Preserved Itinerary'),
+      ];
+      bloc.emit(
+        const ItineraryFailure(
+          message: 'Could not connect to server',
+          itineraries: mockList,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Items must remain rendered
+      expect(find.text('Preserved Itinerary'), findsOneWidget);
+      // SnackBar must be visible
+      expect(find.text('Could not connect to server'), findsOneWidget);
+      // Full screen error view should NOT be visible
+      expect(find.text('Failed to Load Itineraries'), findsNothing);
     });
   });
 }

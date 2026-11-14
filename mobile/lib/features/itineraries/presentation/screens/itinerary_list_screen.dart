@@ -129,6 +129,9 @@ class ItineraryListScreen extends StatelessWidget {
                 // State 2: Error
                 // -------------------------------------------------------------
                 if (state is ItineraryFailure) {
+                  if (state.itineraries.isNotEmpty) {
+                    return _buildItineraryListView(context, state.itineraries);
+                  }
                   return _buildErrorView(context, state.message);
                 }
 
@@ -140,40 +143,7 @@ class ItineraryListScreen extends StatelessWidget {
                     return _buildEmptyView(context);
                   }
 
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      context
-                          .read<ItineraryBloc>()
-                          .add(const LoadItineraries(isRefresh: true));
-                    },
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 12.0,
-                      ),
-                      itemCount: state.itineraries.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final itinerary = state.itineraries[index];
-                        return ItineraryCard(
-                          itinerary: itinerary,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => BlocProvider.value(
-                                  value: context.read<ItineraryBloc>(),
-                                  child: ItineraryDetailScreen(
-                                    itineraryId: itinerary.id,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                          onDelete: () => _confirmDelete(context, itinerary),
-                        );
-                      },
-                    ),
-                  );
+                  return _buildItineraryListView(context, state.itineraries);
                 }
 
                 return const SizedBox.shrink();
@@ -181,6 +151,47 @@ class ItineraryListScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildItineraryListView(
+    BuildContext context,
+    List<ItineraryModel> itineraries,
+  ) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        context
+            .read<ItineraryBloc>()
+            .add(const LoadItineraries(isRefresh: true));
+      },
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16.0,
+          vertical: 12.0,
+        ),
+        itemCount: itineraries.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final itinerary = itineraries[index];
+          return ItineraryCard(
+            itinerary: itinerary,
+            onTap: () {
+              final parentBloc = context.read<ItineraryBloc>();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ItineraryDetailScreen(
+                    itineraryId: itinerary.id,
+                    itineraryBloc: ItineraryBloc(
+                      itineraryRepository: parentBloc.itineraryRepository,
+                    ),
+                  ),
+                ),
+              );
+            },
+            onDelete: () => _confirmDelete(context, itinerary),
+          );
+        },
       ),
     );
   }

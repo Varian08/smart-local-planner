@@ -343,6 +343,38 @@ void main() {
 
       itineraryBloc.add(const DeleteItinerary('del-123'));
     });
+
+    test('preserves loaded itineraries when delete operation fails', () async {
+      final mockList = [
+        const ItineraryModel(id: 'itin-preserve-1', title: 'Existing Trip'),
+      ];
+      mockRepository.itinerariesToReturn = mockList;
+
+      // 1. Initial successful load
+      itineraryBloc.add(const LoadItineraries());
+      await expectLater(
+        itineraryBloc.stream,
+        emitsThrough(
+          ItineraryLoaded(itineraries: mockList, page: 0, hasMore: false),
+        ),
+      );
+
+      // 2. Delete fails
+      mockRepository.shouldThrow = Exception('Network error during delete');
+
+      expectLater(
+        itineraryBloc.stream,
+        emitsInOrder([
+          const ItineraryLoading(),
+          ItineraryFailure(
+            message: 'Failed to delete itinerary: Exception: Network error during delete',
+            itineraries: mockList,
+          ),
+        ]),
+      );
+
+      itineraryBloc.add(const DeleteItinerary('itin-preserve-1'));
+    });
   });
 }
 

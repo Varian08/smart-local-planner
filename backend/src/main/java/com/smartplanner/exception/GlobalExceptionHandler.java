@@ -4,6 +4,7 @@ import com.smartplanner.dto.response.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -321,6 +322,32 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST.value())
                 .code("BAD_REQUEST")
                 .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * Handle Spring Data JPA PropertyReferenceException when invalid sort/query properties are supplied.
+     * Returns 400 BAD_REQUEST per docs/API_SPECIFICATION.md.
+     */
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<ApiErrorResponse> handlePropertyReferenceException(
+            PropertyReferenceException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        String message = String.format("Invalid property reference '%s' for type '%s'.",
+                ex.getPropertyName(), ex.getType().getType().getSimpleName());
+        log.warn("PropertyReferenceException [traceId={}] on path {}: {}", traceId, request.getRequestURI(), message);
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .code("BAD_REQUEST")
+                .message(message)
                 .path(request.getRequestURI())
                 .traceId(traceId)
                 .build();

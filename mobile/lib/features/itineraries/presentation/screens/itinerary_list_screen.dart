@@ -5,6 +5,7 @@ import '../../bloc/itinerary_bloc.dart';
 import '../../bloc/itinerary_event.dart';
 import '../../bloc/itinerary_state.dart';
 import '../../data/models/itinerary_model.dart';
+import '../../data/repositories/itinerary_repository.dart';
 import '../widgets/create_itinerary_dialog.dart';
 import '../widgets/itinerary_card.dart';
 import 'itinerary_detail_screen.dart';
@@ -180,10 +181,10 @@ class ItineraryListScreen extends StatelessWidget {
               final parentBloc = context.read<ItineraryBloc>();
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => ItineraryDetailScreen(
-                    itineraryId: itinerary.id,
-                    itineraryBloc: ItineraryBloc(
-                      itineraryRepository: parentBloc.itineraryRepository,
+                  builder: (_) => RepositoryProvider<ItineraryRepository>.value(
+                    value: parentBloc.itineraryRepository,
+                    child: ItineraryDetailScreen(
+                      itineraryId: itinerary.id,
                     ),
                   ),
                 ),

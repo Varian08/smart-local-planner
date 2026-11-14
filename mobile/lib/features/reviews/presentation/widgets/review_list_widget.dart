@@ -46,11 +46,15 @@ class ReviewListWidget extends StatelessWidget {
   }
 
   Widget _buildRatingSummary(BuildContext context) {
-    final effectiveRating = reviews.isNotEmpty
-        ? reviews.map((r) => r.rating).reduce((a, b) => a + b) /
-            reviews.length
-        : (averageRating > 0 ? averageRating : 0.0);
-    final count = reviews.isNotEmpty ? reviews.length : totalReviews;
+    final hasAuthoritativeTotal =
+        totalReviews > 0 && totalReviews >= reviews.length;
+    final effectiveRating = hasAuthoritativeTotal && averageRating > 0
+        ? averageRating
+        : (reviews.isNotEmpty
+            ? reviews.map((r) => r.rating).reduce((a, b) => a + b) /
+                reviews.length
+            : (averageRating > 0 ? averageRating : 0.0));
+    final count = hasAuthoritativeTotal ? totalReviews : reviews.length;
 
     return Container(
       padding: const EdgeInsets.all(16),

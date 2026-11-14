@@ -140,6 +140,39 @@ void main() {
       expect(find.text('Minh Le'), findsOneWidget);
       expect(find.text('Good value for money.'), findsOneWidget);
     });
+
+    testWidgets(
+        'preserves server averageRating and totalReviews when reviews is a partial page',
+        (WidgetTester tester) async {
+      const partialReviews = [
+        ReviewModel(
+          id: 'rev-page-1',
+          userId: 'user-1',
+          authorName: 'Linh Tran',
+          rating: 5,
+          comment: 'Great view!',
+        ),
+      ];
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: ReviewListWidget(
+                reviews: partialReviews,
+                averageRating: 4.7,
+                totalReviews: 24,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('4.7'), findsOneWidget);
+      expect(find.text('24 reviews'), findsOneWidget);
+      expect(find.text('5.0'), findsNothing);
+      expect(find.text('1 review'), findsNothing);
+    });
   });
 
   group('ReviewFormBottomSheet Tests', () {

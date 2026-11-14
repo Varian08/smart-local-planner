@@ -274,6 +274,13 @@ void main() {
 
       // Verify we are on ItineraryDetailScreen
       expect(find.text('Itinerary Details'), findsOneWidget);
+      final detailScaffold = find.ancestor(
+        of: find.text('Itinerary Details'),
+        matching: find.byType(Scaffold),
+      );
+      final detailBloc = tester.element(detailScaffold).read<ItineraryBloc>();
+      expect(detailBloc, isNot(same(bloc)));
+      expect(detailBloc.isClosed, isFalse);
 
       // Pop back to list screen
       final backButton = find.byType(BackButton);
@@ -286,6 +293,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // List screen must cleanly preserve the items and NOT render blank (SizedBox.shrink)
+      // and scoped detail ItineraryBloc must be closed on pop (no leak).
+      expect(detailBloc.isClosed, isTrue);
+      expect(bloc.isClosed, isFalse);
       expect(find.text('Trip to Da Nang'), findsOneWidget);
       expect(find.text('My Itineraries'), findsOneWidget);
     });

@@ -84,12 +84,12 @@ public class FavoriteServiceImpl implements FavoriteService {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
 
-        if (!favoriteRepository.existsByUserIdAndPlaceId(userId, placeId)) {
+        int deletedRows = favoriteRepository.deleteByUserIdAndPlaceId(userId, placeId);
+        if (deletedRows == 0) {
             log.warn("Remove favorite rejected: Favorite not found for user {} and place {}", userId, placeId);
             throw new ResourceNotFoundException("Favorite not found for place id: " + placeId);
         }
 
-        favoriteRepository.deleteByUserIdAndPlaceId(userId, placeId);
         log.info("Place {} successfully removed from favorites for user {}", placeId, userId);
     }
 

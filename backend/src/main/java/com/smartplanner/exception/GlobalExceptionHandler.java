@@ -339,9 +339,12 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         String traceId = generateTraceId();
-        String message = String.format("Invalid property reference '%s' for type '%s'.",
-                ex.getPropertyName(), ex.getType().getType().getSimpleName());
-        log.warn("PropertyReferenceException [traceId={}] on path {}: {}", traceId, request.getRequestURI(), message);
+        String propertyName = ex.getPropertyName();
+        String internalType = ex.getType() != null ? ex.getType().getType().getSimpleName() : "unknown";
+        log.warn("PropertyReferenceException [traceId={}] on path {}: property='{}', type='{}'",
+                traceId, request.getRequestURI(), propertyName, internalType);
+
+        String message = String.format("Invalid sort or filter property reference: '%s'.", propertyName);
 
         ApiErrorResponse errorResponse = ApiErrorResponse.builder()
                 .timestamp(OffsetDateTime.now())

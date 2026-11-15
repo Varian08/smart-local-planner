@@ -4,21 +4,19 @@ import com.smartplanner.dto.request.ReviewRequest;
 import com.smartplanner.dto.response.PageResponse;
 import com.smartplanner.dto.response.ReviewResponse;
 import com.smartplanner.entity.User;
-import com.smartplanner.exception.UnauthorizedException;
 import com.smartplanner.service.ReviewService;
+import com.smartplanner.util.PaginationUtils;
+import com.smartplanner.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,6 +39,10 @@ import java.util.UUID;
 @Tag(name = "Reviews", description = "Place Community Reviews and Ratings APIs")
 public class ReviewController {
 
+    private static final Set<String> ALLOWED_SORT_PROPERTIES = Set.of(
+            "createdAt", "updatedAt", "rating"
+    );
+
     private final ReviewService reviewService;
 
     /**
@@ -57,8 +59,9 @@ public class ReviewController {
     ) {
         log.debug("GET /api/v1/places/{}/reviews?page={}&size={}&sort={}", placeId, page, size, sort);
 
-        Sort sorting = parseSort(sort);
-        Pageable pageable = PageRequest.of(page, size, sorting);
+        Pageable pageable = PaginationUtils.buildPageable(
+                page, size, sort, "createdAt", ALLOWED_SORT_PROPERTIES
+        );
         Page<ReviewResponse> reviewPage = reviewService.getPlaceReviews(placeId, pageable);
 
         return ResponseEntity.ok(PageResponse.from(reviewPage));
@@ -75,43 +78,11 @@ public class ReviewController {
             @AuthenticationPrincipal User currentUser,
             @Valid @RequestBody ReviewRequest request
     ) {
-        UUID userId = resolveUserId(currentUser);
+        UUID userId = SecurityUtils.resolveUserId(currentUser);
         log.info("POST /api/v1/places/{}/reviews by user {}", placeId, userId);
 
         ReviewResponse response = reviewService.submitReview(userId, placeId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    private UUID resolveUserId(User currentUser) {
-        if (currentUser != null && currentUser.getId() != null) {
-            return currentUser.getId();
-        }
-        org.springframework.security.core.Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof User user && user.getId() != null) {
-            return user.getId();
-        }
-        throw new UnauthorizedException("User authentication required.");
-    }
-
-    private static final Set<String> ALLOWED_SORT_PROPERTIES = Set.of(
-            "createdAt", "updatedAt", "rating"
-    );
-
-    private Sort parseSort(String sortParam) {
-        if (sortParam == null || sortParam.isBlank()) {
-            return Sort.by(Sort.Direction.DESC, "createdAt");
-        }
-        String[] parts = sortParam.split(",");
-        String property = parts[0].trim();
-        if (!ALLOWED_SORT_PROPERTIES.contains(property)) {
-            throw new IllegalArgumentException(
-                    "Invalid sort property '" + property + "'. Allowed sort properties: " + ALLOWED_SORT_PROPERTIES
-            );
-        }
-        Sort.Direction direction = (parts.length > 1 && parts[1].trim().equalsIgnoreCase("asc"))
-                ? Sort.Direction.ASC
-                : Sort.Direction.DESC;
-        return Sort.by(direction, property);
     }
 }
 

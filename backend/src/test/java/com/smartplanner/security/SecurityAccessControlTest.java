@@ -94,8 +94,13 @@ class SecurityAccessControlTest {
     @Test
     @DisplayName("Protected endpoints with valid Bearer token pass through authentication filter")
     void protectedEndpoints_withValidBearerToken_authenticatesUser() throws Exception {
-        // Access protected endpoint with Bearer token: returns 404 Not Found (route unmapped) instead of 401 Unauthorized
+        when(userRepository.existsById(testUser.getId())).thenReturn(true);
+
         mockMvc.perform(get("/api/v1/favorites")
+                        .header("Authorization", "Bearer " + validJwt))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/nonexistent-protected-route")
                         .header("Authorization", "Bearer " + validJwt))
                 .andExpect(status().isNotFound());
     }

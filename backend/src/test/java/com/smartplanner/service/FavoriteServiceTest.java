@@ -177,14 +177,15 @@ class FavoriteServiceTest {
     }
 
     @Test
-    @DisplayName("removeFavorite deletes favorite when user exists and favorite entry exists")
+    @DisplayName("removeFavorite deletes favorite in single query when user and favorite exist")
     void removeFavorite_success() {
         when(userRepository.existsById(userId)).thenReturn(true);
-        when(favoriteRepository.existsByUserIdAndPlaceId(userId, placeId)).thenReturn(true);
+        when(favoriteRepository.deleteByUserIdAndPlaceId(userId, placeId)).thenReturn(1);
 
         favoriteService.removeFavorite(userId, placeId);
 
         verify(favoriteRepository).deleteByUserIdAndPlaceId(userId, placeId);
+        verify(favoriteRepository, never()).existsByUserIdAndPlaceId(any(), any());
     }
 
     @Test
@@ -203,13 +204,14 @@ class FavoriteServiceTest {
     @DisplayName("removeFavorite when favorite entry not found throws ResourceNotFoundException")
     void removeFavorite_whenFavoriteNotFound_throwsNotFound() {
         when(userRepository.existsById(userId)).thenReturn(true);
-        when(favoriteRepository.existsByUserIdAndPlaceId(userId, placeId)).thenReturn(false);
+        when(favoriteRepository.deleteByUserIdAndPlaceId(userId, placeId)).thenReturn(0);
 
         assertThatThrownBy(() -> favoriteService.removeFavorite(userId, placeId))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Favorite not found for place id: " + placeId);
 
-        verify(favoriteRepository, never()).deleteByUserIdAndPlaceId(any(), any());
+        verify(favoriteRepository).deleteByUserIdAndPlaceId(userId, placeId);
+        verify(favoriteRepository, never()).existsByUserIdAndPlaceId(any(), any());
     }
 }
 

@@ -92,25 +92,7 @@ public class ItineraryServiceImpl implements ItineraryService {
                 .isPublic(request.isPublic())
                 .build();
 
-        if (request.getItems() != null && !request.getItems().isEmpty()) {
-            for (ItineraryItemRequest itemReq : request.getItems()) {
-                Place place = placeRepository.findById(itemReq.getPlaceId())
-                        .orElseThrow(() -> {
-                            log.warn("Itinerary creation item rejected: Place not found with id: {}", itemReq.getPlaceId());
-                            return new ResourceNotFoundException("Place not found with id: " + itemReq.getPlaceId());
-                        });
-
-                ItineraryItem item = ItineraryItem.builder()
-                        .place(place)
-                        .dayNumber(itemReq.getDayNumber())
-                        .orderIndex(itemReq.getOrderIndex())
-                        .startTime(itemReq.getStartTime())
-                        .notes(itemReq.getNotes())
-                        .build();
-
-                itinerary.addItem(item);
-            }
-        }
+        populateItineraryItems(itinerary, request.getItems(), "creation");
 
         Itinerary saved = itineraryRepository.save(itinerary);
         log.info("Itinerary {} created with {} items by user {}",
@@ -139,26 +121,7 @@ public class ItineraryServiceImpl implements ItineraryService {
 
         // Atomic full-schedule replacement
         itinerary.clearItems();
-
-        if (request.getItems() != null && !request.getItems().isEmpty()) {
-            for (ItineraryItemRequest itemReq : request.getItems()) {
-                Place place = placeRepository.findById(itemReq.getPlaceId())
-                        .orElseThrow(() -> {
-                            log.warn("Itinerary update item rejected: Place not found with id: {}", itemReq.getPlaceId());
-                            return new ResourceNotFoundException("Place not found with id: " + itemReq.getPlaceId());
-                        });
-
-                ItineraryItem item = ItineraryItem.builder()
-                        .place(place)
-                        .dayNumber(itemReq.getDayNumber())
-                        .orderIndex(itemReq.getOrderIndex())
-                        .startTime(itemReq.getStartTime())
-                        .notes(itemReq.getNotes())
-                        .build();
-
-                itinerary.addItem(item);
-            }
-        }
+        populateItineraryItems(itinerary, request.getItems(), "update");
 
         Itinerary updated = itineraryRepository.save(itinerary);
         log.info("Itinerary {} atomically updated with {} items by owner {}",
@@ -180,6 +143,34 @@ public class ItineraryServiceImpl implements ItineraryService {
 
         itineraryRepository.delete(itinerary);
         log.info("Itinerary {} successfully deleted by owner {}", id, currentUserId);
+    }
+
+    private void populateItineraryItems(
+            Itinerary itinerary,
+            List<ItineraryItemRequest> itemRequests,
+            String actionContext
+    ) {
+        if (itemRequests == null || itemRequests.isEmpty()) {
+            return;
+        }
+        for (ItineraryItemRequest itemReq : itemRequests) {
+            Place place = placeRepository.findById(itemReq.getPlaceId())
+                    .orElseThrow(() -> {
+                        log.warn("Itinerary {} item rejected: Place not found with id: {}",
+                                actionContext, itemReq.getPlaceId());
+                        return new ResourceNotFoundException("Place not found with id: " + itemReq.getPlaceId());
+                    });
+
+            ItineraryItem item = ItineraryItem.builder()
+                    .place(place)
+                    .dayNumber(itemReq.getDayNumber())
+                    .orderIndex(itemReq.getOrderIndex())
+                    .startTime(itemReq.getStartTime())
+                    .notes(itemReq.getNotes())
+                    .build();
+
+            itinerary.addItem(item);
+        }
     }
 
     private void validateDates(LocalDate startDate, LocalDate endDate) {

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 /**
  * Production-ready implementation of AuthService.
@@ -86,7 +87,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(noRollbackFor = InvalidTokenException.class)
     public AuthResponse refreshToken(RefreshTokenRequest request) {
         String rawToken = request.getRefreshToken().trim();
 
@@ -97,8 +98,15 @@ public class AuthServiceImpl implements AuthService {
                     return new InvalidTokenException("Invalid or expired refresh token.");
                 });
 
+        if (existingToken.isRevoked()) {
+            UUID tokenUserId = existingToken.getUser().getId();
+            log.warn("SECURITY: Refresh token replay detected for user: {}. Revoking all active sessions.", tokenUserId);
+            refreshTokenRepository.deleteByUserId(tokenUserId);
+            throw new InvalidTokenException("Invalid or expired refresh token.");
+        }
+
         if (!existingToken.isActive()) {
-            log.warn("Token refresh rejected: Token expired or revoked for user: {}", existingToken.getUser().getId());
+            log.warn("Token refresh rejected: Token expired for user: {}", existingToken.getUser().getId());
             throw new InvalidTokenException("Invalid or expired refresh token.");
         }
 

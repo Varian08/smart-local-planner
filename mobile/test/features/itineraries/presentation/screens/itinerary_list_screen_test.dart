@@ -1,9 +1,11 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_local_planner/features/itineraries/bloc/itinerary_bloc.dart';
 import 'package:smart_local_planner/features/itineraries/bloc/itinerary_event.dart';
-import 'package:smart_local_planner/features/itineraries/bloc/itinerary_state.dart';
 import 'package:smart_local_planner/features/itineraries/data/models/itinerary_model.dart';
 import 'package:smart_local_planner/features/itineraries/data/models/itinerary_request_model.dart';
 import 'package:smart_local_planner/features/itineraries/data/repositories/itinerary_repository.dart';
@@ -12,6 +14,8 @@ import 'package:smart_local_planner/features/itineraries/presentation/screens/it
 class FakeItineraryRepository implements ItineraryRepository {
   List<ItineraryModel> itinerariesToReturn = [];
   bool shouldThrow = false;
+  Object? deleteError;
+  Completer<void>? deleteCompleter;
   int fetchCallCount = 0;
   String? lastDeletedId;
 
@@ -56,7 +60,13 @@ class FakeItineraryRepository implements ItineraryRepository {
   @override
   Future<void> deleteItinerary(String id) async {
     lastDeletedId = id;
+    if (deleteError != null) {
+      throw deleteError!;
+    }
     if (shouldThrow) throw Exception('Network error');
+    if (deleteCompleter != null) {
+      await deleteCompleter!.future;
+    }
   }
 }
 
@@ -300,23 +310,46 @@ void main() {
       expect(find.text('My Itineraries'), findsOneWidget);
     });
 
-    testWidgets('displays list view when ItineraryFailure has non-empty itineraries', (
+    testWidgets('preserves list view through ItinerarySubmitting and ItineraryFailure when delete fails', (
       WidgetTester tester,
     ) async {
-      final repo = FakeItineraryRepository();
+      final deleteCompleter = Completer<void>();
+      final repo = FakeItineraryRepository()
+        ..itinerariesToReturn = [
+          const ItineraryModel(
+            id: 'itin-fail-preserved',
+            title: 'Preserved Itinerary',
+          ),
+        ]
+        ..deleteCompleter = deleteCompleter;
       final bloc = ItineraryBloc(itineraryRepository: repo);
       addTearDown(bloc.close);
 
+      bloc.add(const LoadItineraries());
       await tester.pumpWidget(_wrapWithProviders(itineraryBloc: bloc));
+      await tester.pumpAndSettle();
 
-      // Emit failure state carrying non-empty items
-      const mockList = [
-        ItineraryModel(id: 'itin-fail-preserved', title: 'Preserved Itinerary'),
-      ];
-      bloc.emit(
-        const ItineraryFailure(
-          message: 'Could not connect to server',
-          itineraries: mockList,
+      // Trigger delete via full UI flow
+      await tester.tap(find.byTooltip('Delete itinerary'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pump();
+
+      // While mutation is in flight (ItinerarySubmitting), items stay visible without skeleton flash
+      expect(find.text('Preserved Itinerary'), findsOneWidget);
+      expect(find.byKey(const Key('itinerary_loading_skeleton')), findsNothing);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+
+      // Fail deletion through repository DioException
+      deleteCompleter.completeError(
+        DioException(
+          requestOptions: RequestOptions(path: '/itineraries/itin-fail-preserved'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/itineraries/itin-fail-preserved'),
+            statusCode: 500,
+            data: {'message': 'Could not connect to server'},
+          ),
+          type: DioExceptionType.badResponse,
         ),
       );
       await tester.pumpAndSettle();

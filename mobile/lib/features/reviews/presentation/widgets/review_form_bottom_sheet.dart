@@ -90,6 +90,10 @@ class _ReviewFormBottomSheetState extends State<ReviewFormBottomSheet> {
               behavior: SnackBarBehavior.floating,
             ),
           );
+        } else if (state is ReviewSubmitting && _errorMessage != null) {
+          setState(() {
+            _errorMessage = null;
+          });
         } else if (state is ReviewFailure) {
           setState(() {
             _errorMessage = state.message;
@@ -283,6 +287,11 @@ class _ReviewFormBottomSheetState extends State<ReviewFormBottomSheet> {
   }
 
   void _submitReview() {
+    if (_errorMessage != null) {
+      setState(() {
+        _errorMessage = null;
+      });
+    }
     final comment = _commentController.text.trim();
     context.read<ReviewBloc>().add(
           SubmitReview(

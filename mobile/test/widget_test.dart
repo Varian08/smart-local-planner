@@ -80,6 +80,9 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   Future<String?> getAccessToken() async => null;
+
+  @override
+  Future<UserModel?> getCachedUser() async => null;
 }
 
 /// Test double simulating FavoriteRepository in empty state for widget tests.

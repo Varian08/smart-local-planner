@@ -27,8 +27,11 @@ class ItineraryBloc extends Bloc<ItineraryEvent, ItineraryState> {
     LoadItineraries event,
     Emitter<ItineraryState> emit,
   ) async {
-    // Only emit loading for initial load or non-refresh requests
-    if (state is! ItineraryLoaded || event.isRefresh || event.page == 0) {
+    final currentList = _extractCurrentItineraries();
+    // Preserve existing list via ItinerarySubmitting when refreshing after mutation or pull-to-refresh
+    if (event.isRefresh && currentList.isNotEmpty) {
+      emit(ItinerarySubmitting(itineraries: currentList));
+    } else if (state is! ItineraryLoaded || event.isRefresh || event.page == 0) {
       emit(const ItineraryLoading());
     }
 
@@ -92,12 +95,13 @@ class ItineraryBloc extends Bloc<ItineraryEvent, ItineraryState> {
     Emitter<ItineraryState> emit,
   ) async {
     final currentList = _extractCurrentItineraries();
-    emit(const ItineraryLoading());
+    emit(ItinerarySubmitting(itineraries: currentList));
     try {
       final created = await itineraryRepository.createItinerary(event.request);
       emit(ItineraryOperationSuccess(
         message: 'Itinerary created successfully',
         itinerary: created,
+        itineraries: currentList,
       ));
     } on DioException catch (e) {
       emit(_mapDioErrorToFailure(e, currentList));
@@ -117,15 +121,19 @@ class ItineraryBloc extends Bloc<ItineraryEvent, ItineraryState> {
     Emitter<ItineraryState> emit,
   ) async {
     final currentList = _extractCurrentItineraries();
-    emit(const ItineraryLoading());
+    emit(ItinerarySubmitting(itineraries: currentList));
     try {
       final updated = await itineraryRepository.updateItinerary(
         event.id,
         event.request,
       );
+      final optimisticList = currentList
+          .map((item) => item.id == event.id ? updated : item)
+          .toList();
       emit(ItineraryOperationSuccess(
         message: 'Itinerary updated successfully',
         itinerary: updated,
+        itineraries: optimisticList,
       ));
     } on DioException catch (e) {
       emit(_mapDioErrorToFailure(e, currentList));
@@ -145,12 +153,15 @@ class ItineraryBloc extends Bloc<ItineraryEvent, ItineraryState> {
     Emitter<ItineraryState> emit,
   ) async {
     final currentList = _extractCurrentItineraries();
-    emit(const ItineraryLoading());
+    emit(ItinerarySubmitting(itineraries: currentList));
     try {
       await itineraryRepository.deleteItinerary(event.id);
+      final optimisticList =
+          currentList.where((item) => item.id != event.id).toList();
       emit(ItineraryOperationSuccess(
         message: 'Itinerary deleted successfully',
         deletedId: event.id,
+        itineraries: optimisticList,
       ));
     } on DioException catch (e) {
       emit(_mapDioErrorToFailure(e, currentList));
@@ -168,6 +179,10 @@ class ItineraryBloc extends Bloc<ItineraryEvent, ItineraryState> {
   List<ItineraryModel> _extractCurrentItineraries() {
     final currentState = state;
     if (currentState is ItineraryLoaded) return currentState.itineraries;
+    if (currentState is ItinerarySubmitting) return currentState.itineraries;
+    if (currentState is ItineraryOperationSuccess) {
+      return currentState.itineraries;
+    }
     if (currentState is ItineraryFailure) return currentState.itineraries;
     return const [];
   }

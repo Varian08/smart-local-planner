@@ -66,7 +66,8 @@ class PlaceRepositoryImpl implements PlaceRepository {
       if (data is Map<String, dynamic> && data['content'] is List) {
         final contentList = data['content'] as List<dynamic>;
         return contentList
-            .map((item) => PlaceModel.fromJson(item as Map<String, dynamic>))
+            .whereType<Map<String, dynamic>>()
+            .map(PlaceModel.fromJson)
             .toList();
       }
 

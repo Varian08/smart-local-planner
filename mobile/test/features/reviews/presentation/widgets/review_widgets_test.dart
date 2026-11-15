@@ -1,8 +1,10 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_local_planner/features/reviews/bloc/review_bloc.dart';
-import 'package:smart_local_planner/features/reviews/bloc/review_state.dart';
 import 'package:smart_local_planner/features/reviews/data/models/review_model.dart';
 import 'package:smart_local_planner/features/reviews/data/models/review_request_model.dart';
 import 'package:smart_local_planner/features/reviews/data/repositories/review_repository.dart';
@@ -13,6 +15,8 @@ import 'package:smart_local_planner/features/reviews/presentation/widgets/star_r
 class FakeReviewRepository implements ReviewRepository {
   List<ReviewModel> reviews = [];
   ReviewModel? createdReview;
+  Object? submitError;
+  Completer<ReviewModel>? submitCompleter;
 
   @override
   Future<List<ReviewModel>> getPlaceReviews(
@@ -29,6 +33,12 @@ class FakeReviewRepository implements ReviewRepository {
     String placeId,
     ReviewRequestModel request,
   ) async {
+    if (submitError != null) {
+      throw submitError!;
+    }
+    if (submitCompleter != null) {
+      return submitCompleter!.future;
+    }
     return createdReview ??
         ReviewModel(
           id: 'new-id',
@@ -215,8 +225,17 @@ void main() {
       expect(find.byType(ReviewFormBottomSheet), findsOneWidget);
     });
 
-    testWidgets('displays inline error banner on ReviewFailure and clears on user input', (tester) async {
-      final repo = FakeReviewRepository();
+    testWidgets('displays inline error banner on 409 conflict and clears on user input or retry', (tester) async {
+      final repo = FakeReviewRepository()
+        ..submitError = DioException(
+          requestOptions: RequestOptions(path: '/places/p-conflict-1/reviews'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/places/p-conflict-1/reviews'),
+            statusCode: 409,
+            data: {'message': 'You have already reviewed this place.'},
+          ),
+          type: DioExceptionType.badResponse,
+        );
       final bloc = ReviewBloc(reviewRepository: repo);
       addTearDown(bloc.close);
 
@@ -237,18 +256,38 @@ void main() {
       // Verify no error banner initially
       expect(find.byKey(const Key('review_form_error_banner')), findsNothing);
 
-      // Simulate conflict error
-      bloc.emit(
-        const ReviewFailure(
-          message: 'You have already reviewed this place.',
-          statusCode: 409,
-        ),
-      );
-      await tester.pump();
+      // Submit through full UI -> BLoC -> Repository flow to trigger 409 failure
+      await tester.tap(find.text('Submit Review'));
+      await tester.pumpAndSettle();
 
       // Error banner must be rendered inline
       expect(find.byKey(const Key('review_form_error_banner')), findsOneWidget);
       expect(find.text('You have already reviewed this place.'), findsOneWidget);
+
+      // Retrying submit immediately clears stale error banner while ReviewSubmitting is in flight
+      final retryCompleter = Completer<ReviewModel>();
+      repo.submitError = null;
+      repo.submitCompleter = retryCompleter;
+
+      await tester.tap(find.text('Submit Review'));
+      await tester.pump();
+      expect(find.byKey(const Key('review_form_error_banner')), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      // Resolve retry and verify sheet dismisses or settles cleanly after another failure
+      retryCompleter.completeError(
+        DioException(
+          requestOptions: RequestOptions(path: '/places/p-conflict-1/reviews'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/places/p-conflict-1/reviews'),
+            statusCode: 409,
+            data: {'message': 'You have already reviewed this place.'},
+          ),
+          type: DioExceptionType.badResponse,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('review_form_error_banner')), findsOneWidget);
 
       // Typing into comment field clears error banner
       await tester.enterText(find.byType(TextField), 'Updating my thoughts...');

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 
 /// Base contract for all Place Events dispatched from UI presentation layer.
@@ -63,5 +65,7 @@ class PlaceNextPageFetched extends PlaceEvent {
 // ---------------------------------------------------------------------------
 /// Triggered on swipe-down pull-to-refresh; resets pagination to page 0 while preserving active filters.
 class PlaceRefreshRequested extends PlaceEvent {
-  const PlaceRefreshRequested();
+  final Completer<void>? completer;
+
+  const PlaceRefreshRequested({this.completer});
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_local_planner/features/places/bloc/place_bloc.dart';
@@ -315,6 +317,25 @@ void main() {
 
       expect(repository.lastQuery, 'Dragon');
       expect(repository.lastCategory, 'CULTURE');
+    },
+  );
+
+  test(
+    'PlaceRefreshRequested completes Completer even when fetched places equal current state',
+    () async {
+      repository.returnPlaces = [_createDummyPlace('1', 'Dragon Bridge')];
+
+      bloc.add(const PlaceFetchStarted());
+      await expectLater(
+        bloc.stream,
+        emitsThrough(isA<PlaceLoaded>()),
+      );
+
+      final completer = Completer<void>();
+      bloc.add(PlaceRefreshRequested(completer: completer));
+
+      await completer.future.timeout(const Duration(seconds: 2));
+      expect(completer.isCompleted, isTrue);
     },
   );
 }

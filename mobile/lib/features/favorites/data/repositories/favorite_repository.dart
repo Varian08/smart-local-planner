@@ -31,7 +31,8 @@ class FavoriteRepositoryImpl implements FavoriteRepository {
       final data = response.data;
       if (data is List) {
         return data
-            .map((item) => PlaceModel.fromJson(item as Map<String, dynamic>))
+            .whereType<Map<String, dynamic>>()
+            .map(PlaceModel.fromJson)
             .toList();
       }
       return [];

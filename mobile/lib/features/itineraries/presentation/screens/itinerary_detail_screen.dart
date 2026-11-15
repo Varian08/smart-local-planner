@@ -60,8 +60,13 @@ class _ItineraryDetailContentState extends State<_ItineraryDetailContent> {
     context.read<ItineraryBloc>().add(LoadItineraryDetail(widget.itineraryId));
   }
 
-  void _onRefresh() {
-    context.read<ItineraryBloc>().add(LoadItineraryDetail(widget.itineraryId));
+  Future<void> _onRefresh() async {
+    final bloc = context.read<ItineraryBloc>();
+    bloc.add(LoadItineraryDetail(widget.itineraryId));
+    await bloc.stream.firstWhere(
+      (s) => s is ItineraryDetailLoaded || s is ItineraryFailure,
+      orElse: () => bloc.state,
+    );
   }
 
   @override
@@ -106,7 +111,7 @@ class _ItineraryDetailContentState extends State<_ItineraryDetailContent> {
       ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
 
     return RefreshIndicator(
-      onRefresh: () async => _onRefresh(),
+      onRefresh: _onRefresh,
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
@@ -160,8 +165,10 @@ class _ItineraryDetailContentState extends State<_ItineraryDetailContent> {
                       if (itinerary.startDate != null)
                         _buildChip(
                           icon: Icons.date_range_rounded,
-                          label:
-                              '${itinerary.startDate} → ${itinerary.endDate ?? ''}',
+                          label: (itinerary.endDate != null &&
+                                  itinerary.endDate!.isNotEmpty)
+                              ? '${itinerary.startDate} → ${itinerary.endDate}'
+                              : itinerary.startDate!,
                           color: Colors.purple,
                         ),
                     ],

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -86,6 +89,23 @@ class TestErrorHandler extends ErrorInterceptorHandler {
   void resolve(Response response) {
     resolvedResponse = response;
   }
+}
+
+class StubHttpClientAdapter implements HttpClientAdapter {
+  final Future<ResponseBody> Function(RequestOptions options) handler;
+
+  StubHttpClientAdapter(this.handler);
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) =>
+      handler(options);
+
+  @override
+  void close({bool force = false}) {}
 }
 
 void main() {
@@ -203,6 +223,118 @@ void main() {
       await interceptor.onError(error, handler);
 
       expect(handler.nextError, equals(error));
+    });
+
+    test('onError on 401 refreshes tokens via refreshDio (200 OK) and retries original request', () async {
+      await storageService.saveTokens(
+        accessToken: 'expired_access_123',
+        refreshToken: 'valid_refresh_123',
+      );
+
+      dynamic capturedRefreshBody;
+      final stubRefreshDio = Dio();
+      stubRefreshDio.httpClientAdapter = StubHttpClientAdapter((options) async {
+        capturedRefreshBody = options.data;
+        return ResponseBody.fromString(
+          jsonEncode({
+            'accessToken': 'rotated_access_456',
+            'refreshToken': 'rotated_refresh_789',
+          }),
+          200,
+          headers: {
+            Headers.contentTypeHeader: [Headers.jsonContentType],
+          },
+        );
+      });
+
+      String? retriedAuthHeader;
+      final retryDio = Dio();
+      retryDio.httpClientAdapter = StubHttpClientAdapter((options) async {
+        retriedAuthHeader = options.headers['Authorization'] as String?;
+        return ResponseBody.fromString(
+          jsonEncode({'items': []}),
+          200,
+          headers: {
+            Headers.contentTypeHeader: [Headers.jsonContentType],
+          },
+        );
+      });
+
+      var sessionExpiredCalled = false;
+      final refreshableInterceptor = AuthInterceptor(
+        storageService: storageService,
+        dio: retryDio,
+        refreshDio: stubRefreshDio,
+        onSessionExpired: () {
+          sessionExpiredCalled = true;
+        },
+      );
+
+      final requestOptions = RequestOptions(path: '/places');
+      final error = DioException(
+        requestOptions: requestOptions,
+        response: Response(
+          requestOptions: requestOptions,
+          statusCode: 401,
+        ),
+      );
+      final handler = TestErrorHandler();
+
+      await refreshableInterceptor.onError(error, handler);
+
+      expect(capturedRefreshBody, equals({'refreshToken': 'valid_refresh_123'}));
+      expect(retriedAuthHeader, equals('Bearer rotated_access_456'));
+      expect(handler.resolvedResponse?.statusCode, equals(200));
+      expect(handler.nextError, isNull);
+      expect(await storageService.getAccessToken(), equals('rotated_access_456'));
+      expect(await storageService.getRefreshToken(), equals('rotated_refresh_789'));
+      expect(sessionExpiredCalled, isFalse);
+    });
+
+    test('onError on 401 clears storage and invokes onSessionExpired when refreshDio returns 401', () async {
+      await storageService.saveTokens(
+        accessToken: 'expired_access',
+        refreshToken: 'revoked_refresh',
+      );
+
+      final failingRefreshDio = Dio();
+      failingRefreshDio.httpClientAdapter = StubHttpClientAdapter((options) async {
+        return ResponseBody.fromString(
+          jsonEncode({'detail': 'Refresh token expired or revoked'}),
+          401,
+          headers: {
+            Headers.contentTypeHeader: [Headers.jsonContentType],
+          },
+        );
+      });
+
+      var sessionExpiredCalled = false;
+      final interceptorWithFailingRefresh = AuthInterceptor(
+        storageService: storageService,
+        dio: dio,
+        refreshDio: failingRefreshDio,
+        onSessionExpired: () {
+          sessionExpiredCalled = true;
+        },
+      );
+
+      final requestOptions = RequestOptions(path: '/favorites');
+      final error = DioException(
+        requestOptions: requestOptions,
+        response: Response(
+          requestOptions: requestOptions,
+          statusCode: 401,
+        ),
+      );
+      final handler = TestErrorHandler();
+
+      await interceptorWithFailingRefresh.onError(error, handler);
+
+      expect(handler.resolvedResponse, isNull);
+      expect(handler.nextError, equals(error));
+      expect(await storageService.getAccessToken(), isNull);
+      expect(await storageService.getRefreshToken(), isNull);
+      expect(sessionExpiredCalled, isTrue);
     });
   });
 }

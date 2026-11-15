@@ -30,6 +30,9 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<String?> getAccessToken() async =>
       authenticated ? 'fake_token' : null;
+
+  @override
+  Future<UserModel?> getCachedUser() async => null;
 }
 
 Widget _buildTestApp({

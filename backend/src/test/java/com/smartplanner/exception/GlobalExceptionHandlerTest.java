@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -23,6 +24,8 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @DisplayName("GlobalExceptionHandler Unit Tests")
 class GlobalExceptionHandlerTest {
@@ -320,6 +323,24 @@ class GlobalExceptionHandlerTest {
         assertThat(body.getStatus()).isEqualTo(409);
         assertThat(body.getCode()).isEqualTo("DATA_CONFLICT");
         assertThat(body.getMessage()).isEqualTo("A data conflict or unique constraint violation occurred.");
+        assertThat(body.getTraceId()).startsWith("req-");
+    }
+
+    @Test
+    @DisplayName("handlePropertyReferenceException returns 400 with sanitized message and no NPE when type is null")
+    void handlePropertyReferenceException_returns400WithSanitizedMessage() {
+        PropertyReferenceException ex = mock(PropertyReferenceException.class);
+        when(ex.getPropertyName()).thenReturn("passwordHash");
+        when(ex.getType()).thenReturn(null);
+
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handlePropertyReferenceException(ex, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        ApiErrorResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(400);
+        assertThat(body.getCode()).isEqualTo("BAD_REQUEST");
+        assertThat(body.getMessage()).isEqualTo("Invalid sort or filter property reference: 'passwordHash'.");
         assertThat(body.getTraceId()).startsWith("req-");
     }
 }

@@ -28,6 +28,9 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   Future<String?> getAccessToken() async => null;
+
+  @override
+  Future<UserModel?> getCachedUser() async => null;
 }
 
 class FakeFavoriteRepository implements FavoriteRepository {

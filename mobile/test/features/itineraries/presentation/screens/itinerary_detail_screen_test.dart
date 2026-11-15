@@ -219,5 +219,28 @@ void main() {
 
       expect(find.text('No places scheduled for Day 2'), findsOneWidget);
     });
+
+    testWidgets('renders single startDate without trailing arrow when endDate is null', (
+      WidgetTester tester,
+    ) async {
+      final repo = FakeItineraryDetailRepository()
+        ..detailToReturn = const ItineraryModel(
+          id: 'itin-single-date',
+          title: 'Day Trip',
+          startDate: '2026-11-20',
+          endDate: null,
+          totalDays: 1,
+        );
+      final bloc = ItineraryBloc(itineraryRepository: repo);
+      addTearDown(bloc.close);
+
+      await tester.pumpWidget(
+        _wrapDetail(itineraryBloc: bloc, itineraryId: 'itin-single-date'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('2026-11-20'), findsOneWidget);
+      expect(find.textContaining('2026-11-20 →'), findsNothing);
+    });
   });
 }

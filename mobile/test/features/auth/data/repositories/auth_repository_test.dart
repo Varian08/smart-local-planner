@@ -133,6 +133,9 @@ void main() {
       expect(await storageService.getAccessToken(), 'access_token_123');
       expect(await storageService.getRefreshToken(), 'refresh_token_456');
       expect(await repository.isAuthenticated(), isTrue);
+      final cachedUser = await repository.getCachedUser();
+      expect(cachedUser?.id, 'usr-1');
+      expect(cachedUser?.fullName, 'Test User');
     });
 
     test('register succeeds and persists tokens', () async {
@@ -165,11 +168,12 @@ void main() {
       expect(await storageService.getRefreshToken(), 'reg_refresh_456');
     });
 
-    test('logout purges stored tokens cleanly', () async {
+    test('logout purges stored tokens and cached user profile cleanly', () async {
       await storageService.saveTokens(
         accessToken: 'access_abc',
         refreshToken: 'refresh_xyz',
       );
+      await storageService.saveUserProfileJson('{"id":"usr-1","fullName":"Test User"}');
 
       fakeDioClient.mockResponse = Response(
         requestOptions: RequestOptions(path: '/auth/logout'),
@@ -181,6 +185,7 @@ void main() {
 
       expect(await storageService.getAccessToken(), isNull);
       expect(await storageService.getRefreshToken(), isNull);
+      expect(await repository.getCachedUser(), isNull);
       expect(await repository.isAuthenticated(), isFalse);
     });
 
@@ -203,6 +208,12 @@ void main() {
 
     test('isAuthenticated returns false when no access token stored', () async {
       expect(await repository.isAuthenticated(), isFalse);
+    });
+
+    test('getCachedUser returns null cleanly when cached payload is malformed', () async {
+      await storageService.saveUserProfileJson('{invalid-json');
+
+      expect(await repository.getCachedUser(), isNull);
     });
   });
 }

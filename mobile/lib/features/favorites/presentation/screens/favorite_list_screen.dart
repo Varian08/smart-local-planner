@@ -61,7 +61,12 @@ class FavoriteListScreen extends StatelessWidget {
 
                 return RefreshIndicator(
                   onRefresh: () async {
-                    context.read<FavoriteBloc>().add(const FavoriteFetchStarted());
+                    final bloc = context.read<FavoriteBloc>();
+                    bloc.add(const FavoriteFetchStarted());
+                    await bloc.stream.firstWhere(
+                      (s) => s is FavoriteLoaded || s is FavoriteFailure,
+                      orElse: () => bloc.state,
+                    );
                   },
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(

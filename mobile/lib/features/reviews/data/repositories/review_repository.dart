@@ -48,20 +48,11 @@ class ReviewRepositoryImpl implements ReviewRepository {
       );
 
       final data = response.data;
-      List<dynamic>? items;
-      if (data is Map<String, dynamic>) {
-        if (data['content'] is List) {
-          items = data['content'] as List<dynamic>;
-        } else if (data['data'] is List) {
-          items = data['data'] as List<dynamic>;
-        }
-      } else if (data is List) {
-        items = data;
-      }
-
-      if (items != null) {
-        return items
-            .map((item) => ReviewModel.fromJson(item as Map<String, dynamic>))
+      if (data is Map<String, dynamic> && data['content'] is List) {
+        final contentList = data['content'] as List<dynamic>;
+        return contentList
+            .whereType<Map<String, dynamic>>()
+            .map(ReviewModel.fromJson)
             .toList();
       }
 

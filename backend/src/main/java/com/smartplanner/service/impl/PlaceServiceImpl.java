@@ -68,7 +68,11 @@ public class PlaceServiceImpl implements PlaceService {
             sortBy = requestedSortBy;
         }
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(direction, sortBy).and(Sort.by(Sort.Direction.ASC, "id"))
+        );
 
         // 3. Compose dynamic query predicates via JPA Specification
         Specification<Place> spec = Specification.where(PlaceSpecification.hasCategory(request.getCategory()))

@@ -9,6 +9,8 @@ import 'package:smart_local_planner/features/auth/data/repositories/auth_reposit
 
 class MockAuthRepository implements AuthRepository {
   bool authenticated = false;
+  UserModel? cachedUser;
+  Object? cachedUserError;
   AuthResponseModel? loginResult;
   AuthResponseModel? registerResult;
   Object? shouldThrow;
@@ -23,6 +25,12 @@ class MockAuthRepository implements AuthRepository {
   @override
   Future<String?> getAccessToken() async {
     return authenticated ? 'fake_access_token' : null;
+  }
+
+  @override
+  Future<UserModel?> getCachedUser() async {
+    if (cachedUserError != null) throw cachedUserError!;
+    return cachedUser;
   }
 
   @override
@@ -88,6 +96,40 @@ void main() {
       ];
 
       expectLater(authBloc.stream, emitsInOrder(expectedStates));
+
+      authBloc.add(const AuthCheckRequested());
+    });
+
+    test('emits AuthAuthenticated with hydrated cachedUser on startup when metadata exists', () async {
+      const restoredUser = UserModel(
+        id: 'u1',
+        email: 'u1@test.com',
+        fullName: 'Restored Traveler',
+        role: 'ROLE_TRAVELER',
+      );
+      mockRepository.authenticated = true;
+      mockRepository.cachedUser = restoredUser;
+
+      expectLater(
+        authBloc.stream,
+        emitsInOrder([
+          const AuthAuthenticated(user: restoredUser),
+        ]),
+      );
+
+      authBloc.add(const AuthCheckRequested());
+    });
+
+    test('emits AuthAuthenticated without user when getCachedUser throws', () async {
+      mockRepository.authenticated = true;
+      mockRepository.cachedUserError = Exception('corrupt storage');
+
+      expectLater(
+        authBloc.stream,
+        emitsInOrder([
+          const AuthAuthenticated(),
+        ]),
+      );
 
       authBloc.add(const AuthCheckRequested());
     });

@@ -127,6 +127,36 @@ class ItineraryListScreen extends StatelessWidget {
                 }
 
                 // -------------------------------------------------------------
+                // State 1b: In-flight Mutation / Background Refresh
+                // -------------------------------------------------------------
+                if (state is ItinerarySubmitting) {
+                  if (state.itineraries.isNotEmpty) {
+                    return Column(
+                      children: [
+                        const LinearProgressIndicator(minHeight: 2),
+                        Expanded(
+                          child: _buildItineraryListView(
+                            context,
+                            state.itineraries,
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  return _buildLoadingSkeleton();
+                }
+
+                // -------------------------------------------------------------
+                // State 1c: Transitional Operation Success
+                // -------------------------------------------------------------
+                if (state is ItineraryOperationSuccess) {
+                  if (state.itineraries.isNotEmpty) {
+                    return _buildItineraryListView(context, state.itineraries);
+                  }
+                  return _buildLoadingSkeleton();
+                }
+
+                // -------------------------------------------------------------
                 // State 2: Error
                 // -------------------------------------------------------------
                 if (state is ItineraryFailure) {
@@ -162,9 +192,12 @@ class ItineraryListScreen extends StatelessWidget {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        context
-            .read<ItineraryBloc>()
-            .add(const LoadItineraries(isRefresh: true));
+        final bloc = context.read<ItineraryBloc>();
+        bloc.add(const LoadItineraries(isRefresh: true));
+        await bloc.stream.firstWhere(
+          (s) => s is ItineraryLoaded || s is ItineraryFailure,
+          orElse: () => bloc.state,
+        );
       },
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(

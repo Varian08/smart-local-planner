@@ -206,7 +206,7 @@ void main() {
   });
 
   group('ItineraryBloc - CreateItinerary', () {
-    test('emits [ItineraryLoading, ItineraryOperationSuccess] on success', () async {
+    test('emits [ItinerarySubmitting, ItineraryOperationSuccess] on success', () async {
       const request = ItineraryRequestModel(title: 'New Trip');
       const created = ItineraryModel(id: 'created-1', title: 'New Trip');
       mockRepository.createdToReturn = created;
@@ -214,7 +214,7 @@ void main() {
       expectLater(
         itineraryBloc.stream,
         emitsInOrder([
-          const ItineraryLoading(),
+          const ItinerarySubmitting(),
           const ItineraryOperationSuccess(
             message: 'Itinerary created successfully',
             itinerary: created,
@@ -225,7 +225,7 @@ void main() {
       itineraryBloc.add(const CreateItinerary(request));
     });
 
-    test('emits [ItineraryLoading, ItineraryFailure] on 400 validation error', () async {
+    test('emits [ItinerarySubmitting, ItineraryFailure] on 400 validation error', () async {
       mockRepository.shouldThrow = DioException(
         requestOptions: RequestOptions(path: '/itineraries'),
         response: Response(
@@ -239,7 +239,7 @@ void main() {
       expectLater(
         itineraryBloc.stream,
         emitsInOrder([
-          const ItineraryLoading(),
+          const ItinerarySubmitting(),
           const ItineraryFailure(
             message: 'Title cannot be blank',
             statusCode: 400,
@@ -252,7 +252,7 @@ void main() {
   });
 
   group('ItineraryBloc - UpdateItinerary', () {
-    test('emits [ItineraryLoading, ItineraryOperationSuccess] on success', () async {
+    test('emits [ItinerarySubmitting, ItineraryOperationSuccess] on success', () async {
       const request = ItineraryRequestModel(title: 'Updated Trip');
       const updated = ItineraryModel(id: 'itin-up', title: 'Updated Trip');
       mockRepository.updatedToReturn = updated;
@@ -260,7 +260,7 @@ void main() {
       expectLater(
         itineraryBloc.stream,
         emitsInOrder([
-          const ItineraryLoading(),
+          const ItinerarySubmitting(),
           const ItineraryOperationSuccess(
             message: 'Itinerary updated successfully',
             itinerary: updated,
@@ -273,7 +273,7 @@ void main() {
       );
     });
 
-    test('emits [ItineraryLoading, ItineraryFailure] on 403 Forbidden', () async {
+    test('emits [ItinerarySubmitting, ItineraryFailure] on 403 Forbidden', () async {
       mockRepository.shouldThrow = DioException(
         requestOptions: RequestOptions(path: '/itineraries/other-user-itin'),
         response: Response(
@@ -286,7 +286,7 @@ void main() {
       expectLater(
         itineraryBloc.stream,
         emitsInOrder([
-          const ItineraryLoading(),
+          const ItinerarySubmitting(),
           const ItineraryFailure(
             message:
                 'You do not have permission to access or modify this itinerary.',
@@ -305,11 +305,11 @@ void main() {
   });
 
   group('ItineraryBloc - DeleteItinerary', () {
-    test('emits [ItineraryLoading, ItineraryOperationSuccess] on success', () async {
+    test('emits [ItinerarySubmitting, ItineraryOperationSuccess] on success', () async {
       expectLater(
         itineraryBloc.stream,
         emitsInOrder([
-          const ItineraryLoading(),
+          const ItinerarySubmitting(),
           const ItineraryOperationSuccess(
             message: 'Itinerary deleted successfully',
             deletedId: 'del-123',
@@ -320,7 +320,7 @@ void main() {
       itineraryBloc.add(const DeleteItinerary('del-123'));
     });
 
-    test('emits [ItineraryLoading, ItineraryFailure] on 401 Unauthorized', () async {
+    test('emits [ItinerarySubmitting, ItineraryFailure] on 401 Unauthorized', () async {
       mockRepository.shouldThrow = DioException(
         requestOptions: RequestOptions(path: '/itineraries/del-123'),
         response: Response(
@@ -333,7 +333,7 @@ void main() {
       expectLater(
         itineraryBloc.stream,
         emitsInOrder([
-          const ItineraryLoading(),
+          const ItinerarySubmitting(),
           const ItineraryFailure(
             message: 'Session expired. Please sign in again.',
             statusCode: 401,
@@ -344,7 +344,7 @@ void main() {
       itineraryBloc.add(const DeleteItinerary('del-123'));
     });
 
-    test('preserves loaded itineraries when delete operation fails', () async {
+    test('preserves loaded itineraries in ItinerarySubmitting and ItineraryFailure when delete fails', () async {
       final mockList = [
         const ItineraryModel(id: 'itin-preserve-1', title: 'Existing Trip'),
       ];
@@ -365,7 +365,7 @@ void main() {
       expectLater(
         itineraryBloc.stream,
         emitsInOrder([
-          const ItineraryLoading(),
+          ItinerarySubmitting(itineraries: mockList),
           ItineraryFailure(
             message: 'Failed to delete itinerary: Exception: Network error during delete',
             itineraries: mockList,

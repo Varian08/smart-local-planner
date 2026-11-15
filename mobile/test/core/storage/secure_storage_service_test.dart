@@ -108,16 +108,25 @@ void main() {
       expect(await storageService.getRefreshToken(), equals('refresh_456'));
     });
 
-    test('clearAll removes both access and refresh tokens', () async {
+    test('clearAll removes tokens and cached user profile', () async {
       await storageService.saveTokens(
         accessToken: 'access_123',
         refreshToken: 'refresh_456',
       );
+      await storageService.saveUserProfileJson('{"id":"u1","fullName":"Tester"}');
 
       await storageService.clearAll();
 
       expect(await storageService.getAccessToken(), isNull);
       expect(await storageService.getRefreshToken(), isNull);
+      expect(await storageService.getUserProfileJson(), isNull);
+    });
+
+    test('saveUserProfileJson and getUserProfileJson persist user metadata', () async {
+      const payload = '{"id":"u1","email":"u@test.com","fullName":"An Chu","role":"ROLE_TRAVELER"}';
+      await storageService.saveUserProfileJson(payload);
+
+      expect(await storageService.getUserProfileJson(), equals(payload));
     });
   });
 }

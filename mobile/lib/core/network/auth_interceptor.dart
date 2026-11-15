@@ -9,11 +9,13 @@ import '../storage/secure_storage_service.dart';
 class AuthInterceptor extends QueuedInterceptor {
   final SecureStorageService storageService;
   final Dio dio;
+  final Dio? refreshDio;
   final void Function()? onSessionExpired;
 
   AuthInterceptor({
     required this.storageService,
     required this.dio,
+    this.refreshDio,
     this.onSessionExpired,
   });
 
@@ -61,21 +63,22 @@ class AuthInterceptor extends QueuedInterceptor {
       }
 
       try {
-        // Perform token refresh using dedicated, non-intercepted request
-        final refreshDio = Dio(
-          BaseOptions(
-            baseUrl: ApiEndpoints.baseUrl,
-            connectTimeout: ApiEndpoints.connectTimeout,
-            receiveTimeout: ApiEndpoints.receiveTimeout,
-            sendTimeout: ApiEndpoints.sendTimeout,
-            headers: const {
-              'Content-Type': 'application/json; charset=UTF-8',
-              'Accept': 'application/json',
-            },
-          ),
-        );
+        // Perform token refresh using injected client (tests) or isolated non-intercepted Dio
+        final refreshClient = refreshDio ??
+            Dio(
+              BaseOptions(
+                baseUrl: ApiEndpoints.baseUrl,
+                connectTimeout: ApiEndpoints.connectTimeout,
+                receiveTimeout: ApiEndpoints.receiveTimeout,
+                sendTimeout: ApiEndpoints.sendTimeout,
+                headers: const {
+                  'Content-Type': 'application/json; charset=UTF-8',
+                  'Accept': 'application/json',
+                },
+              ),
+            );
 
-        final refreshResponse = await refreshDio.post(
+        final refreshResponse = await refreshClient.post(
           ApiEndpoints.refreshToken,
           data: {'refreshToken': refreshToken},
         );

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -84,7 +85,7 @@ class PlaceServiceTest {
                 .build();
 
         Page<Place> placePage = new PageImpl<>(List.of(mockPlace));
-        when(placeRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(placePage);
+        when(placeRepository.findAll(ArgumentMatchers.<Specification<Place>>any(), any(Pageable.class))).thenReturn(placePage);
 
         // When
         Page<PlaceResponse> responsePage = placeService.getPlaces(request);
@@ -97,7 +98,7 @@ class PlaceServiceTest {
         assertThat(response.getName()).isEqualTo("Cầu Rồng");
         assertThat(response.getCategory()).isEqualTo("CULTURE");
 
-        verify(placeRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
+        verify(placeRepository, times(1)).findAll(ArgumentMatchers.<Specification<Place>>any(), any(Pageable.class));
     }
 
     @Test
@@ -172,7 +173,7 @@ class PlaceServiceTest {
 
         Page<Place> placePage = new PageImpl<>(List.of(mockPlace));
         org.mockito.ArgumentCaptor<Pageable> pageableCaptor = org.mockito.ArgumentCaptor.forClass(Pageable.class);
-        when(placeRepository.findAll(any(Specification.class), pageableCaptor.capture())).thenReturn(placePage);
+        when(placeRepository.findAll(ArgumentMatchers.<Specification<Place>>any(), pageableCaptor.capture())).thenReturn(placePage);
 
         // When
         placeService.getPlaces(request);
@@ -194,7 +195,7 @@ class PlaceServiceTest {
 
         Page<Place> placePage = new PageImpl<>(List.of(mockPlace));
         org.mockito.ArgumentCaptor<Pageable> pageableCaptor = org.mockito.ArgumentCaptor.forClass(Pageable.class);
-        when(placeRepository.findAll(any(Specification.class), pageableCaptor.capture())).thenReturn(placePage);
+        when(placeRepository.findAll(ArgumentMatchers.<Specification<Place>>any(), pageableCaptor.capture())).thenReturn(placePage);
 
         // When
         placeService.getPlaces(request);
@@ -216,7 +217,7 @@ class PlaceServiceTest {
 
         Page<Place> placePage = new PageImpl<>(List.of(mockPlace));
         org.mockito.ArgumentCaptor<Pageable> pageableCaptor = org.mockito.ArgumentCaptor.forClass(Pageable.class);
-        when(placeRepository.findAll(any(Specification.class), pageableCaptor.capture())).thenReturn(placePage);
+        when(placeRepository.findAll(ArgumentMatchers.<Specification<Place>>any(), pageableCaptor.capture())).thenReturn(placePage);
 
         // When
         placeService.getPlaces(request);

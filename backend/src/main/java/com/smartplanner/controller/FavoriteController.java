@@ -3,8 +3,8 @@ package com.smartplanner.controller;
 import com.smartplanner.dto.response.MessageResponse;
 import com.smartplanner.dto.response.PlaceResponse;
 import com.smartplanner.entity.User;
-import com.smartplanner.exception.UnauthorizedException;
 import com.smartplanner.service.FavoriteService;
+import com.smartplanner.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -42,7 +42,7 @@ public class FavoriteController {
     public ResponseEntity<List<PlaceResponse>> getUserFavorites(
             @AuthenticationPrincipal User currentUser
     ) {
-        UUID userId = resolveUserId(currentUser);
+        UUID userId = SecurityUtils.resolveUserId(currentUser);
         log.debug("GET /api/v1/favorites requested by user {}", userId);
         List<PlaceResponse> favorites = favoriteService.getUserFavorites(userId);
         return ResponseEntity.ok(favorites);
@@ -60,7 +60,7 @@ public class FavoriteController {
             @AuthenticationPrincipal User currentUser,
             @PathVariable UUID placeId
     ) {
-        UUID userId = resolveUserId(currentUser);
+        UUID userId = SecurityUtils.resolveUserId(currentUser);
         log.info("POST /api/v1/favorites/{} requested by user {}", placeId, userId);
         favoriteService.addFavorite(userId, placeId);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -79,24 +79,9 @@ public class FavoriteController {
             @AuthenticationPrincipal User currentUser,
             @PathVariable UUID placeId
     ) {
-        UUID userId = resolveUserId(currentUser);
+        UUID userId = SecurityUtils.resolveUserId(currentUser);
         log.info("DELETE /api/v1/favorites/{} requested by user {}", placeId, userId);
         favoriteService.removeFavorite(userId, placeId);
         return ResponseEntity.ok(new MessageResponse("Place removed from favorites."));
-    }
-
-    /**
-     * Defensive resolution of authenticated user ID from principal or SecurityContextHolder.
-     */
-    private UUID resolveUserId(User currentUser) {
-        if (currentUser != null && currentUser.getId() != null) {
-            return currentUser.getId();
-        }
-        org.springframework.security.core.Authentication auth =
-                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof User user && user.getId() != null) {
-            return user.getId();
-        }
-        throw new UnauthorizedException("User authentication required.");
     }
 }

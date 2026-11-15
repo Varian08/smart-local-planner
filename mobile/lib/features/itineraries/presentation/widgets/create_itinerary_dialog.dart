@@ -44,7 +44,7 @@ class _CreateItineraryDialogState extends State<CreateItineraryDialog> {
       lastDate: now.add(const Duration(days: 365 * 3)),
     );
 
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         _startDate = picked;
         if (_endDate != null && _endDate!.isBefore(_startDate!)) {
@@ -63,7 +63,7 @@ class _CreateItineraryDialogState extends State<CreateItineraryDialog> {
       lastDate: now.add(const Duration(days: 365 * 3)),
     );
 
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         _endDate = picked;
       });

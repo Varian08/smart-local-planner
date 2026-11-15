@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -314,10 +316,12 @@ class _PlaceListScreenState extends State<PlaceListScreen> {
                     // State 4: Success Loaded List with Pull-to-Refresh & Infinite Scroll
                     if (state is PlaceLoaded) {
                       return RefreshIndicator(
-                        onRefresh: () async {
+                        onRefresh: () {
+                          final completer = Completer<void>();
                           context.read<PlaceBloc>().add(
-                            const PlaceRefreshRequested(),
+                            PlaceRefreshRequested(completer: completer),
                           );
+                          return completer.future;
                         },
                         child: ListView.separated(
                           controller: _scrollController,

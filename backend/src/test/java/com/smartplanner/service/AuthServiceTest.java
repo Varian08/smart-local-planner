@@ -235,6 +235,32 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.refreshToken(request))
                 .isInstanceOf(InvalidTokenException.class)
                 .hasMessageContaining("Invalid or expired refresh token.");
+
+        verify(refreshTokenRepository, times(1)).deleteByUserId(mockUser.getId());
+    }
+
+    @Test
+    @DisplayName("refreshToken() with expired non-revoked token throws InvalidTokenException without purging other sessions")
+    void refreshToken_withExpiredToken_throwsWithoutDeletingUserTokens() {
+        RefreshTokenRequest request = RefreshTokenRequest.builder()
+                .refreshToken("expired-token")
+                .build();
+
+        RefreshToken expiredToken = RefreshToken.builder()
+                .id(UUID.randomUUID())
+                .user(mockUser)
+                .token("expired-token")
+                .expiresAt(OffsetDateTime.now().minusMinutes(5))
+                .revoked(false)
+                .build();
+
+        when(refreshTokenRepository.findByToken("expired-token")).thenReturn(Optional.of(expiredToken));
+
+        assertThatThrownBy(() -> authService.refreshToken(request))
+                .isInstanceOf(InvalidTokenException.class)
+                .hasMessageContaining("Invalid or expired refresh token.");
+
+        verify(refreshTokenRepository, never()).deleteByUserId(any());
     }
 
     @Test

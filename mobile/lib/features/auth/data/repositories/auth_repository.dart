@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
@@ -23,6 +25,9 @@ abstract class AuthRepository {
 
   /// Returns current access token from secure storage.
   Future<String?> getAccessToken();
+
+  /// Restores cached basic user profile metadata from secure storage, if present.
+  Future<UserModel?> getCachedUser();
 }
 
 /// Concrete implementation of AuthRepository.
@@ -36,6 +41,18 @@ class AuthRepositoryImpl implements AuthRepository {
   })  : _dioClient = dioClient ?? DioClient(),
         _storageService = storageService ?? SecureStorageService();
 
+  Future<void> _persistSession(AuthResponseModel authResponse) async {
+    await _storageService.saveAccessToken(authResponse.accessToken);
+    if (authResponse.refreshToken != null) {
+      await _storageService.saveRefreshToken(authResponse.refreshToken!);
+    }
+    if (authResponse.user != null) {
+      await _storageService.saveUserProfileJson(
+        jsonEncode(authResponse.user!.toJson()),
+      );
+    }
+  }
+
   @override
   Future<AuthResponseModel> login(LoginRequestModel request) async {
     try {
@@ -48,10 +65,7 @@ class AuthRepositoryImpl implements AuthRepository {
         response.data as Map<String, dynamic>,
       );
 
-      await _storageService.saveAccessToken(authResponse.accessToken);
-      if (authResponse.refreshToken != null) {
-        await _storageService.saveRefreshToken(authResponse.refreshToken!);
-      }
+      await _persistSession(authResponse);
 
       return authResponse;
     } on DioException {
@@ -71,10 +85,7 @@ class AuthRepositoryImpl implements AuthRepository {
         response.data as Map<String, dynamic>,
       );
 
-      await _storageService.saveAccessToken(authResponse.accessToken);
-      if (authResponse.refreshToken != null) {
-        await _storageService.saveRefreshToken(authResponse.refreshToken!);
-      }
+      await _persistSession(authResponse);
 
       return authResponse;
     } on DioException {
@@ -108,5 +119,22 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<String?> getAccessToken() async {
     return _storageService.getAccessToken();
+  }
+
+  @override
+  Future<UserModel?> getCachedUser() async {
+    final rawJson = await _storageService.getUserProfileJson();
+    if (rawJson == null || rawJson.isEmpty) {
+      return null;
+    }
+    try {
+      final decoded = jsonDecode(rawJson);
+      if (decoded is Map<String, dynamic>) {
+        return UserModel.fromJson(decoded);
+      }
+    } catch (_) {
+      // Ignore corrupted cached metadata cleanly instead of failing session check
+    }
+    return null;
   }
 }

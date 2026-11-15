@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class SecureStorageService {
   static const String keyAccessToken = 'access_token';
   static const String keyRefreshToken = 'refresh_token';
+  static const String keyUserProfile = 'user_profile';
 
   final FlutterSecureStorage _storage;
 
@@ -60,7 +61,17 @@ class SecureStorageService {
     ]);
   }
 
-  /// Clears all stored credentials on logout or revoked sessions.
+  /// Saves serialized user profile metadata securely.
+  Future<void> saveUserProfileJson(String userJson) async {
+    await _storage.write(key: keyUserProfile, value: userJson);
+  }
+
+  /// Retrieves stored serialized user profile metadata, or null if not found.
+  Future<String?> getUserProfileJson() async {
+    return await _storage.read(key: keyUserProfile);
+  }
+
+  /// Clears all stored credentials and cached user metadata on logout or revoked sessions.
   Future<void> clearAll() async {
     await _storage.deleteAll();
   }

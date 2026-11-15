@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../data/models/auth_request_model.dart';
+import '../data/models/auth_response_model.dart';
 import '../data/repositories/auth_repository.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -29,7 +30,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final isAuth = await authRepository.isAuthenticated();
       if (isAuth) {
-        emit(const AuthAuthenticated());
+        UserModel? cachedUser;
+        try {
+          cachedUser = await authRepository.getCachedUser();
+        } catch (_) {
+          cachedUser = null;
+        }
+        emit(AuthAuthenticated(user: cachedUser));
       } else {
         emit(const AuthUnauthenticated());
       }

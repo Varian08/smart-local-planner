@@ -5,21 +5,19 @@ import com.smartplanner.dto.response.ItineraryResponse;
 import com.smartplanner.dto.response.ItinerarySummaryResponse;
 import com.smartplanner.dto.response.PageResponse;
 import com.smartplanner.entity.User;
-import com.smartplanner.exception.UnauthorizedException;
 import com.smartplanner.service.ItineraryService;
+import com.smartplanner.util.PaginationUtils;
+import com.smartplanner.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,6 +42,10 @@ import java.util.UUID;
 @Tag(name = "Itineraries", description = "Personal Multi-Day Travel Planning APIs")
 public class ItineraryController {
 
+    private static final Set<String> ALLOWED_SORT_PROPERTIES = Set.of(
+            "createdAt", "updatedAt", "title", "startDate", "endDate"
+    );
+
     private final ItineraryService itineraryService;
 
     /**
@@ -58,11 +60,12 @@ public class ItineraryController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort
     ) {
-        UUID userId = resolveUserId(currentUser);
+        UUID userId = SecurityUtils.resolveUserId(currentUser);
         log.debug("GET /api/v1/itineraries requested by user {}", userId);
 
-        Sort sorting = parseSort(sort);
-        Pageable pageable = PageRequest.of(page, size, sorting);
+        Pageable pageable = PaginationUtils.buildPageable(
+                page, size, sort, "createdAt", ALLOWED_SORT_PROPERTIES
+        );
         Page<ItinerarySummaryResponse> pageResult = itineraryService.getUserItineraries(userId, pageable);
 
         return ResponseEntity.ok(PageResponse.from(pageResult));
@@ -78,7 +81,7 @@ public class ItineraryController {
             @AuthenticationPrincipal User currentUser,
             @PathVariable UUID id
     ) {
-        UUID userId = resolveUserId(currentUser);
+        UUID userId = SecurityUtils.resolveUserId(currentUser);
         log.debug("GET /api/v1/itineraries/{} requested by user {}", id, userId);
 
         ItineraryResponse response = itineraryService.getItineraryDetail(id, userId);
@@ -95,7 +98,7 @@ public class ItineraryController {
             @AuthenticationPrincipal User currentUser,
             @Valid @RequestBody ItineraryRequest request
     ) {
-        UUID userId = resolveUserId(currentUser);
+        UUID userId = SecurityUtils.resolveUserId(currentUser);
         log.info("POST /api/v1/itineraries requested by user {} with title: {}", userId, request.getTitle());
 
         ItineraryResponse response = itineraryService.createItinerary(userId, request);
@@ -113,7 +116,7 @@ public class ItineraryController {
             @PathVariable UUID id,
             @Valid @RequestBody ItineraryRequest request
     ) {
-        UUID userId = resolveUserId(currentUser);
+        UUID userId = SecurityUtils.resolveUserId(currentUser);
         log.info("PUT /api/v1/itineraries/{} requested by user {}", id, userId);
 
         ItineraryResponse response = itineraryService.updateItinerary(id, userId, request);
@@ -130,42 +133,10 @@ public class ItineraryController {
             @AuthenticationPrincipal User currentUser,
             @PathVariable UUID id
     ) {
-        UUID userId = resolveUserId(currentUser);
+        UUID userId = SecurityUtils.resolveUserId(currentUser);
         log.info("DELETE /api/v1/itineraries/{} requested by user {}", id, userId);
 
         itineraryService.deleteItinerary(id, userId);
         return ResponseEntity.noContent().build();
-    }
-
-    private UUID resolveUserId(User currentUser) {
-        if (currentUser != null && currentUser.getId() != null) {
-            return currentUser.getId();
-        }
-        org.springframework.security.core.Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof User user && user.getId() != null) {
-            return user.getId();
-        }
-        throw new UnauthorizedException("User authentication required.");
-    }
-
-    private static final Set<String> ALLOWED_SORT_PROPERTIES = Set.of(
-            "createdAt", "updatedAt", "title", "startDate", "endDate"
-    );
-
-    private Sort parseSort(String sortParam) {
-        if (sortParam == null || sortParam.isBlank()) {
-            return Sort.by(Sort.Direction.DESC, "createdAt");
-        }
-        String[] parts = sortParam.split(",");
-        String property = parts[0].trim();
-        if (!ALLOWED_SORT_PROPERTIES.contains(property)) {
-            throw new IllegalArgumentException(
-                    "Invalid sort property '" + property + "'. Allowed sort properties: " + ALLOWED_SORT_PROPERTIES
-            );
-        }
-        Sort.Direction direction = (parts.length > 1 && parts[1].trim().equalsIgnoreCase("asc"))
-                ? Sort.Direction.ASC
-                : Sort.Direction.DESC;
-        return Sort.by(direction, property);
     }
 }

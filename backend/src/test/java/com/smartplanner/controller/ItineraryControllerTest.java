@@ -169,6 +169,28 @@ class ItineraryControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/v1/itineraries returns 400 BAD REQUEST when sort direction or page bounds are invalid")
+    void getUserItineraries_Returns400WhenDirectionOrBoundsInvalid() throws Exception {
+        mockMvc.perform(get("/api/v1/itineraries")
+                        .with(user(testUser))
+                        .param("sort", "createdAt,invalidDir"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+
+        mockMvc.perform(get("/api/v1/itineraries")
+                        .with(user(testUser))
+                        .param("page", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+
+        mockMvc.perform(get("/api/v1/itineraries")
+                        .with(user(testUser))
+                        .param("size", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+    }
+
+    @Test
     @DisplayName("GET /api/v1/itineraries/{id} returns 200 OK and full schedule detail")
     void getItineraryDetail_Returns200AndDetail() throws Exception {
         when(itineraryService.getItineraryDetail(itineraryId, userId))

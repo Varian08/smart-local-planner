@@ -130,6 +130,25 @@ class ReviewControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/v1/places/{id}/reviews returns 400 BAD REQUEST when sort direction or page bounds are invalid")
+    void getPlaceReviews_Returns400WhenDirectionOrBoundsInvalid() throws Exception {
+        mockMvc.perform(get("/api/v1/places/" + placeId + "/reviews")
+                        .param("sort", "createdAt,invalidDir"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+
+        mockMvc.perform(get("/api/v1/places/" + placeId + "/reviews")
+                        .param("page", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+
+        mockMvc.perform(get("/api/v1/places/" + placeId + "/reviews")
+                        .param("size", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+    }
+
+    @Test
     @DisplayName("GET /api/v1/places/{id}/reviews returns 404 NOT_FOUND when place does not exist")
     void getPlaceReviews_Returns404NotFound() throws Exception {
         when(reviewService.getPlaceReviews(eq(placeId), any(Pageable.class)))

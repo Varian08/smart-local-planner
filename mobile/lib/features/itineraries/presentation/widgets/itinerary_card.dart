@@ -76,11 +76,15 @@ class ItineraryCard extends StatelessWidget {
                                 color: Colors.grey.shade600,
                               ),
                               const SizedBox(width: 4),
-                              Text(
-                                '${itinerary.startDate} → ${itinerary.endDate}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
+                              Expanded(
+                                child: Text(
+                                  '${itinerary.startDate} → ${itinerary.endDate}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],

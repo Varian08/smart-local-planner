@@ -284,7 +284,7 @@
 #### Response: `200 OK`
 ```json
 {
-  "data": [
+  "content": [
     {
       "id": "c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33",
       "title": "Weekend in Saigon Highlights",
@@ -490,7 +490,7 @@
 #### Response: `200 OK`
 ```json
 {
-  "data": [
+  "content": [
     {
       "id": "e4eebc99-9c0b-4ef8-bb6d-6bb9bd380a55",
       "userId": "a1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",

@@ -84,18 +84,19 @@ void main() {
       expect(fakeDio.lastGetParams?['size'], 10);
     });
 
-    test('parses paginated reviews with data key defensively', () async {
+    test('skips malformed non-map entries in content and returns empty for non-canonical envelope', () async {
       fakeDio.mockGetResponse = Response(
         requestOptions: RequestOptions(path: '/places/p-2/reviews'),
         statusCode: 200,
         data: {
-          'data': [
+          'content': [
             {
               'id': 'rev-2',
               'userId': 'user-2',
               'authorName': 'Bob',
               'rating': 4,
             },
+            'unexpected-string-entry',
           ],
         },
       );
@@ -106,6 +107,18 @@ void main() {
       expect(reviews.first.id, 'rev-2');
       expect(reviews.first.authorName, 'Bob');
       expect(reviews.first.rating, 4);
+
+      fakeDio.mockGetResponse = Response(
+        requestOptions: RequestOptions(path: '/places/p-2/reviews'),
+        statusCode: 200,
+        data: {
+          'data': [
+            {'id': 'legacy-ignored', 'userId': 'u', 'authorName': 'Legacy', 'rating': 3},
+          ],
+        },
+      );
+
+      expect(await repository.getPlaceReviews('p-2'), isEmpty);
     });
 
     test('rethrows DioException on network failure', () async {

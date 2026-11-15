@@ -93,11 +93,17 @@ class PlaceBloc extends Bloc<PlaceEvent, PlaceState> {
     PlaceRefreshRequested event,
     Emitter<PlaceState> emit,
   ) async {
-    await _fetchInitialPage(
-      category: _activeCategory,
-      query: _activeQuery,
-      emit: emit,
-    );
+    try {
+      await _fetchInitialPage(
+        category: _activeCategory,
+        query: _activeQuery,
+        emit: emit,
+      );
+    } finally {
+      if (event.completer != null && !event.completer!.isCompleted) {
+        event.completer!.complete();
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------

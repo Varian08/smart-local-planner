@@ -20,6 +20,17 @@ class ItineraryLoading extends ItineraryState {
   const ItineraryLoading();
 }
 
+/// Emitted when a mutation (create, update, delete) or background reload is in progress,
+/// preserving the existing list on screen to avoid skeleton flashes.
+class ItinerarySubmitting extends ItineraryState {
+  final List<ItineraryModel> itineraries;
+
+  const ItinerarySubmitting({this.itineraries = const []});
+
+  @override
+  List<Object?> get props => [itineraries];
+}
+
 /// Emitted when user's itineraries have been loaded successfully.
 class ItineraryLoaded extends ItineraryState {
   final List<ItineraryModel> itineraries;
@@ -63,15 +74,17 @@ class ItineraryOperationSuccess extends ItineraryState {
   final String message;
   final ItineraryModel? itinerary;
   final String? deletedId;
+  final List<ItineraryModel> itineraries;
 
   const ItineraryOperationSuccess({
     required this.message,
     this.itinerary,
     this.deletedId,
+    this.itineraries = const [],
   });
 
   @override
-  List<Object?> get props => [message, itinerary, deletedId];
+  List<Object?> get props => [message, itinerary, deletedId, itineraries];
 }
 
 /// Emitted when an itinerary operation fails.

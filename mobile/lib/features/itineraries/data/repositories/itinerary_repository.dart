@@ -58,8 +58,8 @@ class ItineraryRepositoryImpl implements ItineraryRepository {
       if (data is Map<String, dynamic> && data['content'] is List) {
         final contentList = data['content'] as List<dynamic>;
         return contentList
-            .map((item) =>
-                ItineraryModel.fromJson(item as Map<String, dynamic>))
+            .whereType<Map<String, dynamic>>()
+            .map(ItineraryModel.fromJson)
             .toList();
       }
 

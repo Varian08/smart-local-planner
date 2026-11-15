@@ -10,7 +10,7 @@
 - **Verification Command:**
   - Windows PowerShell: `Set-Location backend; .\mvnw.cmd test`
   - Linux / macOS: `cd backend && ./mvnw test`
-- **No Unbounded Memory Stores:** In-memory request trackers or rate limiters (e.g. `LoginRateLimitingFilter`) must be upgraded to bounded TTL caches (`maximumSize` + expiry) before production scale—never introduce new unbounded `ConcurrentHashMap` caches.
+- **No Unbounded Memory Stores:** Never introduce new unbounded `ConcurrentHashMap` caches; use bounded TTL caches (`maximumSize` + expiry). *(Note: `LoginRateLimitingFilter` currently uses an in-memory `ConcurrentHashMap` from Sprint 2 and is scheduled for Caffeine TTL cache migration in Sprint 4 — do not flag it on unrelated PRs).*
 
 ---
 
@@ -30,11 +30,11 @@
 ## 3. JSON Contracts, Validation & Sorting Guardrails
 
 1. **Boolean Naming Trap (`is...` Prefix):**
-   - Primitive `boolean isPublic` causes Lombok to generate `isPublic()`, which Jackson serializes as `"public"` instead of `"isPublic"`.
-   - **Mandatory Rule:** Use `Boolean` wrapper fields and annotate with explicit `@JsonProperty("is...")` whenever a JSON contract key starts with `is` (`isPublic`, `isFavorite`, `isActive`). Always pin the exact field name in MockMvc tests using `jsonPath("$.is...")`.
+   - Primitive `boolean isPublic` causes Lombok to generate `isPublic()`, which Jackson serializes as `"public"` instead of `"isPublic"` unless explicitly bound.
+   - **Mandatory Rule:** Whenever a JSON contract key starts with `is` (`isPublic`, `isFavorite`, `isActive`), annotate the field with explicit `@JsonProperty("is...")` and either use a `Boolean` wrapper field or provide explicit getter/setter methods so Jackson never emits `"public"` (see `ItineraryRequest`, `ItineraryResponse`, `ItinerarySummaryResponse`, and `ItineraryDtoJsonTest`). Always pin the exact field name in MockMvc or `JacksonTester` tests.
 2. **Input & Query Validation:**
    - Annotate Request DTOs and query parameter objects with `@Valid` and Jakarta constraints (`@NotBlank`, `@Size`, `@Min`, `@Max`, `@DecimalMin`, `@DecimalMax`).
-   - Whitelist every dynamic sort parameter (`?sort=` / `sortBy`) against an immutable `Set<String>` allowlist (see `PlaceServiceImpl.ALLOWED_SORT_FIELDS`). Never pass raw user strings straight into `Sort.by(...)`.
+   - Whitelist every dynamic sort parameter (`?sort=` / `sortBy`) against an explicit allowlist before querying (see `PlaceServiceImpl.ALLOWED_SORT_FIELDS` in the service layer and `ItineraryController.ALLOWED_SORT_PROPERTIES` / `ReviewController.ALLOWED_SORT_PROPERTIES` in controllers, with `GlobalExceptionHandler` mapping `IllegalArgumentException` and `PropertyReferenceException` to `400 Bad Request`). Never pass unvalidated user strings into `Sort.by(...)`.
 3. **Centralized Error Envelope:**
    - Let exceptions propagate to `GlobalExceptionHandler` (`@RestControllerAdvice`) so all 4xx/5xx responses conform to `ApiErrorResponse` (`timestamp`, `status`, `code`, `message`, `fieldErrors`, `path`, `traceId`). Never leak stack traces or internal SQL details.
 
@@ -44,7 +44,7 @@
 
 - **Migrations (`backend/src/main/resources/db/migration/`):** Inspect existing files (`V1`–`V4`+) first; author only new `V<N+1>__<snake_case>.sql` files. Keep `spring.jpa.hibernate.ddl-auto: validate`.
 - **Enum Storage:** Use `VARCHAR(N) CHECK (...)` constraints instead of PostgreSQL `ENUM` types (established in `V1__init_schema.sql`) so new enum values never require destructive `ALTER TYPE` migrations.
-- **Production Profile (`application-prod.yml`):** Keep secrets env-driven (`JWT_SECRET`, DB credentials, CORS origins), enforce multipart size bounds, graceful shutdown, and disable public Swagger UI in production deployments.
+- **Production Profile (`application-prod.yml`):** Currently enforces `show-sql: false`, HikariCP pool bounds, `WARN` web logging, and fail-fast `${JWT_SECRET}` (inheriting `open-in-view: false` and `ddl-auto: validate` from `application.yml`). *(Sprint 4 deployment hardening will add explicit `springdoc` Swagger UI disablement, multipart upload bounds, and graceful shutdown).*
 
 ---
 

@@ -103,5 +103,6 @@ Testcontainers tests are skipped when Docker is not running (`disabledWithoutDoc
 
 ## 5. Working With an AI Assistant
 
-Paste the system prompt from [DEVELOPER_WORKFLOW_PLAYBOOK.md §5](DEVELOPER_WORKFLOW_PLAYBOOK.md#5-ai-pair-programming-protocol-prompting-guide) at the start of every session, and always review AI-generated diffs before committing.
+- **IDE Agents (Antigravity, Claude Code, Cursor):** Automatically discover root [`AGENTS.md`](../AGENTS.md) / [`CLAUDE.md`](../CLAUDE.md), subsystem rules ([`backend/AGENTS.md`](../backend/AGENTS.md), [`mobile/AGENTS.md`](../mobile/AGENTS.md)), product/design specs ([`mobile/PRODUCT.md`](../mobile/PRODUCT.md), [`mobile/DESIGN.md`](../mobile/DESIGN.md)), and `.agents/skills/`.
+- **Standalone Chat Sessions:** Paste the system prompt from [DEVELOPER_WORKFLOW_PLAYBOOK.md §5](DEVELOPER_WORKFLOW_PLAYBOOK.md#5-ai-pair-programming-protocol-prompting-guide) at the start of the session, and always review AI-generated diffs before committing.
 

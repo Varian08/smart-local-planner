@@ -25,9 +25,9 @@
    - Root `MultiBlocProvider` in `lib/main.dart` owns only cross-app state (`AuthBloc`, `PlaceBloc`, `FavoriteBloc`, `ItineraryBloc`).
    - Detail-scoped or modal workflows (like `ReviewBloc` in `PlaceDetailScreen`) **must** use a route-scoped `BlocProvider` (`create:` per screen instance, with optional injected test BLoC) so state never leaks across different destinations.
 3. **State Preservation on Mutation Errors:**
-   - Submitting and failure states (`*Submitting`, `*Failure`) must carry the currently loaded list/data (`currentItems` — see `ReviewBloc._extractCurrentReviews()`) so failed mutations (`409 Conflict`, validation error, timeout) never wipe visible screen content or cause blank flashes.
+   - Submitting and failure states (`*Submitting`, `*Failure`) must carry the currently loaded list/data (`currentItems` — see `ReviewBloc._extractCurrentReviews()` and `ItineraryBloc._extractCurrentItineraries()`) so failed mutations (`409 Conflict`, validation error, timeout) never wipe visible screen content or cause blank flashes.
 4. **Network & Token Refresh Safety (`lib/core/network/auth_interceptor.dart`):**
-   - Keep JWT refresh logic serialized inside `QueuedInterceptor`. When adding retry/refresh logic, double-check whether `SecureStorageService` already holds a newer access token rotated by an earlier queued request before calling `/auth/refresh-token` again.
+   - Keep JWT refresh logic serialized inside `QueuedInterceptor`. *(Note: `AuthInterceptor` currently serializes `401` refresh calls via `QueuedInterceptor`; adding a pre-refresh double-check against `SecureStorageService` so an already-rotated token is never refreshed twice is a planned Sprint 4 hardening item).*
 
 ---
 
@@ -44,7 +44,7 @@
    - **Text Truncation:** Apply `maxLines` + `TextOverflow.ellipsis` on variable-length titles, addresses, and notes.
    - **Double-Tap Prevention:** Disable submit buttons and show an inline spinner during in-flight requests.
    - **Auth Gating:** Route unauthenticated protected taps (`bookmark`, `create trip`, `write review`) through `AuthGuard` without discarding screen context.
-4. **Design System Compliance:** Match palette, radii, spacing, and typography tokens in [DESIGN.md](DESIGN.md); avoid introducing arbitrary one-off colors when an equivalent token exists.
+4. **Design System Compliance:** Match palette, radii, spacing, and typography tokens in [DESIGN.md](DESIGN.md); avoid introducing arbitrary one-off colors when an equivalent token exists. *(Note: `lib/main.dart` currently seeds Material 3 with `Colors.indigo` and `Colors.grey.shade50` while feature widgets apply the semantic tokens inline; extracting a centralized `lib/core/theme/` token class is scheduled for Sprint 4).*
 
 ---
 

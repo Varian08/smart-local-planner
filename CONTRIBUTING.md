@@ -185,4 +185,5 @@ To navigate the repository's specifications and engineering standards, consult t
 | **API Contracts** | **[API Specification](docs/API_SPECIFICATION.md)** | Single Source of Truth for all REST JSON request/response contracts |
 | **Decisions** | **[Architecture Decision Records](docs/adr/README.md)** | Formal ADR history (ADR-0001 through ADR-0005) |
 | **CI Automation** | **[CI Roadmap & Quality Gates](.github/CI_ROADMAP.md)** | Multi-sprint quality gate evolution, automated Maven & Flutter pipelines |
+| **AI Context Kit** | **[Agent Engineering Guidelines](AGENTS.md)** | Hierarchical `AGENTS.md` rules, `impeccable` product/design specs & `.agents/skills/` |
 | **Security** | **[Security Policy](SECURITY.md)** | Vulnerability disclosure policy, credential isolation & security response SOP |

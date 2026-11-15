@@ -9,9 +9,11 @@
 ```text
 smart-local-planner/
 ├── AGENTS.md                   # You are here (monorepo guardrails & verification)
+├── CLAUDE.md                   # Multi-agent bridge for Claude Code / Cursor / Copilot
+├── .mcp.json                   # Shared Context7 MCP configuration for team IDEs
 ├── backend/                    # Spring Boot 3.3.4, Java 21, Flyway, PostgreSQL 16 -> see backend/AGENTS.md
 ├── mobile/                     # Flutter 3, Dart ^3.13.7, flutter_bloc, Dio -> see mobile/AGENTS.md, PRODUCT.md, DESIGN.md
-├── bruno/                      # Plain-text API test collections
+├── bruno/                      # Plain-text API test collections (16 requests)
 ├── docs/                       # Canonical architecture, API spec, workflow playbook & ADRs
 └── .agents/skills/             # Progressive workflow skills (loaded on demand)
 ```

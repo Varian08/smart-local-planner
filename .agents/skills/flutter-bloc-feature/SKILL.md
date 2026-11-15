@@ -21,7 +21,8 @@ Follow this procedure when building or updating any feature under `mobile/lib/fe
    - **Scoped vs. Global Provider:** Only place app-wide state in root `MultiBlocProvider` (`mobile/lib/main.dart`). Use a route-scoped `BlocProvider` (accepting an optional injected test BLoC, like `PlaceDetailScreen`) for screen-specific or modal workflows (`ReviewBloc`).
 
 3. **Preserve State & Render Modal Errors Inline:**
-   - Carry currently loaded items (`currentItems`) inside `*Submitting` and `*Failure` states so lists never flash empty or vanish when a mutation fails (pattern: `ReviewBloc._extractCurrentReviews()`).
+   - Carry currently loaded items (`currentItems`) inside `*Submitting` and `*Failure` states so lists never flash empty or vanish when a mutation fails (patterns: `ReviewBloc._extractCurrentReviews()`, `ItineraryBloc._extractCurrentItineraries()`).
+   - When a detail screen mutates data that affects parent summary cards (such as submitting a new review in `PlaceDetailScreen`), propagate a boolean mutation flag on pop (`Navigator.of(context).pop(true)`) or refresh the parent BLoC so aggregate ratings/counts stay synchronized.
    - When an error occurs while a bottom sheet or dialog is open, show an inline error banner inside the modal instead of relying solely on background `SnackBar`.
    - Disable primary action buttons and show an inline spinner during pending requests to block duplicate taps.
 

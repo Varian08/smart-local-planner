@@ -224,7 +224,7 @@ flowchart TD
 
 | Dangerous Action | Impact | Prevention & Emergency Recovery |
 | :--- | :--- | :--- |
-| **Modifying historical migrations (`V1`, `V2`, etc.)** | Calculates a different SHA-256 checksum; crashes peer and server Flyway initialization. | **Rule:** Never edit existing SQL migrations. Always create an incremental script (e.g. `V<next_version>__<description>.sql`).<br>**Recovery:** `git restore backend/src/main/resources/db/migration/...` |
+| **Modifying historical migrations (`V1` through `V4`, etc.)** | Calculates a different SHA-256 checksum; crashes peer and server Flyway initialization. | **Rule:** Never edit existing SQL migrations. Always create an incremental script (e.g. `V<next_version>__<description>.sql`).<br>**Recovery:** `git restore backend/src/main/resources/db/migration/...` |
 | **Direct push of application code/db to `develop`/`main`** | Bypasses automated CI quality gates and risks breaking shared codebase. | **Rule:** Always work on `feat/<issue_number>-<desc>` or `fix/...` for code, db migrations, and build configs.<br>**Exemption:** Pure markdown documentation (`.md`) or typo edits can be pushed directly to `develop` after running `git pull origin develop`. |
 | **Committing secrets (`.env`, passwords, JWT secrets, Cloudinary keys)** | Security breach; captured by public/private scanner bots. | **Rule:** `.gitignore` blocks `.env`. Only commit placeholder values in `.env.example`. |
 | **Breaking API Contract silently** | Modifying DTO field names without updating `API_SPECIFICATION.md` breaks mobile app parsing. | **Rule:** API contracts are sacred. Update spec and coordinate with frontend before altering schemas. |
@@ -271,20 +271,23 @@ git merge origin/develop
 
 ## 5. AI Pair-Programming Protocol (Prompting Guide)
 
-When collaborating with AI assistants (e.g. Antigravity, Claude, ChatGPT, Cursor), **provide explicit context upfront** to prevent AI hallucination, dependency drift, or architectural shortcuts.
+When collaborating with AI assistants (e.g. Antigravity, Claude Code, Cursor, ChatGPT), **provide explicit context upfront** to prevent AI hallucination, dependency drift, or architectural shortcuts:
+
+* **Auto-Discovered Context (Antigravity / Claude Code / Cursor):** The repository provides hierarchical agent rules ([`AGENTS.md`](../AGENTS.md), [`backend/AGENTS.md`](../backend/AGENTS.md), [`mobile/AGENTS.md`](../mobile/AGENTS.md), [`CLAUDE.md`](../CLAUDE.md)), product/design specs ([`mobile/PRODUCT.md`](../mobile/PRODUCT.md), [`mobile/DESIGN.md`](../mobile/DESIGN.md)), on-demand workflow skills (`.agents/skills/`), and shared MCP configuration ([`.mcp.json`](../.mcp.json)).
+* **Manual Chat Sessions:** Whenever starting a session in a tool that does not auto-load repository rules, paste the directive below first:
 
 ### Copy-Paste System Prompt for AI Assistant
-Whenever you start a new coding session with an AI, paste this directive first:
 
 ```text
 You are assisting development on the enterprise project 'Smart Local Planner'.
 Before proposing any code, review and adhere strictly to these project standards:
-1. Architecture: Spring Boot 3 (Java 21) layered architecture and Flutter 3 (BLoC pattern).
-2. Database: Flyway migrations are immutable. Never modify V1, V2, V3. Add new migrations incrementally (e.g., V4).
-3. API Contracts: All REST endpoints, status codes, and DTO structures must conform exactly to docs/API_SPECIFICATION.md.
-4. Git Discipline: Changes must belong to an isolated branch 'feat/<issue_number>-<desc>'. Commits must follow Conventional Commits: '<type>(<scope>): [SLP-X] <subject>'. The 'Closes #<issue>' keyword goes in the PR description, never in commits or branch names.
-5. Quality Gate: Code must compile and pass all tests (mvn test and flutter test / flutter analyze) with 0 warnings.
-6. Language: Code, comments, commits, and PRs must be 100% Technical English.
+1. Context Kit: Read AGENTS.md, backend/AGENTS.md, mobile/AGENTS.md, mobile/PRODUCT.md, mobile/DESIGN.md, and .agents/skills/.
+2. Architecture: Spring Boot 3.3.4 (Java 21) 3-layer architecture and Flutter 3.47.8 (feature-first BLoC pattern).
+3. Database: Flyway migrations are immutable. Never modify V1 through V4. Add new migrations incrementally (e.g., V5__...). Prefer VARCHAR + CHECK over PostgreSQL ENUM.
+4. API Contracts: All REST endpoints, status codes, and DTO structures must conform to docs/API_SPECIFICATION.md and bruno/. Use @JsonProperty("is...") on boolean fields prefixed with 'is' and validate dynamic sort fields against an allowlist.
+5. Git Discipline: Changes must belong to an isolated branch '<type>/<issue_number>-<desc>'. Commits must follow Conventional Commits: '<type>(<scope>): [SLP-X] <subject>'. The 'Closes #<issue>' keyword goes in the PR description (or direct-push commit body for pure .md exemptions), never in branch names.
+6. Quality Gate: Code must compile and pass all tests (mvn test and flutter test / flutter analyze) with 0 warnings.
+7. Language: Code, comments, commits, and PRs must be 100% Technical English.
 Always verify that your proposed changes do not break existing test suites.
 ```
 

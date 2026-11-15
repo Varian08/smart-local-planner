@@ -13,23 +13,26 @@ The codebase strictly enforces unidirectional 3-tier decoupling:
 
 ```text
 mobile/
-├── assets/                         # Static vectors, icons, and bundled artwork
+├── AGENTS.md                       # Mobile-scoped AI engineering rules
+├── PRODUCT.md                      # Durable product context & scope boundaries (impeccable schema)
+├── DESIGN.md                       # Material 3 design system tokens & component rules
 ├── lib/
-│   ├── main.dart                   # Application entrypoint & dependency wiring
-│   ├── app/                        # Application Root (Router & Themes - Sprint 2/3)
+│   ├── main.dart                   # Application entrypoint, Root MultiBlocProvider & Material 3 seed theme
 │   ├── core/                       # Shared modules across features
-│   │   ├── constants/              # ApiEndpoints
-│   │   ├── network/                # DioClient (SLA timeouts, logging, error handling)
+│   │   ├── constants/              # ApiEndpoints & timeout constants
+│   │   ├── network/                # DioClient & AuthInterceptor (QueuedInterceptor 401 rotation)
 │   │   ├── storage/                # SecureStorageService (Sprint 2 - Keystore/Keychain)
-│   │   └── widgets/                # Reusable UI widgets
+│   │   └── utils/                  # AuthGuard (guest-to-authenticated action gating)
 │   └── features/                   # Feature-first vertical slices
-│       ├── places/                 # Place Discovery & Search (Sprint 1 Complete)
+│       ├── places/                 # Place Discovery, Search & PlaceDetailScreen (Sprint 1–3 Complete)
 │       │   ├── data/               # PlaceRepository, PlaceModel, PageResponse
 │       │   ├── bloc/               # PlaceBloc, PlaceEvent, PlaceState (Concurrency Hardened)
-│       │   └── presentation/       # PlaceListScreen, PlaceCard, Search & Category Filters
+│       │   └── presentation/       # PlaceListScreen, PlaceDetailScreen, PlaceCard
 │       ├── auth/                   # Registration, Login, Session Management (Sprint 2 Complete)
 │       ├── favorites/              # Personal Bookmarks & FavoriteListScreen (Sprint 2 Complete)
-│       └── itineraries/            # Multi-day Travel Itinerary Management (Sprint 3 Planned)
+│       ├── itineraries/            # Multi-day Travel Itinerary CRUD & Day Timeline (Sprint 3 Complete)
+│       └── reviews/                # Place Reviews, StarRatingWidget & ReviewFormBottomSheet (Sprint 3 Complete)
+├── test/                           # Unit, BLoC, and Widget Test Suites (136 tests)
 └── README.md
 ```
 
@@ -107,6 +110,8 @@ flutter analyze
 
 ## 5. Mobile Engineering Roadmap
 
-* **Sprint 0 (Foundation):** Establish application skeleton, configure Dio client with `AuthInterceptor`, establish Material 3 theme tokens, and scaffold directory structure.
-* **Sprint 1 (The First Vertical Slice):** Implement Place Discovery screen (`PlaceListScreen`), integrate infinite scroll pagination, render Cloudinary-optimized images, and enforce the 4-state UI contract.
-* **Sprint 2 (Authentication & Favorites):** Integrate registration/login screens, secure token storage lifecycle, and implement Bookmark/Favorite toggling.
+* **Sprint 0 (Foundation - Completed):** Establish application skeleton, configure Dio client with `AuthInterceptor`, establish Material 3 theme tokens, and scaffold directory structure.
+* **Sprint 1 (The First Vertical Slice - Completed):** Implement Place Discovery screen (`PlaceListScreen`), integrate infinite scroll pagination, render Cloudinary-optimized images, and enforce the 4-state UI contract.
+* **Sprint 2 (Authentication & Favorites - Completed):** Integrate registration/login screens, secure token storage lifecycle, and implement Bookmark/Favorite toggling.
+* **Sprint 3 (Itineraries & Reviews - Completed):** Implement `ItineraryBloc`, `ItineraryListScreen`, `ItineraryDetailScreen` day-by-day timeline, `CreateItineraryDialog`, `PlaceDetailScreen`, scoped `ReviewBloc`, `ReviewFormBottomSheet` with inline conflict banner, and `PRODUCT.md` / `DESIGN.md` specs.
+* **Sprint 4 (Cloud Release & Production Polish - Active / Next):** Centralize `DESIGN.md` tokens into `lib/core/theme/`, add pre-refresh token double-check in `AuthInterceptor`, integrate Cloudinary media flows, and package release `.apk` artifacts.

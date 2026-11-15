@@ -26,6 +26,7 @@ To ensure architectural integrity and frictionless developer onboarding, all sys
 | **Sprint Workflow** | **[Developer Workflow Playbook](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)** | 7-step sprint lifecycle, branch naming, PR conventions & AI prompting |
 | **Code Quality** | **[Development Guidelines](docs/DEVELOPMENT_GUIDELINES.md)** | Clean Architecture rules, DTO isolation, 4-state UI contract & testing policy |
 | **Governance** | **[Contributing Guidelines](CONTRIBUTING.md)** | Zero-tolerance engineering red lines, Flyway immutability & standard Git branching |
+| **AI Context Kit** | **[Agent Engineering Guidelines](AGENTS.md)** | Hierarchical `AGENTS.md` rules, `impeccable` product/design specs & `.agents/skills/` |
 | **Security** | **[Security Policy](SECURITY.md)** | Vulnerability disclosure, credential protection & threat response protocol |
 
 ---
@@ -55,7 +56,7 @@ The platform follows an iterative **Agile / Scrum delivery lifecycle** partition
 | **Sprint 0** | **Foundation & Scaffolding** | ![Done](https://img.shields.io/badge/Status-Done-brightgreen) | • Docker Compose with PostgreSQL 16 Alpine<br/>• Spring Boot 3 Skeleton & Actuator Health<br/>• Flyway Baseline Schema Migration (V1)<br/>• Flutter SDK, Material 3 Theme & BLoC Setup<br/>• Bruno Collection & GitHub Actions CI Gate |
 | **Sprint 1** | **Place Discovery & Search**<br/>*(First Vertical Slice)* | ![Done](https://img.shields.io/badge/Status-Done-brightgreen) | • `places` JPA Entity, Repository & Spatial Queries<br/>• Search, Category & Price Level Filter APIs<br/>• Infinite Scroll Pagination UI (`PlaceListScreen`)<br/>• Cloudinary Cached Image Component with Fallback |
 | **Sprint 2** | **Authentication & Favorites** | ![Done](https://img.shields.io/badge/Status-Done-brightgreen) | • Stateless JWT Auth Service & Refresh Token Rotation<br/>• Spring Security Filter Chain & Rate Limiting (5 req/min)<br/>• User Favorites Collection CRUD APIs<br/>• Secure Hardware Keystore Integration (`FlutterSecureStorage`)<br/>• Bookmark Toggle with Optimistic UI Sync & `FavoriteListScreen` |
-| **Sprint 3** | **Multi-Day Itineraries & Reviews** | ![Planned](https://img.shields.io/badge/Status-Planned-lightgrey) | • Multi-Day Travel Itinerary CRUD Engine<br/>• Strict Resource Ownership Guards & Access Control<br/>• Itinerary Schedule Timeline & Place Ordering<br/>• Community Reviews & Star Ratings Service |
+| **Sprint 3** | **Multi-Day Itineraries & Reviews** | ![Done](https://img.shields.io/badge/Status-Done-brightgreen) | • Multi-Day Travel Itinerary CRUD & Ownership Guards (`403`)<br/>• Batch Schedule Timeline Replacement & Day-Filter UI<br/>• Community Place Reviews, `409` Conflict Guard & Atomic Rating Sync<br/>• AI Engineering Kit (`AGENTS.md`, `PRODUCT.md`, `DESIGN.md`, Skills) |
 | **Sprint 4** | **Production Release & Cloud Deploy** | ![Planned](https://img.shields.io/badge/Status-Planned-lightgrey) | • Provision Managed Neon.tech Cloud PostgreSQL<br/>• Containerized Backend Deploy on Render.com<br/>• Automated Release APK Packaging via CI/CD<br/>• End-to-End Latency & Offline UX Audit |
 
 ---
@@ -131,6 +132,8 @@ flowchart TD
 
 ```text
 smart-local-planner/
+├── .agents/                           # Progressive AI Engineering Workspace Skills
+│   └── skills/                        # spring-boot-api-contract, flutter-bloc-feature, flyway-migration-safety
 ├── .github/                           # GitHub Enterprise Standards & CI Workflows
 │   ├── ISSUE_TEMPLATE/                # Automated Enterprise Issue Templates (Feature & Bug)
 │   ├── pull_request_template.md       # Standard 3-Section PR Submission Template
@@ -141,17 +144,19 @@ smart-local-planner/
 │       └── ci.yml                     # Dual CI Quality Gate (Spring Boot 3 + Flutter Mobile)
 ├── docs/                              # Architecture Blueprints, API Contracts & ADRs
 │   ├── ARCHITECTURE_BLUEPRINT.md      # Full system technical specification
+│   ├── DEVELOPER_WORKFLOW_PLAYBOOK.md # 7-step sprint SOP, review gates & AI prompting guide
 │   ├── DEVELOPMENT_GUIDELINES.md      # Clean Code standards & Git rules
 │   ├── API_SPECIFICATION.md           # REST API JSON contracts (single source of truth)
 │   ├── ONBOARDING.md                  # Local setup, run & troubleshooting guide
 │   └── adr/                           # Architecture Decision Records 0001 - 0005
 ├── backend/                           # Spring Boot 3 REST API Service (Java 21 LTS)
+│   ├── AGENTS.md                      # Backend-scoped AI engineering guardrails
 │   ├── src/main/java/com/smartplanner/
 │   │   ├── config/                    # SecurityConfig, PasswordEncoderConfig
-│   │   ├── controller/                # REST API Controllers (Auth, Places, Favorites)
-│   │   ├── dto/                       # Immutable Request/Response Record DTOs
-│   │   ├── entity/                    # JPA Database Entities (User, Place, Favorite, RefreshToken)
-│   │   ├── exception/                 # RFC 7807 GlobalExceptionHandler & Domain Exceptions
+│   │   ├── controller/                # REST API Controllers (Auth, Places, Favorites, Itineraries, Reviews)
+│   │   ├── dto/                       # Request & Response DTOs with Jakarta Bean Validation
+│   │   ├── entity/                    # JPA Entities (User, Place, Favorite, Itinerary, ItineraryItem, Review, RefreshToken)
+│   │   ├── exception/                 # GlobalExceptionHandler & Domain Exceptions
 │   │   ├── repository/                # Spring Data JPA Interfaces
 │   │   ├── security/                  # JwtAuthFilter, LoginRateLimitingFilter, JwtEntryPoint
 │   │   ├── service/                   # Domain Business Logic & @Transactional implementations
@@ -165,10 +170,13 @@ smart-local-planner/
 │   ├── src/test/java/com/smartplanner/# Comprehensive Unit & Integration Test Suites
 │   └── pom.xml                        # Maven dependencies & build plugins
 ├── mobile/                            # Flutter Mobile Client (Clean Architecture)
+│   ├── AGENTS.md                      # Mobile-scoped AI engineering guardrails
+│   ├── PRODUCT.md                     # Durable product context & scope boundaries (impeccable schema)
+│   ├── DESIGN.md                      # Material 3 design system tokens & component rules
 │   ├── README.md                      # Dedicated Developer Onboarding Guide for Mobile
 │   ├── lib/
-│   │   ├── core/                      # Network (DioClient + Interceptor), SecureStorage, Utils
-│   │   ├── features/                  # Vertical Feature Modules: auth, places, favorites
+│   │   ├── core/                      # constants/, network/ (DioClient + AuthInterceptor), storage/, utils/ (AuthGuard)
+│   │   ├── features/                  # Vertical Feature Modules: auth, places, favorites, itineraries, reviews
 │   │   │   ├── bloc/                  # flutter_bloc Event, State & BLoC state machines
 │   │   │   ├── data/                  # Feature Repositories, Models & JSON Mappers
 │   │   │   └── presentation/          # Stateless Widgets & Screens (4-State Contract)
@@ -178,7 +186,10 @@ smart-local-planner/
 ├── bruno/                             # Git-native Bruno API Testing Collection
 │   ├── README.md                      # Quickstart guide for executing Bruno requests
 │   ├── bruno.json                     # Collection configuration
-│   └── *.bru                          # Plaintext request files for Auth, Places, Favorites
+│   └── *.bru                          # Plaintext request files for Auth, Places, Favorites, Itineraries, Reviews
+├── AGENTS.md                          # Root Monorepo AI Engineering Guardrails
+├── CLAUDE.md                          # Multi-agent bridge for Claude Code / Cursor / Copilot
+├── .mcp.json                          # Shared MCP Server configuration (Context7)
 ├── docker-compose.yml                 # Local PostgreSQL 16 container definition
 ├── .env.example                       # Environment Variable Template (Zero Secrets Policy)
 ├── .dockerignore                      # Build cache and sensitive file exclusion

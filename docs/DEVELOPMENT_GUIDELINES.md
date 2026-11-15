@@ -137,9 +137,9 @@ All commit messages across the team must follow the industry-standard **Conventi
 | **`chore`** | Maintenance, dependencies, config files, or cleanup | `chore: clean up unused assets and remove legacy template` |
 
 #### Permitted Scopes
-* **Backend:** `auth`, `places`, `itineraries`, `database`, `security`, `flyway`
-* **Mobile:** `ui`, `bloc`, `dio`, `storage`, `theme`, `widget`
-* **Shared/Infrastructure:** `ci`, `docker`, `docs`, `config`
+* **Backend:** `backend`, `auth`, `places`, `favorites`, `itineraries`, `reviews`, `database`, `security`, `flyway`
+* **Mobile:** `mobile`, `ui`, `bloc`, `dio`, `storage`, `theme`, `widget`
+* **Shared/Infrastructure:** `ci`, `docker`, `docs`, `config`, `platform`, `ai`, `api`, `workflow`
 
 #### Best Practices
 * **Imperative mood:** Use "add", "fix", "update" instead of "added", "fixed", "updating".

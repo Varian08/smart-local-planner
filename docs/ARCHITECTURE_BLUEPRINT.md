@@ -108,14 +108,16 @@ flowchart TD
 #### Backend Package Structure:
 ```text
 src/main/java/com/smartplanner/
-├── config/             # CORS configuration, Cloudinary client bean, Swagger OpenAPI config
-├── security/           # JWT Token Provider, AuthTokenFilter, CustomUserDetailsService
-├── common/             # GlobalExceptionHandler, ApiErrorResponse, BaseApiResponse<T>, Constants
-├── auth/               # Controller, Service, DTOs (LoginRequest, RegisterRequest, AuthResponse)
-├── place/              # Controller, Service, Repository, Entity, PlaceResponseDTO
-├── favorite/           # Controller, Service, Repository, Entity (User - Place association)
-├── itinerary/          # Controller, Service, Repository, Entity (User - Itinerary - Items)
-└── review/             # Controller, Service, Repository, Entity, ReviewDTO
+├── config/             # SecurityConfig, PasswordEncoderConfig
+├── controller/         # REST API Controllers (Auth, Place, Favorite, Itinerary, Review)
+├── dto/                # Request & Response DTOs with Jakarta Bean Validation
+├── entity/             # JPA Database Entities (User, Place, Favorite, Itinerary, ItineraryItem, Review, RefreshToken)
+├── exception/          # GlobalExceptionHandler, ApiErrorResponse, Domain Exceptions
+├── repository/         # Spring Data JPA Repositories
+├── security/           # JwtService, JwtAuthenticationFilter, LoginRateLimitingFilter, CustomUserDetailsService
+├── service/            # Service Interfaces & @Transactional Implementations (service/impl/)
+├── specification/      # JPA Criteria Specifications for Dynamic Place Filtering
+└── BackendApplication.java
 ```
 
 ---
@@ -145,17 +147,18 @@ flowchart TD
 #### Mobile Directory Structure:
 ```text
 lib/
-├── app/                # App entry (main.dart), App Router (go_router), Theme (Material 3)
+├── main.dart           # App entrypoint, Root MultiRepositoryProvider & MultiBlocProvider, Material 3 Theme
 ├── core/
-│   ├── network/        # Dio Client, AuthInterceptor (Token Rotation), ErrorMapper
-│   ├── storage/        # Secure Storage Service (Keystore / Keychain Token management)
-│   ├── widgets/        # Shared components: AppButton, AppLoading, ErrorRetry, CachedImage
-│   └── constants/      # AppColors, ApiEndpoints, AssetPaths
+│   ├── constants/      # ApiEndpoints & network timeout constants
+│   ├── network/        # DioClient & AuthInterceptor (QueuedInterceptor 401 Token Rotation)
+│   ├── storage/        # SecureStorageService (Keystore / Keychain Token management)
+│   └── utils/          # AuthGuard (protected action gating with sign-in prompt)
 └── features/           # Feature-First isolated modules
-    ├── auth/           # presentation (login_screen), bloc (auth_bloc), data (auth_repo)
-    ├── places/         # presentation (place_list, place_detail), bloc, data
-    ├── favorites/      # presentation (favorite_list), bloc, data
-    └── itineraries/    # presentation (itinerary_list, plan_editor), bloc, data
+    ├── auth/           # presentation (login_screen, register_screen), bloc (auth_bloc), data (auth_repository)
+    ├── places/         # presentation (place_list_screen, place_detail_screen, place_card), bloc, data
+    ├── favorites/      # presentation (favorite_list_screen), bloc, data
+    ├── itineraries/    # presentation (itinerary_list_screen, itinerary_detail_screen, create_itinerary_dialog), bloc, data
+    └── reviews/        # presentation (review_list_widget, review_form_bottom_sheet, star_rating_widget), bloc, data
 ```
 
 ---
@@ -294,10 +297,11 @@ flowchart TD
 * **Sprint 2: Authentication & Favorites (Completed)**
   - Implement User Registration, Login, Token Rotation, Rate Limiting, and Favorite places management with Optimistic UI rollback.
   - Quality hardening: Single-pass JWT claim verification, JPA delete synchronization, and centralized session expiry handling.
-* **Sprint 3: Personal Itineraries & Reviews (Active / Next)**
-  - Implement multi-day itinerary CRUD with strict resource ownership verification (`403 FORBIDDEN_ACCESS`).
-  - Scheduled timeline management (`itinerary_items`) and place reviews with rating aggregations.
-* **Sprint 4: Cloud Deployment & Release (Planned)**
-  - Provision Neon.tech managed PostgreSQL database.
-  - Deploy Spring Boot backend container to Render.com.
-  - Trigger automated release build pipeline to produce downloadable `.apk` artifacts in GitHub Releases.
+* **Sprint 3: Personal Itineraries & Reviews (Completed)**
+  - Implement multi-day itinerary CRUD with strict resource ownership verification (`403 FORBIDDEN_ACCESS`), batch timeline replacement (`itinerary_items`), and sort property allowlists.
+  - Implement place reviews with duplicate conflict protection (`409 DUPLICATE_RESOURCE`), atomic rating aggregation on `places`, and scoped mobile `ReviewBloc` / inline bottom-sheet error handling.
+  - Establish the AI Engineering Kit (`AGENTS.md`, `mobile/PRODUCT.md`, `mobile/DESIGN.md`, and `.agents/skills/`).
+* **Sprint 4: Cloud Deployment & Release (Active / Next)**
+  - Provision Neon.tech managed PostgreSQL database and harden `application-prod.yml` / bounded rate-limit caching.
+  - Deploy Spring Boot backend container to Render.com via hardened multi-stage `Dockerfile`.
+  - Centralize mobile design tokens (`lib/core/theme/`) and trigger automated release build pipeline to produce downloadable `.apk` artifacts in GitHub Releases.

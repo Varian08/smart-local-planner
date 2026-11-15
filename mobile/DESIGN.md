@@ -130,6 +130,7 @@ Indigo (`Colors.indigo`) leads navigation, search icons, trip routes, and primar
 - Light-first Material 3 (`useMaterial3: true`, `colorSchemeSeed: Colors.indigo`) with `scaffoldBackgroundColor: Colors.grey.shade50` (`#FAFAFA`).
 - Generous card geometry (`20px` outer card radius paired with soft `elevation: 1–2` shadows).
 - Clear 4-state scaffolding (`Loading` skeletons, `Success`, `Empty` with soft-tinted icon badge + primary CTA, `Error` with outlined Retry).
+- **Codebase Token Status:** Extracted from the shipped Sprint 0–3 screens (`lib/main.dart` seeds `Colors.indigo` + `Colors.grey.shade50`; feature screens apply the semantic Indigo/Teal/Amber/Neutral palette inline). Centralizing these constants into `lib/core/theme/` is scheduled for Sprint 4.
 
 ## Colors
 

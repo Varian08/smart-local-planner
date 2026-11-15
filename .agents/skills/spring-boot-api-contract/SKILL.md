@@ -22,8 +22,8 @@ Follow this checklist whenever adding or modifying an endpoint in `backend/` so 
 
 3. **Apply DTO & Query Guardrails:**
    - Validate Request DTOs and `@ParameterObject` query models with Jakarta Bean Validation (`@NotBlank`, `@Size`, `@Min`, `@Max`, `@DecimalMin`, `@DecimalMax`).
-   - **Boolean Field Rule:** For any JSON field prefixed with `is` (e.g. `isPublic`, `isFavorite`), declare a `Boolean` wrapper field (never primitive `boolean`) and add `@JsonProperty("is...")` so Jackson + Lombok never emit `"public"` or `"favorite"`.
-   - **Sort Allowlist:** Validate `?sort=` / `sortBy` strings against an explicit `Set<String>` allowlist (pattern: `PlaceServiceImpl.ALLOWED_SORT_FIELDS`) with a safe default.
+   - **Boolean Field Rule:** For any JSON field prefixed with `is` (e.g. `isPublic`, `isFavorite`), annotate with `@JsonProperty("is...")` and use either a `Boolean` wrapper field or explicit getter/setter methods so Jackson + Lombok never emit `"public"` or `"favorite"` (see `ItineraryRequest`, `ItineraryResponse`, and `ItineraryDtoJsonTest`).
+   - **Sort Allowlist:** Validate `?sort=` / `sortBy` strings against an explicit `Set<String>` allowlist (patterns: `PlaceServiceImpl.ALLOWED_SORT_FIELDS` or `ItineraryController.ALLOWED_SORT_PROPERTIES` / `ReviewController.ALLOWED_SORT_PROPERTIES`) so invalid sort properties return `400 Bad Request`.
    - Let errors flow to `GlobalExceptionHandler` (`@RestControllerAdvice`) to guarantee `ApiErrorResponse` formatting.
 
 4. **Write Controller Contract & Service Tests:**

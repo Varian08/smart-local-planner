@@ -1,0 +1,23 @@
+meta {
+  name: Search & Paginate Places
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/places?page=0&size=10&sort=averageRating,desc
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 0
+  size: 10
+  sort: averageRating,desc
+}
+
+script:post-response {
+  if (res.status === 200 && res.body && res.body.content && res.body.content.length > 0) {
+    bru.setEnvVar("placeId", res.body.content[0].id);
+  }
+}

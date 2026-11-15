@@ -184,9 +184,10 @@ smart-local-planner/
 │   ├── test/                          # Unit, BLoC, and Widget Test Suites
 │   └── pubspec.yaml                   # Flutter Dependencies & Asset Declarations
 ├── bruno/                             # Git-native Bruno API Testing Collection
-│   ├── README.md                      # Quickstart guide for executing Bruno requests
+│   ├── README.md                      # Quickstart guide & request reference catalog
 │   ├── bruno.json                     # Collection configuration
-│   └── *.bru                          # Plaintext request files for Auth, Places, Favorites, Itineraries, Reviews
+│   ├── environments/                  # Environment profiles (local.bru, production.bru)
+│   └── {actuator,auth,places,favorites,itineraries,reviews}/ # Domain-grouped .bru requests
 ├── AGENTS.md                          # Root Monorepo AI Engineering Guardrails
 ├── CLAUDE.md                          # Multi-agent bridge for Claude Code / Cursor / Copilot
 ├── .mcp.json                          # Shared MCP Server configuration (Context7)

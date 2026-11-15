@@ -1,11 +1,11 @@
 meta {
-  name: Itineraries - Create Itinerary with Schedule
+  name: Create Itinerary with Schedule
   type: http
-  seq: 11
+  seq: 2
 }
 
 post {
-  url: http://localhost:8080/api/v1/itineraries
+  url: {{baseUrl}}/api/v1/itineraries
   body: json
   auth: bearer
 }
@@ -30,5 +30,11 @@ body:json {
         "notes": "Morning coffee meeting"
       }
     ]
+  }
+}
+
+script:post-response {
+  if (res.status === 201 && res.body && res.body.id) {
+    bru.setEnvVar("itineraryId", res.body.id);
   }
 }

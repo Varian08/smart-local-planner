@@ -1,0 +1,15 @@
+meta {
+  name: Add Place to Favorites
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/favorites/{{placeId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}

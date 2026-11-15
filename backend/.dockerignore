@@ -3,6 +3,8 @@
 .vscode
 target/
 build/
+src/test/
 *.env
 *.env.local
+*.env.*.local
 *.md

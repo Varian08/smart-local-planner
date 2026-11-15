@@ -1,0 +1,25 @@
+meta {
+  name: Login with Credentials
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "traveler@example.com",
+    "password": "SecurePassword123!"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body) {
+    bru.setEnvVar("accessToken", res.body.accessToken);
+    bru.setEnvVar("refreshToken", res.body.refreshToken);
+  }
+}

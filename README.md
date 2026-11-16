@@ -25,6 +25,7 @@ To ensure architectural integrity and frictionless developer onboarding, all sys
 | **Local Onboarding** | **[Onboarding Runbook](docs/ONBOARDING.md)** | 5-minute local environment setup (JDK 21, Flutter, Docker) & troubleshooting |
 | **Sprint Workflow** | **[Developer Workflow Playbook](docs/DEVELOPER_WORKFLOW_PLAYBOOK.md)** | 7-step sprint lifecycle, branch naming, PR conventions & AI prompting |
 | **Code Quality** | **[Development Guidelines](docs/DEVELOPMENT_GUIDELINES.md)** | Clean Architecture rules, DTO isolation, 4-state UI contract & testing policy |
+| **CI Automation** | **[CI Roadmap & Quality Gates](docs/CI_ROADMAP.md)** | Multi-sprint quality gate evolution, automated Maven & Flutter pipelines |
 | **Governance** | **[Contributing Guidelines](CONTRIBUTING.md)** | Zero-tolerance engineering red lines, Flyway immutability & standard Git branching |
 | **AI Context Kit** | **[Agent Engineering Guidelines](AGENTS.md)** | Hierarchical `AGENTS.md` rules, `impeccable` product/design specs & `.agents/skills/` |
 | **Security** | **[Security Policy](SECURITY.md)** | Vulnerability disclosure, credential protection & threat response protocol |
@@ -136,14 +137,14 @@ smart-local-planner/
 │   └── skills/                        # spring-boot-api-contract, flutter-bloc-feature, flyway-migration-safety
 ├── .github/                           # GitHub Enterprise Standards & CI Workflows
 │   ├── ISSUE_TEMPLATE/                # Automated Enterprise Issue Templates (Feature & Bug)
-│   ├── pull_request_template.md       # Standard 3-Section PR Submission Template
+│   ├── PULL_REQUEST_TEMPLATE.md       # Standard 3-Section PR Submission Template
 │   ├── CODEOWNERS                     # Mandatory Tech Lead Review Boundaries
 │   ├── dependabot.yml                 # Automated Weekly Dependency Vulnerability Updates
-│   ├── CI_ROADMAP.md                  # Evolution Guide & Multi-Sprint Quality Gates
 │   └── workflows/
 │       └── ci.yml                     # Dual CI Quality Gate (Spring Boot 3 + Flutter Mobile)
 ├── docs/                              # Architecture Blueprints, API Contracts & ADRs
 │   ├── ARCHITECTURE_BLUEPRINT.md      # Full system technical specification
+│   ├── CI_ROADMAP.md                  # Evolution Guide & Multi-Sprint Quality Gates
 │   ├── DEVELOPER_WORKFLOW_PLAYBOOK.md # 7-step sprint SOP, review gates & AI prompting guide
 │   ├── DEVELOPMENT_GUIDELINES.md      # Clean Code standards & Git rules
 │   ├── API_SPECIFICATION.md           # REST API JSON contracts (single source of truth)

@@ -141,7 +141,7 @@ git push -u origin <type>/<issue_number>-<short-description>
 
 ### Step 5: Open Pull Request & Merge
 1. **Open PR on GitHub:** Base `develop` ⬅️ Compare `<type>/<issue_number>-<short-description>`.
-2. **Fill the 3-section PR template** (auto-loaded from `.github/pull_request_template.md`):
+2. **Fill the 3-section PR template** (auto-loaded from `.github/PULL_REQUEST_TEMPLATE.md`):
    ```markdown
    ## Summary of Changes
    - **<Component> (`<path/to/files>`):**
@@ -184,6 +184,6 @@ To navigate the repository's specifications and engineering standards, consult t
 | **Code Quality** | **[Development Guidelines](docs/DEVELOPMENT_GUIDELINES.md)** | Clean Architecture rules, DTO isolation, 4-state UI contract & testing policy |
 | **API Contracts** | **[API Specification](docs/API_SPECIFICATION.md)** | Single Source of Truth for all REST JSON request/response contracts |
 | **Decisions** | **[Architecture Decision Records](docs/adr/README.md)** | Formal ADR history (ADR-0001 through ADR-0005) |
-| **CI Automation** | **[CI Roadmap & Quality Gates](.github/CI_ROADMAP.md)** | Multi-sprint quality gate evolution, automated Maven & Flutter pipelines |
+| **CI Automation** | **[CI Roadmap & Quality Gates](docs/CI_ROADMAP.md)** | Multi-sprint quality gate evolution, automated Maven & Flutter pipelines |
 | **AI Context Kit** | **[Agent Engineering Guidelines](AGENTS.md)** | Hierarchical `AGENTS.md` rules, `impeccable` product/design specs & `.agents/skills/` |
 | **Security** | **[Security Policy](SECURITY.md)** | Vulnerability disclosure policy, credential isolation & security response SOP |

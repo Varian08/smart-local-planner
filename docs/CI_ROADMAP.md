@@ -133,7 +133,7 @@ graph TD
 ## Sprint Transition Checklist
 
 When commencing a new Sprint, the Tech Lead performs:
-- [ ] **Step 1:** Review this roadmap specification (`.github/CI_ROADMAP.md`).
+- [ ] **Step 1:** Review this roadmap specification (`docs/CI_ROADMAP.md`).
 - [ ] **Step 2:** Identify the target Sprint quality gate requirements.
 - [ ] **Step 3:** Create a working branch: `feat/ci-sprint-<X>`.
 - [ ] **Step 4:** Incorporate the corresponding job configurations into `.github/workflows/ci.yml`.

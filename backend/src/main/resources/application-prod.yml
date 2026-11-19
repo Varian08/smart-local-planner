@@ -1,17 +1,42 @@
-# Production Configuration Profile
+# Production Configuration Profile (Render.com + Neon.tech)
+
+server:
+  shutdown: graceful
+
 spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+
   jpa:
     show-sql: false
     properties:
       hibernate:
         format_sql: false
+
   datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:smart_local_planner}?sslmode=${DB_SSL_MODE:require}
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
+      maximum-pool-size: 10
+      minimum-idle: 2
       idle-timeout: 300000
       max-lifetime: 1200000
       connection-timeout: 20000
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+# Lock down Swagger OpenAPI in Production
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# Production CORS: Strict environment variable binding without localhost fallback
+cors:
+  allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS}
 
 logging:
   level:

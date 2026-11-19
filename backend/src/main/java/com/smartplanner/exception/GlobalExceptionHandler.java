@@ -16,6 +16,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -478,6 +479,30 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * Handle multipart payload limit exceeded (file or request size exceeds configured limit).
+     * Returns 413 PAYLOAD_TOO_LARGE with ApiErrorResponse envelope per RFC 7231 and Issue #107.
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException ex,
+            HttpServletRequest request
+    ) {
+        String traceId = generateTraceId();
+        log.warn("Max upload size exceeded [traceId={}] on path {}: {}", traceId, request.getRequestURI(), ex.getMessage());
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
+                .code("PAYLOAD_TOO_LARGE")
+                .message("Uploaded file or request payload exceeds the maximum allowed limit.")
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(errorResponse);
     }
 
     /**

@@ -18,6 +18,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -342,5 +343,26 @@ class GlobalExceptionHandlerTest {
         assertThat(body.getCode()).isEqualTo("BAD_REQUEST");
         assertThat(body.getMessage()).isEqualTo("Invalid sort or filter property reference: 'passwordHash'.");
         assertThat(body.getTraceId()).startsWith("req-");
+    }
+
+    @Test
+    @DisplayName("handleMaxUploadSizeExceededException maps to 413 PAYLOAD_TOO_LARGE with code PAYLOAD_TOO_LARGE")
+    void handleMaxUploadSizeExceededException_returns413PayloadTooLarge() {
+        // Given
+        MaxUploadSizeExceededException ex = new MaxUploadSizeExceededException(5 * 1024 * 1024L);
+
+        // When
+        ResponseEntity<ApiErrorResponse> response = exceptionHandler.handleMaxUploadSizeExceededException(ex, request);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE);
+        ApiErrorResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(413);
+        assertThat(body.getCode()).isEqualTo("PAYLOAD_TOO_LARGE");
+        assertThat(body.getMessage()).isEqualTo("Uploaded file or request payload exceeds the maximum allowed limit.");
+        assertThat(body.getPath()).isEqualTo("/api/v1/places");
+        assertThat(body.getTraceId()).startsWith("req-");
+        assertThat(body.getTimestamp()).isNotNull();
     }
 }
